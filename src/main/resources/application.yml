@@ -1,0 +1,48 @@
+#log setting
+logging:
+  level:
+    com:
+      USWRandomChat:
+        backend: debug
+
+#H2
+spring:
+  datasource:
+    url: jdbc:h2:tcp://localhost/~/swchat
+    username: sa
+    passsword:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      #create 애플리케이션 실행 시점에 테이블을 drop 하고, 다시 생성한다.
+      #none은 drop 안함
+      ddl-auto: create
+    properties:
+      hibernate:
+        #      show_sql: true
+        format_sql: true
+
+logging.level:
+  org.hibernate.SQL: debug
+  org.hibernate.type: trace
+
+#mySQL
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #    각자 PC에 만들어놓은 Database이름을 써야 합니다.
+    url: jdbc:mysql://localhost:3306/db_randomchat?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    #    mysql에 생성한 사용자 계정 정보를 써야 합니다.
+    username: root
+    password:
+  thymeleaf:
+    cache: false
+
+# spring data jpa setting
+jpa:
+  database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  open-in-view: false
+  show-sql: true
+  hibernate:
+    ddl-auto: update
