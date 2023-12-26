@@ -5,18 +5,22 @@ import com.USWRandomChat.backend.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MemberService {
 
+    //쓰기 발생 시 @Transactional 붙이기
     private final MemberRepository memberRepository;
 
     //회원가입
-    public void save(MemberDTO signupDTO) {
+    @Transactional
+    public Long save(MemberDTO signupDTO) {
         Member member = Member.builder()
                 .memberId(signupDTO.getMemberId())
                 .password(signupDTO.getPassword())
@@ -24,6 +28,7 @@ public class MemberService {
                 .nickname(signupDTO.getNickname())
                 .build();
         memberRepository.save(member);
+        return member.getId();
     }
 
     //전체 조회
@@ -33,20 +38,20 @@ public class MemberService {
 
     //id 조회
     public Member findById(Long id){
-        Optional<Member> memberId = memberRepository.findById(id);
-        if (memberId.isPresent()) {
+        Optional<Member> byId = memberRepository.findById(id);
+        if (byId.isPresent()) {
             //조회 성공
-            return memberId.get();
+            return byId.get();
         } else {
             //조회 실패
-            return memberId.orElse(null);
+            return byId.orElse(null);
         }
     }
 
     //중복 검증 memberId
     public boolean validateDuplicateMemberId(MemberDTO memberDTO) {
-        Optional<Member> findMemberId = memberRepository.findByMemberId(memberDTO.getMemberId());
-        if (findMemberId.isPresent()) {
+        Optional<Member> byMemberId = memberRepository.findByMemberId(memberDTO.getMemberId());
+        if (byMemberId.isPresent()) {
             //중복
             return true;
         } else {
@@ -55,10 +60,10 @@ public class MemberService {
         }
     }
 
-    //중복 검증 memberNickname
+    //중복 검증 nickname
     public boolean validateDuplicateMemberNickname(MemberDTO memberDTO) {
-        Optional<Member> findNickname = memberRepository.findByNickname(memberDTO.getNickname());
-        if (findNickname.isPresent()) {
+        Optional<Member> byNickname = memberRepository.findByNickname(memberDTO.getNickname());
+        if (byNickname.isPresent()) {
             //중복
             return true;
         } else {
