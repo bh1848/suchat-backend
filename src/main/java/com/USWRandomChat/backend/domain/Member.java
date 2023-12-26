@@ -38,4 +38,19 @@ public class Member {
     private String mbti;
 
     private String intro;
+
+    @Builder
+    public Member(String memberId, String password, String email, String nickname) {
+        this.memberId = memberId;
+        this.password = password;
+        this.email = email;
+        this.nickname = nickname;
+    }
+
+    @Builder
+    public Member(String mbti, String intro) {
+        this.mbti = mbti;
+        this.intro = intro;
+    }
 }
+
