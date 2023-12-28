@@ -46,17 +46,15 @@ public class Member {
     private List<Authority> roles = new ArrayList<>();
 
     @Builder
-    public Member(String memberId, String password, String email, String nickname) {
+    public Member(Long id, String memberId, String password, String email, String nickname, String mbti, String intro, List<Authority> roles) {
+        this.id = id;
         this.memberId = memberId;
         this.password = password;
         this.email = email;
         this.nickname = nickname;
-    }
-
-    @Builder
-    public Member(String mbti, String intro) {
         this.mbti = mbti;
         this.intro = intro;
+        this.roles = roles;
     }
 
     public void setRoles(List<Authority> role) {
