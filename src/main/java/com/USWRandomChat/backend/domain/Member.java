@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -30,7 +32,7 @@ public class Member {
     @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "비밀번호는 알파벳 대소문자, 숫자만 사용 가능합니다.")
     private String password;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String email;
 
     private String nickname;
@@ -38,6 +40,10 @@ public class Member {
     private String mbti;
 
     private String intro;
+
+    @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Authority> roles = new ArrayList<>();
 
     @Builder
     public Member(String memberId, String password, String email, String nickname) {
@@ -51,6 +57,11 @@ public class Member {
     public Member(String mbti, String intro) {
         this.mbti = mbti;
         this.intro = intro;
+    }
+
+    public void setRoles(List<Authority> role) {
+        this.roles = role;
+        role.forEach(o -> o.setMember(this));
     }
 }
 
