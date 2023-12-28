@@ -27,6 +27,12 @@ logging.level:
   org.hibernate.SQL: debug
   org.hibernate.type: trace
 
+#jwt.secret.key 값
+jwt:
+  secret:
+    key: FC7DEE6E587E7E7EDE7A8E7DEEE6E6EF7E6DE7E7E6E76E7E6E6E7E76E6DEEF7
+
+
 ##mySQL
 #spring:
 #  datasource:
