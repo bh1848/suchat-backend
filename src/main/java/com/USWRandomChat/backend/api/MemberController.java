@@ -2,12 +2,16 @@ package com.USWRandomChat.backend.api;
 
 import com.USWRandomChat.backend.domain.Member;
 import com.USWRandomChat.backend.memberDTO.MemberDTO;
+import com.USWRandomChat.backend.memberDTO.SignRequest;
+import com.USWRandomChat.backend.memberDTO.SignResponse;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
 import com.USWRandomChat.backend.response.SingleResponse;
 import com.USWRandomChat.backend.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,19 +25,27 @@ public class MemberController {
     private final ResponseService responseService;
 
     //회원가입
-    @PostMapping("/sign-up")
-    public SingleResponse<Member> signUp (@RequestBody @Validated MemberDTO request) {
-        log.info("MemberController.save");
-        log.debug("memberDTO = {}", request);
-        try {
-            Long id = memberService.save(request);
-            Member savedMember = memberService.findById(id);
+    @PostMapping(value = "/sign-up")
+    public ResponseEntity<Boolean> signUp(@RequestBody SignRequest request) throws Exception {
+        return new ResponseEntity<>(memberService.signUp(request), HttpStatus.OK);
+    }
 
-            return responseService.getSingleResponse(savedMember);
-        } catch (RuntimeException e) {
-            log.error("회원저장 중 오류 발생: {}", e.getMessage());
-            return null;
-        }
+    //로그인
+    @PostMapping(value = "/sign-in")
+    public ResponseEntity<SignResponse> signIn(@RequestBody SignRequest request) throws Exception {
+        return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
+    }
+
+    //user인증 확인
+    @GetMapping(value = "/user/get")
+    public ResponseEntity<SignResponse> getUser(@RequestParam String memberId) throws Exception {
+        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
+    }
+
+    //admin인증 확인
+    @PostMapping(value = "/admin/get")
+    public ResponseEntity<SignResponse> getUserForAdmin(@RequestParam String memberId) throws Exception {
+        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
     }
 
     //전체 조회

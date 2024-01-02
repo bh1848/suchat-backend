@@ -15,7 +15,6 @@ public class SignResponse {
 
     private Long id;
     private String memberId;
-    private String password;
     private String email;
     private String nickname;
     private List<Authority> roles = new ArrayList<>();

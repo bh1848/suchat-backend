@@ -35,7 +35,8 @@ public class MemberService {
         try {
             Member member = Member.builder()
                     .memberId(request.getMemberId())
-                    .password(request.getPassword())
+                    //password 암호화
+                    .password(passwordEncoder.encode(request.getPassword()))
                     .email(request.getEmail())
                     .nickname(request.getNickname())
                     .build();
