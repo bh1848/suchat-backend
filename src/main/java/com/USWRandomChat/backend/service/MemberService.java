@@ -9,6 +9,7 @@ import com.USWRandomChat.backend.repository.MemberRepository;
 import com.USWRandomChat.backend.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,25 +29,26 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final JavaMailSender javaMailSender;
 
     //회원가입
     @Transactional
-    public boolean signUp(SignRequest request) throws Exception {
-        try {
-            Member member = Member.builder()
-                    .memberId(request.getMemberId())
-                    //password 암호화
-                    .password(passwordEncoder.encode(request.getPassword()))
-                    .email(request.getEmail())
-                    .nickname(request.getNickname())
-                    .build();
+    public Member signup(SignRequest request){
 
-            member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));
-            memberRepository.save(member);
-        } catch (Exception e) {
-            log.error("잘못된 요청입니다.{}", e.getMessage());
-        }
-        return true;
+        Member member = Member.builder().memberId(request.getMemberId())
+                //password 암호화
+                .password(passwordEncoder.encode(request.getPassword()))
+                .email(request.getEmail())
+                .nickname(request.getNickname())
+                .build();
+
+        member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));
+        memberRepository.save(member);
+
+        //이메일 인증
+        Member savedMemberEmail = memberRepository.findByEmail(member.getEmail());
+
+        return savedMemberEmail;
     }
 
     //로그인
@@ -70,6 +72,7 @@ public class MemberService {
                 .build();
     }
 
+    //user 인증
     public SignResponse getMember(String memberId) throws Exception {
         Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다.")) ;

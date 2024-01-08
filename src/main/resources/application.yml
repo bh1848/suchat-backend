@@ -12,7 +12,21 @@ spring:
     username: sa
     passsword:
     driver-class-name: org.h2.Driver
-
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: nkdy50315031@gmail.com
+    password: zczxsylqqelzckrq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   jpa:
     hibernate:
       #create 애플리케이션 실행 시점에 테이블을 drop 하고, 다시 생성한다.
@@ -31,7 +45,6 @@ logging.level:
 jwt:
   secret:
     key: FC7DEE6E587E7E7EDE7A8E7DEEE6E6EF7E6DE7E7E6E76E7E6E6E7E76E6DEEF7
-
 
 ##mySQL
 #spring:

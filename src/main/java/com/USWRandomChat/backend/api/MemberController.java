@@ -6,14 +6,16 @@ import com.USWRandomChat.backend.memberDTO.SignRequest;
 import com.USWRandomChat.backend.memberDTO.SignResponse;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
-import com.USWRandomChat.backend.response.SingleResponse;
+import com.USWRandomChat.backend.service.EmailService;
 import com.USWRandomChat.backend.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.mail.MessagingException;
+import javax.validation.Valid;
 
 
 @Slf4j
@@ -21,13 +23,33 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/member")
 @RequiredArgsConstructor
 public class MemberController {
+
     private final MemberService memberService;
     private final ResponseService responseService;
+    private final EmailService emailService;
 
     //회원가입
     @PostMapping(value = "/sign-up")
-    public ResponseEntity<Boolean> signUp(@RequestBody SignRequest request) throws Exception {
-        return new ResponseEntity<>(memberService.signUp(request), HttpStatus.OK);
+    public ResponseEntity<String> signUp(@RequestBody SignRequest request) throws MessagingException {
+        Member findMember = memberService.signup(request);
+        return new ResponseEntity<>(emailService.createEmailToken(findMember), HttpStatus.OK);
+    }
+
+    //이메일 인증 확인
+    @GetMapping("/confirm-email")
+    public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {
+        try {
+            return new ResponseEntity<>(emailService.verifyEmail(uuid), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("DATABASE_ERROR - 토큰 에러: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
+        }
+    }
+
+    //이메일 재인증
+    @PostMapping("/reconfirm-email")
+    public ResponseEntity<String> reconfirmEmail(@RequestParam String uuid) throws MessagingException {
+        return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
 
     //로그인
@@ -78,4 +100,5 @@ public class MemberController {
             return false;
         }
     }
+
 }

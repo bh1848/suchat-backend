@@ -30,6 +30,8 @@ public class Member {
 //    @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "비밀번호는 알파벳 대소문자, 숫자만 사용 가능합니다.")
     private String password;
 
+    private boolean isEmailVerified;
+
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -47,5 +49,9 @@ public class Member {
         this.roles = role;
         role.forEach(o -> o.setMember(this));
     }
-}
 
+    public void setVerified() {
+        this.isEmailVerified=true;
+    }
+
+}
