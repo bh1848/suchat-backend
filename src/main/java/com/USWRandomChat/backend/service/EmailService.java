@@ -123,6 +123,7 @@ public class EmailService {
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         helper.setTo(member.getEmail());
         helper.setSubject("회원가입 이메일 인증");
+        helper.setFrom("nkdy50315031@gmail.com");
 
         String emailContent
                 = "<a href='" + BASE_URL + CONFIRM_EMAIL_PATH + "?uuid=" + emailToken.getUuid() + "'>이메일 확인</a>";
