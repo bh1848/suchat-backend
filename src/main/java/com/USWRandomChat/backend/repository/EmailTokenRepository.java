@@ -13,4 +13,5 @@ public interface EmailTokenRepository extends JpaRepository<EmailToken, String>{
     Optional<EmailToken> findByUuid(String uuid);
     Optional<EmailToken> findById(String uuid);
     List<EmailToken> findByExpirationDateBeforeAndExpiredIsFalse(LocalDateTime expirationTime);
+    void deleteByUuid(String uuid);
 }

@@ -51,6 +51,8 @@ public class EmailService {
             //사용 완료
             findEmailToken.setTokenToUsed();
 
+            deleteEmailTokenByUuid(uuid);
+
             if (findMember.isPresent()) {
                 Member member = findMember.get();
                 member.setVerified();
@@ -145,6 +147,11 @@ public class EmailService {
                 return new Exception("잘못된 토큰 요청입니다.");
             }
         });
+    }
+
+    //이메일 인증완료시 데이터베이스에서 삭제
+    public void deleteEmailTokenByUuid(String uuid) {
+        emailTokenRepository.deleteByUuid(uuid);
     }
 
 }
