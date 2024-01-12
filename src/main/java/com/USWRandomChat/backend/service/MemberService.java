@@ -5,11 +5,13 @@ import com.USWRandomChat.backend.domain.Member;
 import com.USWRandomChat.backend.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.memberDTO.SignRequest;
 import com.USWRandomChat.backend.memberDTO.SignResponse;
+import com.USWRandomChat.backend.repository.JwtRepository;
 import com.USWRandomChat.backend.repository.MemberRepository;
-import com.USWRandomChat.backend.security.JwtProvider;
+import com.USWRandomChat.backend.security.jwt.Jwt;
+import com.USWRandomChat.backend.security.jwt.JwtDto;
+import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,21 +22,18 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class MemberService {
 
-    //쓰기 발생 시 @Transactional 붙이기
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
-    private final JavaMailSender javaMailSender;
+    private final JwtRepository jwtRepository;
 
     //회원가입
-    @Transactional
-    public Member signup(SignRequest request){
-
+    public Member signUp(SignRequest request) {
         Member member = Member.builder().memberId(request.getMemberId())
                 //password 암호화
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -53,14 +52,18 @@ public class MemberService {
 
     //로그인
     public SignResponse signIn(SignRequest request) throws Exception {
-        //ID 비교
         Member member = memberRepository.findByMemberId(request.getMemberId()).orElseThrow(() ->
-                new BadCredentialsException("잘못된 계정 정보입니다."));
+                new BadCredentialsException("잘못된 계정정보입니다."));
 
-        //password 비교
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
-            throw new BadCredentialsException("잘못된 계정 정보입니다.");
+            throw new BadCredentialsException("잘못된 계정정보입니다.");
         }
+
+        //로그인 시 리프레시 토큰 생성
+        Jwt refreshToken = jwtProvider.createRefreshToken(member);
+
+        //리프레시 토큰 테이블에 저장
+        jwtRepository.save(refreshToken);
 
         return SignResponse.builder()
                 .id(member.getId())
@@ -68,14 +71,37 @@ public class MemberService {
                 .email(member.getEmail())
                 .nickname(member.getNickname())
                 .roles(member.getRoles())
-                .token(jwtProvider.createToken(member.getMemberId(), member.getRoles()))
+                .token(JwtDto.builder()
+                        .access_token(jwtProvider.createAccessToken(member.getMemberId(), member.getRoles()))
+                        .refresh_token(refreshToken.getRefreshToken())
+                        .build())
                 .build();
+    }
+
+    //자동 로그인
+    public JwtDto refreshAccessToken(JwtDto token) throws Exception {
+        String memberId = jwtProvider.getMemberId(token.getAccess_token());
+        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() ->
+                new BadCredentialsException("잘못된 계정 정보입니다."));
+
+        Jwt refreshToken = jwtProvider.validateRefreshToken(member, token.getRefresh_token());
+
+        if (refreshToken != null) {
+            //리프레시 토큰이 유효하면 새로운 access, 리프레시 토큰 생성
+            return JwtDto.builder()
+                    .access_token(jwtProvider.createAccessToken(memberId, member.getRoles()))
+                    .refresh_token(jwtProvider.createRefreshToken(member).getRefreshToken())
+                    .build();
+        } else {
+            //리프레시 토큰이 만료되면 예외
+            throw new BadCredentialsException("리프레시 토큰 만료. 로그인을 해주세요");
+        }
     }
 
     //user 인증
     public SignResponse getMember(String memberId) throws Exception {
         Member member = memberRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다.")) ;
+                .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
         return new SignResponse(member);
     }
 
@@ -99,29 +125,21 @@ public class MemberService {
     //중복 검증 memberId
     public boolean validateDuplicateMemberId(MemberDTO memberDTO) {
         Optional<Member> byMemberId = memberRepository.findByMemberId(memberDTO.getMemberId());
-        if (byMemberId.isPresent()) {
-            //중복
-            return true;
-        } else {
-            //사용가능한 ID
-            return false;
-        }
+        //중복
+        //사용 가능한 ID
+        return byMemberId.isPresent();
     }
 
     //중복 검증 nickname
     public boolean validateDuplicateMemberNickname(MemberDTO memberDTO) {
         Optional<Member> byNickname = memberRepository.findByNickname(memberDTO.getNickname());
-        if (byNickname.isPresent()) {
-            //중복
-            return true;
-        } else {
-            //사용가능한 ID
-            return false;
-        }
+        //중복
+        //사용 가능한 ID
+        return byNickname.isPresent();
     }
 
     //해당 토큰 유저 삭제
-    public void deleteFromId(Long id){
+    public void deleteFromId(Long id) {
         memberRepository.deleteById(id);
     }
 }

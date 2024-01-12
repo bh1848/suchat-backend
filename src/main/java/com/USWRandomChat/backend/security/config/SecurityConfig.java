@@ -1,5 +1,7 @@
-package com.USWRandomChat.backend.security;
+package com.USWRandomChat.backend.security.config;
 
+import com.USWRandomChat.backend.security.jwt.JwtAuthenticationFilter;
+import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +34,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
                 //ID, Password 문자열을 Base64로 인코딩하여 전달하는 구조
                 .httpBasic().disable()
@@ -53,13 +56,13 @@ public class SecurityConfig {
                             c.configurationSource(source);
                         }
                 )
-                // Spring Security 세션 정책: 세션 생성 및 사용 x
+                //Spring Security 세션 정책: 세션 생성 및 사용 x
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 //조건별로 요청 허용/제한 설정
                 .authorizeRequests()
                 //회원가입과 로그인은 모두 승인
-                .antMatchers("/member/sign-up", "/member/sign-in", "/member/confirm-email", "/member/reconfirm-email").permitAll()
+                .antMatchers("/member/sign-up", "/member/sign-in", "/member/confirm-email", "/member/reconfirm-email", "/member/auto-sign-in").permitAll()
                 // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저만 허용
                 .antMatchers("/member/admin/**").hasRole("ADMIN")
                 // /user으로 시작하는 요청은 USER 권한이 있는 유저만 허용

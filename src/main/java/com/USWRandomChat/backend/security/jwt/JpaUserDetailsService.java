@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.security;
+package com.USWRandomChat.backend.security.jwt;
 
 import com.USWRandomChat.backend.domain.Member;
 import com.USWRandomChat.backend.repository.MemberRepository;
@@ -18,7 +18,7 @@ public class JpaUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         Member member = memberRepository.findByMemberId(username).orElseThrow(
-                ()-> new UsernameNotFoundException("Invalid authentication")
+                () -> new UsernameNotFoundException("Invalid authentication!")
         );
 
         return new CustomUserDetails(member);

@@ -1,16 +1,18 @@
 package com.USWRandomChat.backend.domain;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Table(name = "member_table")
 public class Member {
@@ -51,7 +53,6 @@ public class Member {
     }
 
     public void setVerified() {
-        this.isEmailVerified=true;
+        this.isEmailVerified = true;
     }
-
 }

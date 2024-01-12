@@ -1,6 +1,7 @@
-package com.USWRandomChat.backend.security;
+package com.USWRandomChat.backend.security.jwt;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -11,18 +12,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/*
-    Jwt가 유효성을 검증하는 Filter
-*/
+/**
+ * Jwt가 유효성을 검증하는 Filter
+ */
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtProvider jwtProvider;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = jwtProvider.resolveToken(request);
 
-        if (token != null && jwtProvider.validationToken(token)) {
+        if (token != null && jwtProvider.validateAccessToken(token)) {
             //access token 확인
             token = token.split(" ")[1].trim();
             Authentication auth = jwtProvider.getAuthentication(token);
@@ -32,3 +34,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+
+
