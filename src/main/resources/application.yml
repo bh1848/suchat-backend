@@ -5,13 +5,43 @@ logging:
       USWRandomChat:
         backend: debug
 
-#H2
 spring:
   datasource:
-    url: jdbc:h2:tcp://localhost/~/swchat
-    username: sa
-    passsword:
-    driver-class-name: org.h2.Driver
+#    H2
+#    url: jdbc:h2:tcp://localhost/~/swchat
+#    username: sa
+#    passsword:
+#    driver-class-name: org.h2.Driver
+
+#    mySQL
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://3.35.83.91/db_randomchat?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password:
+  thymeleaf:
+    cache: false
+
+#  H2
+#  jpa:
+#    hibernate:
+#      #create 애플리케이션 실행 시점에 테이블을 drop 하고, 다시 생성한다.
+#      #none은 drop 안함
+#      ddl-auto: create
+#    properties:
+#      hibernate:
+#        #      show_sql: true
+#        format_sql: true
+
+#  mySQL
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    generate-ddl: true
+
+  #  smtp
   mail:
     host: smtp.gmail.com
     port: 587
@@ -27,15 +57,6 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
-  jpa:
-    hibernate:
-      #create 애플리케이션 실행 시점에 테이블을 drop 하고, 다시 생성한다.
-      #none은 drop 안함
-      ddl-auto: create
-    properties:
-      hibernate:
-        #      show_sql: true
-        format_sql: true
 
 logging.level:
   org.hibernate.SQL: debug
@@ -45,23 +66,3 @@ logging.level:
 jwt:
   secret:
     key: FC7DEE6E587E7E7EDE7A8E7DEEE6E6EF7E6DE7E7E6E76E7E6E6E7E76E6DEEF7
-
-##mySQL
-#spring:
-#  datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    #    각자 PC에 만들어놓은 Database이름을 써야 합니다.
-#    url: jdbc:mysql://localhost:3306/db_randomchat?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-#    #    mysql에 생성한 사용자 계정 정보를 써야 합니다.
-#    username: root
-#    password:
-#  thymeleaf:
-#    cache: false
-#
-## spring data jpa setting
-#jpa:
-#  database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
-#  open-in-view: false
-#  show-sql: true
-#  hibernate:
-#    ddl-auto: update
