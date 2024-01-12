@@ -123,7 +123,7 @@ public class EmailService {
         // 이메일 전송을 위한 MimeMessage 생성 및 설정
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-        helper.setTo(member.getEmail());
+        helper.setTo(member.getEmail()+"@suwon.ac.kr");
         helper.setSubject("회원가입 이메일 인증");
         helper.setFrom("nkdy50315031@gmail.com");
 
