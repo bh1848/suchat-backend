@@ -87,10 +87,10 @@ public class MemberService {
         Jwt refreshToken = jwtProvider.validateRefreshToken(member, token.getRefresh_token());
 
         if (refreshToken != null) {
-            //리프레시 토큰이 유효하면 새로운 access, 리프레시 토큰 생성
+            //리프레시 토큰이 유효하면 기존 리프레시 토큰으로 갱신
             return JwtDto.builder()
                     .access_token(jwtProvider.createAccessToken(memberId, member.getRoles()))
-                    .refresh_token(jwtProvider.createRefreshToken(member).getRefreshToken())
+                    .refresh_token(token.getRefresh_token()) //기존 리프레시 토큰 반환
                     .build();
         } else {
             //리프레시 토큰이 만료되면 예외
