@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.security;
+package com.USWRandomChat.backend.security.jwt;
 import com.USWRandomChat.backend.domain.Member;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

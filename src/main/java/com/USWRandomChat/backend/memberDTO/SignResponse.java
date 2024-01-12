@@ -2,7 +2,11 @@ package com.USWRandomChat.backend.memberDTO;
 
 import com.USWRandomChat.backend.domain.Authority;
 import com.USWRandomChat.backend.domain.Member;
-import lombok.*;
+import com.USWRandomChat.backend.security.jwt.JwtDto;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +22,7 @@ public class SignResponse {
     private String email;
     private String nickname;
     private List<Authority> roles = new ArrayList<>();
-    private String token;
+    private JwtDto token;
 
     public SignResponse(Member member) {
         this.id = member.getId();
