@@ -15,9 +15,9 @@ spring:
 
 #    mySQL
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://3.35.83.91/db_randomchat?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password:
+    url: jdbc:mysql://3.35.83.91:3306/db_randomchat?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: swchat
+    password: 12345678
   thymeleaf:
     cache: false
 
