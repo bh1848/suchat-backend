@@ -60,7 +60,8 @@ spring:
 
 logging.level:
   org.hibernate.SQL: debug
-  org.hibernate.type: trace
+#  p6spy 대체
+#  org.hibernate.type: trace
 
 #jwt.secret.key 값
 jwt:
