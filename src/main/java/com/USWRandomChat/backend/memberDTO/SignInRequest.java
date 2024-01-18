@@ -3,7 +3,7 @@ package com.USWRandomChat.backend.memberDTO;
 import lombok.Data;
 
 @Data
-public class SignRequest {
+public class SignInRequest {
 
     private Long id;
     private String memberId;

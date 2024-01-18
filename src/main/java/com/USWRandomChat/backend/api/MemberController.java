@@ -2,13 +2,15 @@ package com.USWRandomChat.backend.api;
 
 import com.USWRandomChat.backend.domain.Member;
 import com.USWRandomChat.backend.memberDTO.MemberDTO;
-import com.USWRandomChat.backend.memberDTO.SignRequest;
-import com.USWRandomChat.backend.memberDTO.SignResponse;
+import com.USWRandomChat.backend.memberDTO.SignInRequest;
+import com.USWRandomChat.backend.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
 import com.USWRandomChat.backend.security.jwt.JwtDto;
 import com.USWRandomChat.backend.service.EmailService;
 import com.USWRandomChat.backend.service.MemberService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -31,13 +33,15 @@ public class MemberController {
 
     //회원가입
     @PostMapping(value = "/sign-up")
-    public ResponseEntity<String> signUp(@RequestBody SignRequest request) throws MessagingException {
+    public ResponseEntity<SignUpMemberResponse> signUp(@RequestBody SignInRequest request) throws MessagingException {
         Member findMember = memberService.signUp(request);
-        return new ResponseEntity<>(emailService.createEmailToken(findMember), HttpStatus.OK);
+        return new ResponseEntity<>(new SignUpMemberResponse(emailService.createEmailToken(findMember))
+                , HttpStatus.OK);
     }
+
     //로그인
     @PostMapping(value = "/sign-in")
-    public ResponseEntity<SignResponse> signIn(@RequestBody SignRequest request) throws Exception {
+    public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) throws Exception {
         return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
     }
 
@@ -58,17 +62,15 @@ public class MemberController {
         return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
 
-  
-
     //user인증 확인
     @GetMapping(value = "/user/get")
-    public ResponseEntity<SignResponse> getUser(@RequestParam String memberId) throws Exception {
+    public ResponseEntity<SignInResponse> getUser(@RequestParam String memberId) throws Exception {
         return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
     }
 
     //admin인증 확인
     @PostMapping(value = "/admin/get")
-    public ResponseEntity<SignResponse> getUserForAdmin(@RequestParam String memberId) throws Exception {
+    public ResponseEntity<SignInResponse> getUserForAdmin(@RequestParam String memberId) throws Exception {
         return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
     }
 
@@ -108,5 +110,10 @@ public class MemberController {
     public ResponseEntity<JwtDto> refresh(@RequestBody JwtDto token) throws Exception {
         return new ResponseEntity<>( memberService.refreshAccessToken(token), HttpStatus.OK);
     }
+    @Data
+    @AllArgsConstructor
+    static class SignUpMemberResponse {
 
+        private String uuid;
+    }
 }

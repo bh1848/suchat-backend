@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SignResponse {
+public class SignInResponse {
 
     private Long id;
     private String memberId;
@@ -24,7 +24,7 @@ public class SignResponse {
     private List<Authority> roles = new ArrayList<>();
     private JwtDto token;
 
-    public SignResponse(Member member) {
+    public SignInResponse(Member member) {
         this.id = member.getId();
         this.memberId = member.getMemberId();
         this.email = member.getEmail();

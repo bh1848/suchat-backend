@@ -3,8 +3,8 @@ package com.USWRandomChat.backend.service;
 import com.USWRandomChat.backend.domain.Authority;
 import com.USWRandomChat.backend.domain.Member;
 import com.USWRandomChat.backend.memberDTO.MemberDTO;
-import com.USWRandomChat.backend.memberDTO.SignRequest;
-import com.USWRandomChat.backend.memberDTO.SignResponse;
+import com.USWRandomChat.backend.memberDTO.SignInRequest;
+import com.USWRandomChat.backend.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.repository.JwtRepository;
 import com.USWRandomChat.backend.repository.MemberRepository;
 import com.USWRandomChat.backend.security.jwt.Jwt;
@@ -33,7 +33,7 @@ public class MemberService {
     private final JwtRepository jwtRepository;
 
     //회원가입
-    public Member signUp(SignRequest request) {
+    public Member signUp(SignInRequest request) {
         Member member = Member.builder().memberId(request.getMemberId())
                 //password 암호화
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -51,7 +51,7 @@ public class MemberService {
     }
 
     //로그인
-    public SignResponse signIn(SignRequest request) throws Exception {
+    public SignInResponse signIn(SignInRequest request) throws Exception {
         Member member = memberRepository.findByMemberId(request.getMemberId()).orElseThrow(() ->
                 new BadCredentialsException("잘못된 계정정보입니다."));
 
@@ -65,7 +65,7 @@ public class MemberService {
         //리프레시 토큰 테이블에 저장
         jwtRepository.save(refreshToken);
 
-        return SignResponse.builder()
+        return SignInResponse.builder()
                 .id(member.getId())
                 .memberId(member.getMemberId())
                 .email(member.getEmail())
@@ -99,10 +99,10 @@ public class MemberService {
     }
 
     //user 인증
-    public SignResponse getMember(String memberId) throws Exception {
+    public SignInResponse getMember(String memberId) throws Exception {
         Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
-        return new SignResponse(member);
+        return new SignInResponse(member);
     }
 
     //전체 조회
