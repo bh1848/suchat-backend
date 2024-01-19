@@ -8,38 +8,38 @@ logging:
 spring:
   datasource:
 #    H2
-#    url: jdbc:h2:tcp://localhost/~/swchat
-#    username: sa
-#    passsword:
-#    driver-class-name: org.h2.Driver
+    url: jdbc:h2:tcp://localhost/~/swchat
+    username: sa
+    passsword:
+    driver-class-name: org.h2.Driver
 
 #    mySQL
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://3.35.83.91:3306/db_randomchat?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: swchat
-    password: 12345678
-  thymeleaf:
-    cache: false
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://3.35.83.91:3306/db_randomchat?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+#    username: swchat
+#    password: 12345678
+#  thymeleaf:
+#    cache: false
 
 #  H2
-#  jpa:
-#    hibernate:
-#      #create 애플리케이션 실행 시점에 테이블을 drop 하고, 다시 생성한다.
-#      #none은 drop 안함
-#      ddl-auto: create
-#    properties:
-#      hibernate:
-#        #      show_sql: true
-#        format_sql: true
+  jpa:
+    hibernate:
+      #create 애플리케이션 실행 시점에 테이블을 drop 하고, 다시 생성한다.
+      #none은 drop 안함
+      ddl-auto: create
+    properties:
+      hibernate:
+        #      show_sql: true
+        format_sql: true
 
 #  mySQL
-  jpa:
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
-    open-in-view: false
-    show-sql: true
-    hibernate:
-      ddl-auto: create
-    generate-ddl: true
+#  jpa:
+#    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+#    open-in-view: false
+#    show-sql: true
+#    hibernate:
+#      ddl-auto: create
+#    generate-ddl: true
 
   #  smtp
   mail:
