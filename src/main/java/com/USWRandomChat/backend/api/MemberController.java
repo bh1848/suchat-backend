@@ -113,4 +113,11 @@ public class MemberController {
 
         private String uuid;
     }
+
+    //임의의 데이터 넣기
+    @PostConstruct
+    public void init() throws MessagingException {
+        Member findMember = memberService.signUp(new SignUpRequest("admin", "password", "cookie_31", "nick"));
+        emailService.createEmailToken(findMember);
+    }
 }
