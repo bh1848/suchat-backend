@@ -102,7 +102,7 @@ public class MemberController {
     }
 
     //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급
-    @GetMapping("/auto-sign-in")
+    @PostMapping("/auto-sign-in")
     public ResponseEntity<JwtDto> refresh(@RequestBody JwtDto token) throws Exception {
         return new ResponseEntity<>( memberService.refreshAccessToken(token), HttpStatus.OK);
     }
