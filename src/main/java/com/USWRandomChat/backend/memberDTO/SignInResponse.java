@@ -2,7 +2,9 @@ package com.USWRandomChat.backend.memberDTO;
 
 import com.USWRandomChat.backend.domain.Authority;
 import com.USWRandomChat.backend.domain.Member;
+import com.USWRandomChat.backend.security.jwt.Jwt;
 import com.USWRandomChat.backend.security.jwt.JwtDto;
+import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,18 +19,16 @@ import java.util.List;
 @NoArgsConstructor
 public class SignInResponse {
 
-    private Long id;
     private String memberId;
-    private String email;
-    private String nickname;
-    private List<Authority> roles = new ArrayList<>();
+    private String memberPw;
     private JwtDto token;
 
-    public SignInResponse(Member member) {
-        this.id = member.getId();
+    public SignInResponse(Member member, JwtProvider jwtProvider, Jwt jwt) {
         this.memberId = member.getMemberId();
-        this.email = member.getEmail();
-        this.nickname = member.getNickname();
-        this.roles = member.getRoles();
+        this.memberPw = member.getPassword();
+        this.token = JwtDto.builder()
+                .access_token(jwtProvider.createAccessToken(member.getMemberId(), member.getRoles()))
+                .refresh_token(jwt.getRefreshToken())
+                .build();
     }
 }

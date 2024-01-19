@@ -3,6 +3,7 @@ package com.USWRandomChat.backend.api;
 import com.USWRandomChat.backend.domain.Member;
 import com.USWRandomChat.backend.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.memberDTO.SignInRequest;
+import com.USWRandomChat.backend.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 
@@ -33,9 +35,9 @@ public class MemberController {
 
     //회원가입
     @PostMapping(value = "/sign-up")
-    public ResponseEntity<SignUpMemberResponse> signUp(@RequestBody SignInRequest request) throws MessagingException {
+    public ResponseEntity<SignUpResponse> signUp(@RequestBody SignUpRequest request) throws MessagingException {
         Member findMember = memberService.signUp(request);
-        return new ResponseEntity<>(new SignUpMemberResponse(emailService.createEmailToken(findMember))
+        return new ResponseEntity<>(new SignUpResponse(emailService.createEmailToken(findMember))
                 , HttpStatus.OK);
     }
 
@@ -63,16 +65,10 @@ public class MemberController {
     }
 
     //user인증 확인
-    @GetMapping(value = "/user/get")
-    public ResponseEntity<SignInResponse> getUser(@RequestParam String memberId) throws Exception {
-        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
-    }
-
-    //admin인증 확인
-    @PostMapping(value = "/admin/get")
-    public ResponseEntity<SignInResponse> getUserForAdmin(@RequestParam String memberId) throws Exception {
-        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
-    }
+//    @GetMapping(value = "/user/get")
+//    public ResponseEntity<SignInResponse> getUser(@RequestParam String memberId) throws Exception {
+//        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
+//    }
 
     //전체 조회
     @GetMapping("/members")
@@ -110,9 +106,10 @@ public class MemberController {
     public ResponseEntity<JwtDto> refresh(@RequestBody JwtDto token) throws Exception {
         return new ResponseEntity<>( memberService.refreshAccessToken(token), HttpStatus.OK);
     }
+
     @Data
     @AllArgsConstructor
-    static class SignUpMemberResponse {
+    static class SignUpResponse {
 
         private String uuid;
     }

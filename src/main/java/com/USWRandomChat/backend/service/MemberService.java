@@ -4,6 +4,7 @@ import com.USWRandomChat.backend.domain.Authority;
 import com.USWRandomChat.backend.domain.Member;
 import com.USWRandomChat.backend.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.memberDTO.SignInRequest;
+import com.USWRandomChat.backend.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.repository.JwtRepository;
 import com.USWRandomChat.backend.repository.MemberRepository;
@@ -33,7 +34,7 @@ public class MemberService {
     private final JwtRepository jwtRepository;
 
     //회원가입
-    public Member signUp(SignInRequest request) {
+    public Member signUp(SignUpRequest request) {
         Member member = Member.builder().memberId(request.getMemberId())
                 //password 암호화
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -65,17 +66,8 @@ public class MemberService {
         //리프레시 토큰 테이블에 저장
         jwtRepository.save(refreshToken);
 
-        return SignInResponse.builder()
-                .id(member.getId())
-                .memberId(member.getMemberId())
-                .email(member.getEmail())
-                .nickname(member.getNickname())
-                .roles(member.getRoles())
-                .token(JwtDto.builder()
-                        .access_token(jwtProvider.createAccessToken(member.getMemberId(), member.getRoles()))
-                        .refresh_token(refreshToken.getRefreshToken())
-                        .build())
-                .build();
+        log.info("memberId: {}, pw: {} - 로그인 완료", request.getMemberId(),request.getPassword());
+        return new SignInResponse(member, jwtProvider, refreshToken);
     }
 
     //자동 로그인
@@ -99,11 +91,12 @@ public class MemberService {
     }
 
     //user 인증
-    public SignInResponse getMember(String memberId) throws Exception {
-        Member member = memberRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
-        return new SignInResponse(member);
-    }
+//    public SignInResponse getMember(String memberId) throws Exception {
+//        Member member = memberRepository.findByMemberId(memberId)
+//                .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
+//        Jwt refreshToken = jwtRepository.findRefreshTokenByID(member.getId()).orElse(null);
+//        return new SignInResponse(member,jwtProvider, ref);
+//    }
 
     //전체 조회
     public List<Member> findAll() {
