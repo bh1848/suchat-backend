@@ -1,5 +1,6 @@
-package com.USWRandomChat.backend.domain;
+package com.USWRandomChat.backend.member.domain;
 
+import com.USWRandomChat.backend.security.domain.Authority;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

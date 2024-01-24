@@ -1,15 +1,15 @@
 package com.USWRandomChat.backend;
 
-import com.USWRandomChat.backend.service.SchedulerService;
+import com.USWRandomChat.backend.emailAuth.service.EmailAuthSchedulerService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
 public class StartupRunner implements CommandLineRunner {
 
-    private final SchedulerService schedulerService;
+    private final EmailAuthSchedulerService schedulerService;
 
-    public StartupRunner(SchedulerService schedulerService) {
+    public StartupRunner(EmailAuthSchedulerService schedulerService) {
         this.schedulerService = schedulerService;
     }
 

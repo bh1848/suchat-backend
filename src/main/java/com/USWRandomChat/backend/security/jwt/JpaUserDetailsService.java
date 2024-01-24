@@ -1,7 +1,7 @@
 package com.USWRandomChat.backend.security.jwt;
 
-import com.USWRandomChat.backend.domain.Member;
-import com.USWRandomChat.backend.repository.MemberRepository;
+import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

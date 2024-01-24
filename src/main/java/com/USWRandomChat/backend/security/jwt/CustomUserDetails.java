@@ -1,5 +1,5 @@
 package com.USWRandomChat.backend.security.jwt;
-import com.USWRandomChat.backend.domain.Member;
+import com.USWRandomChat.backend.member.domain.Member;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

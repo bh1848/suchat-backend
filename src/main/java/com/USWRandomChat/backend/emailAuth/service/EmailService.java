@@ -1,9 +1,9 @@
-package com.USWRandomChat.backend.service;
+package com.USWRandomChat.backend.emailAuth.service;
 
-import com.USWRandomChat.backend.domain.EmailToken;
-import com.USWRandomChat.backend.domain.Member;
-import com.USWRandomChat.backend.repository.EmailTokenRepository;
-import com.USWRandomChat.backend.repository.MemberRepository;
+import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
+import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
+import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;

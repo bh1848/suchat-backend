@@ -1,15 +1,15 @@
-package com.USWRandomChat.backend.api;
+package com.USWRandomChat.backend.member.api;
 
-import com.USWRandomChat.backend.domain.Member;
-import com.USWRandomChat.backend.memberDTO.MemberDTO;
-import com.USWRandomChat.backend.memberDTO.SignInRequest;
-import com.USWRandomChat.backend.memberDTO.SignUpRequest;
-import com.USWRandomChat.backend.memberDTO.SignInResponse;
+import com.USWRandomChat.backend.member.service.MemberService;
+import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
+import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
+import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
+import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
 import com.USWRandomChat.backend.security.jwt.JwtDto;
-import com.USWRandomChat.backend.service.EmailService;
-import com.USWRandomChat.backend.service.MemberService;
+import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

@@ -1,5 +1,6 @@
-package com.USWRandomChat.backend.domain;
+package com.USWRandomChat.backend.security.domain;
 
+import com.USWRandomChat.backend.member.domain.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

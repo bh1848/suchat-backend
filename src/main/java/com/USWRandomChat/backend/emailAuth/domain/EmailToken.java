@@ -1,5 +1,6 @@
-package com.USWRandomChat.backend.domain;
+package com.USWRandomChat.backend.emailAuth.domain;
 
+import com.USWRandomChat.backend.member.domain.Member;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 

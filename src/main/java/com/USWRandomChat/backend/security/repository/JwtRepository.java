@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.repository;
+package com.USWRandomChat.backend.security.repository;
 
 import com.USWRandomChat.backend.security.jwt.Jwt;
 import org.springframework.data.repository.CrudRepository;

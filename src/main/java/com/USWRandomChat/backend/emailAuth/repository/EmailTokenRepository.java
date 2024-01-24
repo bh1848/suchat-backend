@@ -1,6 +1,6 @@
-package com.USWRandomChat.backend.repository;
+package com.USWRandomChat.backend.emailAuth.repository;
 
-import com.USWRandomChat.backend.domain.EmailToken;
+import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

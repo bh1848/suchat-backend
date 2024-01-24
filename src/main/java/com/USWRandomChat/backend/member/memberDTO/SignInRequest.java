@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.memberDTO;
+package com.USWRandomChat.backend.member.memberDTO;
 
 import lombok.Data;
 

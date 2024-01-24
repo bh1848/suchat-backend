@@ -1,6 +1,6 @@
-package com.USWRandomChat.backend.memberDTO;
+package com.USWRandomChat.backend.member.memberDTO;
 
-import com.USWRandomChat.backend.domain.Member;
+import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.security.jwt.Jwt;
 import com.USWRandomChat.backend.security.jwt.JwtDto;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;

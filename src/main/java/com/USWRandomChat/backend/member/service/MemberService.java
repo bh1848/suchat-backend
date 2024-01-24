@@ -1,13 +1,13 @@
-package com.USWRandomChat.backend.service;
+package com.USWRandomChat.backend.member.service;
 
-import com.USWRandomChat.backend.domain.Authority;
-import com.USWRandomChat.backend.domain.Member;
-import com.USWRandomChat.backend.memberDTO.MemberDTO;
-import com.USWRandomChat.backend.memberDTO.SignInRequest;
-import com.USWRandomChat.backend.memberDTO.SignUpRequest;
-import com.USWRandomChat.backend.memberDTO.SignInResponse;
-import com.USWRandomChat.backend.repository.JwtRepository;
-import com.USWRandomChat.backend.repository.MemberRepository;
+import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.repository.MemberRepository;
+import com.USWRandomChat.backend.security.domain.Authority;
+import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
+import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
+import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
+import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
+import com.USWRandomChat.backend.security.repository.JwtRepository;
 import com.USWRandomChat.backend.security.jwt.Jwt;
 import com.USWRandomChat.backend.security.jwt.JwtDto;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;

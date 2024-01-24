@@ -1,6 +1,6 @@
-package com.USWRandomChat.backend.repository;
+package com.USWRandomChat.backend.member.repository;
 
-import com.USWRandomChat.backend.domain.Member;
+import com.USWRandomChat.backend.member.domain.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

@@ -1,8 +1,8 @@
 package com.USWRandomChat.backend.security.jwt;
 
-import com.USWRandomChat.backend.domain.Authority;
-import com.USWRandomChat.backend.domain.Member;
-import com.USWRandomChat.backend.repository.JwtRepository;
+import com.USWRandomChat.backend.security.domain.Authority;
+import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.security.repository.JwtRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
