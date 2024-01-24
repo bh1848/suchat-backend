@@ -1,0 +1,27 @@
+#log setting
+logging:
+  level:
+    com:
+      USWRandomChat:
+        backend: info
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://3.35.83.91:3306/db_randomchat?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: swchat
+    password: 12345678
+  thymeleaf:
+    cache: false
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    generate-ddl: true
