@@ -9,7 +9,7 @@ public class ChatMessage {
 
     public enum MessageType{
         //입장, 채팅, 퇴장
-        ENTER, TALK, QUIT
+        JOIN, TALK, QUIT
     }
     //메시지 타입
     private MessageType type;
