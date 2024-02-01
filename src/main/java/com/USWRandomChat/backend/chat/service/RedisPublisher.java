@@ -6,9 +6,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.stereotype.Service;
 
-@Service
+//@Service
 @RequiredArgsConstructor
 public class RedisPublisher {
+
+    //효율성 개선으로 삭제
+
     /*
     * RedisTopic에 저장-> 메시지 발행-> redis 구독 서비스가 메시지 처리
     * */

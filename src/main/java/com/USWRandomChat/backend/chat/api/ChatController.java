@@ -5,6 +5,8 @@ import com.USWRandomChat.backend.chat.domain.ChatRoom;
 import com.USWRandomChat.backend.chat.repository.ChatRepository;
 import com.USWRandomChat.backend.chat.service.RedisPublisher;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,8 +14,10 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ChatController {
 
-    private final RedisPublisher redisPublisher;
+    //    private final RedisPublisher redisPublisher;
     private final ChatRepository chatRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ChannelTopic channelTopic;
 
     //client에서 /pub/chat/message로 요청
     @MessageMapping("/chat/message")
@@ -21,11 +25,11 @@ public class ChatController {
         //메시지 발송 시 /pub/chat/message
         //메시지 수신 시 /sub/chat/room/방 ID
         if (ChatMessage.MessageType.JOIN.equals(message.getType())) {
-            chatRepository.enterChatRoom(message.getRoomId());
+            message.setSender("[알림]");
             message.setMessage(message.getSender() + "님이 입장하였습니다.");
         }
         //webSocket에 발행된 메시지를 redis로 발행한다.(publish)
-        redisPublisher.publish(chatRepository.getTopic(message.getRoomId()), message);
+        redisTemplate.convertAndSend(channelTopic.getTopic(), message);
     }
 
     //채팅방 생성
