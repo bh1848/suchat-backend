@@ -1,15 +1,16 @@
 package com.USWRandomChat.backend.member.api;
 
-import com.USWRandomChat.backend.member.service.MemberService;
+import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
-import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
+import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
+import com.USWRandomChat.backend.member.service.MemberService;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
-import com.USWRandomChat.backend.security.jwt.JwtDto;
-import com.USWRandomChat.backend.emailAuth.service.EmailService;
+import com.USWRandomChat.backend.security.jwt.service.JwtService;
+import com.USWRandomChat.backend.security.jwt.dto.TokenDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class MemberController {
     private final MemberService memberService;
     private final ResponseService responseService;
     private final EmailService emailService;
+    private final JwtService jwtService;
 
     //회원가입
     @PostMapping(value = "/sign-up")
@@ -103,8 +105,8 @@ public class MemberController {
 
     //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급
     @PostMapping("/auto-sign-in")
-    public ResponseEntity<JwtDto> refresh(@RequestBody JwtDto token) throws Exception {
-        return new ResponseEntity<>( memberService.refreshAccessToken(token), HttpStatus.OK);
+    public ResponseEntity<TokenDto> refresh(@RequestBody TokenDto token) throws Exception {
+        return new ResponseEntity<>( jwtService.refreshAccessToken(token), HttpStatus.OK);
     }
 
     @Data
