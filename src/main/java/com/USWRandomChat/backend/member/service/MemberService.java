@@ -1,16 +1,14 @@
 package com.USWRandomChat.backend.member.service;
 
 import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.member.repository.MemberRepository;
-import com.USWRandomChat.backend.security.domain.Authority;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
-import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
-import com.USWRandomChat.backend.security.repository.JwtRepository;
-import com.USWRandomChat.backend.security.jwt.Jwt;
-import com.USWRandomChat.backend.security.jwt.JwtDto;
+import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
+import com.USWRandomChat.backend.member.repository.MemberRepository;
+import com.USWRandomChat.backend.security.domain.Authority;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,10 +26,11 @@ import java.util.Optional;
 @Slf4j
 public class MemberService {
 
+
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
-    private final JwtRepository jwtRepository;
+    private final JwtService jwtService;
 
     //회원가입
     public Member signUp(SignUpRequest request) {
@@ -60,35 +59,12 @@ public class MemberService {
             throw new BadCredentialsException("잘못된 계정정보입니다.");
         }
 
-        //로그인 시 리프레시 토큰 생성
-        Jwt refreshToken = jwtProvider.createRefreshToken(member);
+        member.setRefreshToken(jwtService.createRefreshToken(member));
 
-        //리프레시 토큰 테이블에 저장
-        jwtRepository.save(refreshToken);
-
-        log.info("memberId: {}, pw: {} - 로그인 완료", request.getMemberId(),request.getPassword());
-        return new SignInResponse(member, jwtProvider, refreshToken);
+        log.info("memberId: {}, pw: {} - 로그인 완료", request.getMemberId(), request.getPassword());
+        return new SignInResponse(member, jwtProvider);
     }
 
-    //자동 로그인
-    public JwtDto refreshAccessToken(JwtDto token) throws Exception {
-        String memberId = jwtProvider.getMemberId(token.getAccess_token());
-        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() ->
-                new BadCredentialsException("잘못된 계정 정보입니다."));
-
-        Jwt refreshToken = jwtProvider.validateRefreshToken(member, token.getRefresh_token());
-
-        if (refreshToken != null) {
-            //리프레시 토큰이 유효하면 기존 리프레시 토큰으로 갱신
-            return JwtDto.builder()
-                    .access_token(jwtProvider.createAccessToken(memberId, member.getRoles()))
-                    .refresh_token(token.getRefresh_token()) //기존 리프레시 토큰 반환
-                    .build();
-        } else {
-            //리프레시 토큰이 만료되면 예외
-            throw new BadCredentialsException("리프레시 토큰 만료. 로그인을 해주세요");
-        }
-    }
 
     //user 인증
 //    public SignInResponse getMember(String memberId) throws Exception {
