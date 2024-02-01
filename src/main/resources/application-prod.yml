@@ -10,6 +10,10 @@ spring:
     activate:
       on-profile: prod
 
+  redis:
+    host: #redis가 설치된 서버 호스트
+    port: #redis가 설치된 서버 포트
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://3.35.83.91:3306/db_randomchat?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
