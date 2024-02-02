@@ -37,3 +37,8 @@ logging.level:
 jwt:
   secret:
     key: FC7DEE6E587E7E7EDE7A8E7DEEE6E6EF7E6DE7E7E6E76E7E6E6E7E76E6DEEF7
+
+# 인증번호 4자리 설정
+verification:
+  code:
+    length: 4

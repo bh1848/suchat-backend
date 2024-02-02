@@ -104,17 +104,17 @@ public class EmailService {
     // 이메일 재인증 토큰 생성
     public String recreateEmailToken(String uuid) throws MessagingException {
 
-            //회원의 uuid업데이트
-            EmailToken updateEmailToken = updateEmailToken(uuid);
+        //회원의 uuid업데이트
+        EmailToken updateEmailToken = updateEmailToken(uuid);
 
-            // 이메일 전송을 위한 MimeMessage 생성 및 설정
-            MimeMessage mimeMessage = createVerifyLink(updateEmailToken.getMember(), updateEmailToken);
+        // 이메일 전송을 위한 MimeMessage 생성 및 설정
+        MimeMessage mimeMessage = createVerifyLink(updateEmailToken.getMember(), updateEmailToken);
 
-            // 이메일 전송
-            sendEmail(mimeMessage);
+        // 이메일 전송
+        sendEmail(mimeMessage);
 
-            // 인증메일 전송 시 토큰 반환
-            return updateEmailToken.getUuid();
+        // 인증메일 전송 시 토큰 반환
+        return updateEmailToken.getUuid();
 
     }
 
