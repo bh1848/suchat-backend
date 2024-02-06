@@ -60,6 +60,10 @@ public class Member {
         this.refreshToken = refreshToken;
     }
 
+    public void setPassword(String password){
+        this.password = password;
+    }
+
     public void setVerified() {
         this.isEmailVerified = true;
     }

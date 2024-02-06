@@ -66,12 +66,6 @@ public class MemberController {
         return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
 
-    //user인증 확인
-//    @GetMapping(value = "/user/get")
-//    public ResponseEntity<SignInResponse> getUser(@RequestParam String memberId) throws Exception {
-//        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
-//    }
-
     //전체 조회
     @GetMapping("/members")
     public ListResponse<Member> findAll() {
@@ -121,5 +115,12 @@ public class MemberController {
     public void init() throws MessagingException {
         Member findMember = memberService.signUp(new SignUpRequest("admin", "password", "cookie_31", "nick"));
         emailService.createEmailToken(findMember);
+    }
+
+    // 비밀번호 변경 API
+    @PostMapping("/change-password")
+    public boolean changePassword(@RequestHeader("Authorization") String token, @RequestParam String newPassword) {
+        // 비밀번호 변경 로직 수행
+        return memberService.changePassword(token, newPassword);
     }
 }

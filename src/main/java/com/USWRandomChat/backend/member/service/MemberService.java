@@ -111,4 +111,34 @@ public class MemberService {
     public void deleteFromId(Long id) {
         memberRepository.deleteById(id);
     }
+
+    //비밀번호 변경
+    public boolean changePassword(String token, String newPassword) {
+        try {
+            // 토큰에서 memberId 추출
+            String memberId = jwtProvider.getMemberId(token);
+
+            // memberId로 사용자 조회
+            Member member = memberRepository.findByMemberId(memberId)
+                    .orElseThrow(() -> new RuntimeException("해당하는 아이디가 존재하지 않습니다. " + memberId));
+
+            // 새로운 비밀번호를 암호화
+            String encryptedPassword = passwordEncoder.encode(newPassword);
+
+            // 암호화된 비밀번호로 변경
+            member.setPassword(encryptedPassword);
+
+            // 변경된 비밀번호를 데이터베이스에 저장
+            memberRepository.save(member);
+
+            log.info("비밀번호 변경 완료: memberId={}, newPassword={}", memberId, newPassword);
+
+            // 변경 성공한 경우 true 반환
+            return true;
+        } catch (Exception e) {
+            // 변경 실패한 경우 false 반환
+            log.error("비밀번호 변경 실패: {}", e.getMessage());
+            return false;
+        }
+    }
 }

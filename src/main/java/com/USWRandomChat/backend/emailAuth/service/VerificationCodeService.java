@@ -11,11 +11,12 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PasswordChangeService {
+public class VerificationCodeService {
 
     private static final String REDIS_KEY_PREFIX = "verification-code:";
     private static final String CHARACTERS = "0123456789";
@@ -23,6 +24,9 @@ public class PasswordChangeService {
     private final JavaMailSender javaMailSender;
     private final MemberRepository memberRepository;
     private final RedisTemplate<String, String> verificationRedisTemplate;
+
+    // 만료 시간(3분)
+    private static final long EXPIRATION_TIME_VERIFICATION_CODE = 3;
 
     //랜덤 인증번호 생성
     private String generateRandomCode() {
@@ -33,9 +37,9 @@ public class PasswordChangeService {
         }
         return code.toString();
     }
-    
-    //랜덤 인증번호 전송
-    public void sendRandomCode(String memberId, String email) {
+
+    // 랜덤 인증번호 전송
+    public boolean sendRandomCode(String memberId, String email) {
         try {
             // memberId와 email이 유효한지 확인
             memberRepository.findByMemberIdAndEmail(memberId, email)
@@ -50,21 +54,36 @@ public class PasswordChangeService {
                         sendEmail(email + "@suwon.ac.kr", "인증번호", "인증번호: " + randomCode);
                     }, () -> {
                         // memberId 또는 email이 유효하지 않을 경우 예외 처리
-                        throw new RuntimeException("Invalid memberId or email");
+                        throw new RuntimeException("아이디 또는 이메일을 다시 확인해주세요");
                     });
+
+            // 성공한 경우 true 반환
+            return true;
         } catch (Exception e) {
-            log.error("인증번호 전송 중 오류 발생: {}", e.getMessage());
-            throw new RuntimeException("예외가 발생했습니다.", e);
+            // 실패한 경우 false 반환
+            return false;
         }
     }
 
-    private void saveCodeToRedis(String memberId, String code) {
+    // 랜덤 인증번호 검증
+    public boolean verifyCode(String memberId, String verificationCode) {
+        // Redis에서 저장된 인증번호 가져오기
         ValueOperations<String, String> valueOperations = verificationRedisTemplate.opsForValue();
         String redisKey = REDIS_KEY_PREFIX + memberId;
-        valueOperations.set(redisKey, code);
+        String storedCode = valueOperations.get(redisKey);
+
+        // 사용자가 입력한 인증번호와 저장된 인증번호 비교
+        return verificationCode.equals(storedCode);
     }
 
-    //간단한 텍스트 이메일 전송 메서드
+    // redis에 인증 번호 저장
+    private void saveCodeToRedis(String memberId, String verificationCode) {
+        ValueOperations<String, String> valueOperations = verificationRedisTemplate.opsForValue();
+        String redisKey = REDIS_KEY_PREFIX + memberId;
+        valueOperations.set(redisKey, verificationCode, EXPIRATION_TIME_VERIFICATION_CODE, TimeUnit.MINUTES);
+    }
+
+    // 간단한 텍스트 이메일 전송 메서드
     private void sendEmail(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
