@@ -22,7 +22,7 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //중복 x, id 역할
+
     @Column(nullable = false, updatable = false, unique = true)
 //    @Size(min = 4, max = 16, message = "아이디는 4자 이상 16자 이내로 작성해주세요")
 //    @Pattern(regexp = "^[a-z0-9]*$", message = "아이디는 알파벳 소문자, 숫자만 사용 가능합니다.")
@@ -60,8 +60,8 @@ public class Member {
         this.refreshToken = refreshToken;
     }
 
-    public void setPassword(String password){
-        this.password = password;
+    public void updatePassword(String newPassword){
+        this.password = newPassword;
     }
 
     public void setVerified() {

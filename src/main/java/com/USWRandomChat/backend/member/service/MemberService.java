@@ -126,7 +126,7 @@ public class MemberService {
             String encryptedPassword = passwordEncoder.encode(newPassword);
 
             // 암호화된 비밀번호로 변경
-            member.setPassword(encryptedPassword);
+            member.updatePassword(encryptedPassword);
 
             // 변경된 비밀번호를 데이터베이스에 저장
             memberRepository.save(member);

@@ -2,10 +2,7 @@ package com.USWRandomChat.backend.member.api;
 
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
-import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
-import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
-import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
+import com.USWRandomChat.backend.member.memberDTO.*;
 import com.USWRandomChat.backend.member.service.MemberService;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
@@ -118,9 +115,9 @@ public class MemberController {
     }
 
     // 비밀번호 변경 API
-    @PostMapping("/change-password")
-    public boolean changePassword(@RequestHeader("Authorization") String token, @RequestParam String newPassword) {
+    @PostMapping("/password-change")
+    public boolean changePassword(@RequestBody PasswordChangeRequest request) {
         // 비밀번호 변경 로직 수행
-        return memberService.changePassword(token, newPassword);
+        return memberService.changePassword(request.getToken(), request.getNewPassword());
     }
 }
