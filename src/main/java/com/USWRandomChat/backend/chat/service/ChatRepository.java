@@ -1,15 +1,15 @@
-package com.USWRandomChat.backend.chat.repository;
+package com.USWRandomChat.backend.chat.service;
 
 import com.USWRandomChat.backend.chat.domain.ChatRoom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
 
-@Repository
+@Service
 @RequiredArgsConstructor
 public class ChatRepository {
 
