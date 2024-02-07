@@ -82,6 +82,7 @@ public class MemberController {
         }
     }
 
+    //닉네임 중복 확인
     @PostMapping("/check-duplicate-nickname")
     public boolean NicknameCheck(@RequestBody MemberDTO request) {
         boolean checkResult = memberService.validateDuplicateMemberNickname(request);
