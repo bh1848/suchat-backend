@@ -7,6 +7,7 @@ import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.service.MemberService;
+import com.USWRandomChat.backend.profile.dto.ProfileDTO;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
 import com.USWRandomChat.backend.security.jwt.service.JwtService;
@@ -92,7 +93,7 @@ public class MemberController {
     }
 
     @PostMapping("/check-duplicate-nickname")
-    public boolean NicknameCheck(@RequestBody MemberDTO request) {
+    public boolean NicknameCheck(@RequestBody ProfileDTO request) {
         boolean checkResult = memberService.validateDuplicateMemberNickname(request);
         if (checkResult == false) {
             //사용가능한 Nickname
