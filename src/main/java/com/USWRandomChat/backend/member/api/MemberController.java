@@ -114,10 +114,5 @@ public class MemberController {
         emailService.createEmailToken(findMember);
     }
 
-    // 비밀번호 변경 API
-    @PostMapping("/password-change")
-    public boolean changePassword(@RequestBody PasswordChangeRequest request) {
-        // 비밀번호 변경 로직 수행
-        return memberService.changePassword(request.getToken(), request.getNewPassword());
-    }
+
 }

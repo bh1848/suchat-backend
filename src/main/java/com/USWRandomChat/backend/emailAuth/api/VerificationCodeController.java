@@ -1,5 +1,6 @@
 package com.USWRandomChat.backend.emailAuth.api;
 
+import com.USWRandomChat.backend.emailAuth.exception.VerificationCodeException;
 import com.USWRandomChat.backend.emailAuth.service.VerificationCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,18 +30,31 @@ public class VerificationCodeController {
         }
     }
 
-    // 인증번호 검증 API
+    // 인증번호 검증
     @PostMapping("/verify-code")
-    public ResponseEntity<Boolean> verifyCode(@RequestParam String memberId, @RequestParam String verificationCode) {
+    public ResponseEntity<String> verifyCode(@RequestParam String memberId, @RequestParam String verificationCode) {
+        boolean isValid = verificationCodeService.verifyCode(memberId, verificationCode);
+        if (isValid) {
+            return new ResponseEntity<>("인증번호가 확인됐습니다.", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("인증번호가 맞지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    //비밀번호 변경
+    @PostMapping("/update-password")
+    public ResponseEntity<String> updatePassword(@RequestParam String token, @RequestParam String newPassword, @RequestParam String confirmNewPassword) {
         try {
-            boolean isVerified = verificationCodeService.verifyCode(memberId, verificationCode);
-            return new ResponseEntity<>(isVerified, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);
+            boolean isUpdated = verificationCodeService.updatePassword(token, newPassword, confirmNewPassword);
+            if (isUpdated) {
+                return new ResponseEntity<>("비밀번호 변경 성공.", HttpStatus.OK);
+            } else {
+                // 여기에서 예외 메시지를 적절하게 처리하여 반환
+                return new ResponseEntity<>("비밀번호 변경 실패.", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (VerificationCodeException e) {
+            // 예외 메시지를 포함한 응답 반환
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 }
-
-
-
-
