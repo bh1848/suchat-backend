@@ -1,14 +1,12 @@
 package com.USWRandomChat.backend.member.service;
 
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
-import com.USWRandomChat.backend.profile.domain.Profile;
-import com.USWRandomChat.backend.profile.dto.ProfileDTO;
-import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import com.USWRandomChat.backend.security.domain.Authority;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import com.USWRandomChat.backend.security.jwt.service.JwtService;
@@ -34,28 +32,23 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final JwtService jwtService;
-    private final ProfileRepository profileRepository;
 
-    // 회원가입
+    //회원가입
     public Member signUp(SignUpRequest request) {
-        // Member 엔티티 생성 및 저장
-        Member member = Member.builder()
-                .memberId(request.getMemberId())
+        Member member = Member.builder().memberId(request.getMemberId())
+                //password 암호화
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
+                .nickname(request.getNickname())
                 .build();
 
         member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));
         memberRepository.save(member);
 
-        // Profile 엔티티 생성 및 저장
-        Profile profile = Profile.builder()
-                .nickname(request.getNickname())
-                .build();
+        //이메일 인증
+        Member savedMemberEmail = memberRepository.findByEmail(member.getEmail());
 
-        profileRepository.save(profile);
-
-        return member;
+        return savedMemberEmail;
     }
 
     //로그인
@@ -72,15 +65,6 @@ public class MemberService {
         log.info("memberId: {}, pw: {} - 로그인 완료", request.getMemberId(), request.getPassword());
         return new SignInResponse(member, jwtProvider);
     }
-
-
-    //user 인증
-//    public SignInResponse getMember(String memberId) throws Exception {
-//        Member member = memberRepository.findByMemberId(memberId)
-//                .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
-//        Jwt refreshToken = jwtRepository.findRefreshTokenByID(member.getId()).orElse(null);
-//        return new SignInResponse(member,jwtProvider, ref);
-//    }
 
     //전체 조회
     public List<Member> findAll() {
@@ -99,7 +83,7 @@ public class MemberService {
         }
     }
 
-    //중복 검증 memberId
+    //아이디 중복 확인
     public boolean validateDuplicateMemberId(MemberDTO memberDTO) {
         Optional<Member> byMemberId = memberRepository.findByMemberId(memberDTO.getMemberId());
         //중복
@@ -107,12 +91,12 @@ public class MemberService {
         return byMemberId.isPresent();
     }
 
-    //중복 검증 nickname
-    public boolean validateDuplicateMemberNickname(ProfileDTO profileDTO) {
-        Optional<Profile> byNickname = profileRepository.findByNickname(profileDTO.getNickname());
-        //중복
-        //사용 가능한 ID
-        return byNickname.isPresent();
+    //닉네임 중복 확인
+    public void checkDuplicateNickname(MemberDTO memberDTO) {
+        Optional<Member> byNickname = memberRepository.findByNickname(memberDTO.getNickname());
+        if (byNickname.isPresent()) {
+            throw new CheckDuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+        }
     }
 
     //해당 토큰 유저 삭제

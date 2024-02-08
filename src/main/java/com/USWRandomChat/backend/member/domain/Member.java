@@ -1,6 +1,5 @@
 package com.USWRandomChat.backend.member.domain;
 
-import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.security.domain.Authority;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,11 +34,14 @@ public class Member {
     @Column(unique = true, nullable = false)
     private String email;
 
-    private String refreshToken;
+    @Column(nullable = false)
+    private String nickname;
 
-    @Getter
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Profile profile;
+    private String mbti;
+
+    private String intro;
+
+    private String refreshToken;
 
     @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Builder.Default
@@ -56,5 +58,19 @@ public class Member {
 
     public void setVerified() {
         this.isEmailVerified = true;
+    }
+
+    public void setNickname(String nickname) {
+        if (!nickname.trim().isEmpty()) {
+            this.nickname = nickname;
+        } else {
+            throw new IllegalArgumentException("닉네임을 설정해주세요.");
+        }
+    }
+    public void setMbti(String mbti){
+        this.mbti = mbti;
+    }
+    public void setIntro(String intro){
+        this.intro = intro;
     }
 }

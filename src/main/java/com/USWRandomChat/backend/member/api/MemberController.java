@@ -2,16 +2,16 @@ package com.USWRandomChat.backend.member.api;
 
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.service.MemberService;
-import com.USWRandomChat.backend.profile.dto.ProfileDTO;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
-import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import com.USWRandomChat.backend.security.jwt.dto.TokenDto;
+import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -92,15 +92,14 @@ public class MemberController {
         }
     }
 
+    //닉네임 중복 확인
     @PostMapping("/check-duplicate-nickname")
-    public boolean NicknameCheck(@RequestBody ProfileDTO request) {
-        boolean checkResult = memberService.validateDuplicateMemberNickname(request);
-        if (checkResult == false) {
-            //사용가능한 Nickname
-            return true;
-        } else {
-            //중복
-            return false;
+    public ResponseEntity<String> checkDuplicateNickname(@RequestBody MemberDTO request) {
+        try {
+            memberService.checkDuplicateNickname(request);
+            return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
+        } catch (CheckDuplicateNicknameException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
