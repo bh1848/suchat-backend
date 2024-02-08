@@ -61,16 +61,14 @@ public class Member {
     }
 
     public void setNickname(String nickname) {
-        if (!nickname.trim().isEmpty()) {
-            this.nickname = nickname;
-        } else {
-            throw new IllegalArgumentException("닉네임을 설정해주세요.");
-        }
+        this.nickname = nickname;
     }
-    public void setMbti(String mbti){
+
+    public void setMbti(String mbti) {
         this.mbti = mbti;
     }
-    public void setIntro(String intro){
+
+    public void setIntro(String intro) {
         this.intro = intro;
     }
 }

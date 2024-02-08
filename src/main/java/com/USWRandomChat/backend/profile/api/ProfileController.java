@@ -23,4 +23,3 @@ public class ProfileController {
         return new ResponseEntity<>(profileService.updateProfile(memberId, profileRequest), HttpStatus.OK);
     }
 }
-

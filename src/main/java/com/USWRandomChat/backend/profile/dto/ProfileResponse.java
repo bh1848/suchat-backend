@@ -10,9 +10,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProfileResponse {
 
-
     private String nickname;
+
     private String mbti;
+
     private String intro;
 
     public ProfileResponse (Member member) {
