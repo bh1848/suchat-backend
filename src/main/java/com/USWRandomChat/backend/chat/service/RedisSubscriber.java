@@ -27,7 +27,7 @@ public class RedisSubscriber {
             //ChatMessage로 객체 맵핑
             ChatMessage chatMessage = objectMapper.readValue(publishMessage, ChatMessage.class);
             //채팅방 구독한 클라이언트-> 메시지 발송
-            messagingTemplate.convertAndSend("/sub/chat/room/");
+            messagingTemplate.convertAndSend("/sub/chat/room/" + chatMessage.getRoomId(), chatMessage);
         } catch (Exception e) {
             log.error("Exception {}", e);
         }
