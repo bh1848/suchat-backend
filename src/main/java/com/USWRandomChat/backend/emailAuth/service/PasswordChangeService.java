@@ -1,5 +1,7 @@
 package com.USWRandomChat.backend.emailAuth.service;
 
+import com.USWRandomChat.backend.emailAuth.dto.PasswordChangeRequest;
+import com.USWRandomChat.backend.emailAuth.dto.PasswordChangeResponse;
 import com.USWRandomChat.backend.emailAuth.exception.VerificationCodeException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
@@ -23,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class VerificationCodeService {
+public class PasswordChangeService {
 
     private static final String REDIS_KEY_PREFIX = "verification-code:";
     private static final String CHARACTERS = "0123456789";
@@ -33,7 +35,6 @@ public class VerificationCodeService {
     private final JavaMailSender javaMailSender;
     private final MemberRepository memberRepository;
     private final RedisTemplate<String, String> verificationRedisTemplate;
-    private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
 
     //랜덤 인증번호 생성
@@ -79,17 +80,15 @@ public class VerificationCodeService {
         return verificationCode.equals(storedCode);
     }
 
-    @Transactional
     // 비밀번호 변경
-    public boolean updatePassword(String token, String newPassword, String confirmNewPassword) {
+    @Transactional
+    public PasswordChangeResponse updatePassword(String memberId, PasswordChangeRequest passwordChangeRequest) {
 
         // 새로운 비밀번호와 확인 비밀번호가 일치하는지 확인
-        if (!newPassword.equals(confirmNewPassword)) {
-            log.error("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
-            throw new VerificationCodeException("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+        if (!passwordChangeRequest.getNewPassword().equals(passwordChangeRequest.getConfirmNewPassword())) {
+            log.error("비밀번호가 일치하지 않습니다.");
+            throw new VerificationCodeException("비밀번호가 일치하지 않습니다.");
         }
-
-        String memberId = jwtProvider.getMemberId(token);
 
         // Redis에서 저장된 인증번호 제거
         String redisKey = REDIS_KEY_PREFIX + memberId;
@@ -100,7 +99,7 @@ public class VerificationCodeService {
         return optionalMember.map(member -> {
 
             // 새로운 비밀번호를 암호화
-            String encryptedPassword = passwordEncoder.encode(newPassword);
+            String encryptedPassword = passwordEncoder.encode(passwordChangeRequest.getNewPassword());
 
             // 암호화된 비밀번호로 변경
             member.updatePassword(encryptedPassword);
@@ -110,8 +109,9 @@ public class VerificationCodeService {
 
             log.info("비밀번호 변경 완료: memberId={}", memberId);
 
-            return true;
-        }).orElse(false);
+            // 변경된 비밀번호를 포함한 응답 반환
+            return new PasswordChangeResponse(member);
+        }).orElseThrow(() -> new VerificationCodeException("해당 사용자를 찾을 수 없습니다. memberId: " + memberId));
     }
 
     // redis에 인증 번호 저장
