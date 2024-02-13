@@ -2,6 +2,8 @@ package com.USWRandomChat.backend.emailAuth.service;
 
 import com.USWRandomChat.backend.emailAuth.dto.PasswordChangeRequest;
 import com.USWRandomChat.backend.emailAuth.dto.PasswordChangeResponse;
+import com.USWRandomChat.backend.emailAuth.dto.SendRandomCodeRequest;
+import com.USWRandomChat.backend.emailAuth.dto.SendRandomCodeResponse;
 import com.USWRandomChat.backend.emailAuth.exception.VerificationCodeException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
@@ -15,6 +17,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -48,37 +52,50 @@ public class PasswordChangeService {
     }
 
     // 랜덤 인증번호 전송
-    public boolean sendRandomCode(String memberId, String email) throws VerificationCodeException {
+    public SendRandomCodeResponse sendRandomCode(String memberId, SendRandomCodeRequest sendRandomCodeRequest) throws VerificationCodeException {
+        // memberId 검증
+        memberRepository.findByMemberId(memberId);
+
+        String codeRequestMemberId = sendRandomCodeRequest.getMemberId();
+        String email = sendRandomCodeRequest.getEmail();
+
         // memberId와 email이 유효한지 확인
-        memberRepository.findByMemberIdAndEmail(memberId, email)
-                .ifPresentOrElse(member -> {
-                    // 랜덤 인증번호 생성
-                    String randomCode = generateRandomCode();
+        Optional<Member> optionalMember = memberRepository.findByMemberIdAndEmail(codeRequestMemberId, email);
 
-                    // Redis에 인증번호 저장
-                    saveCodeToRedis(memberId, randomCode);
+        optionalMember.ifPresent(member -> {
+            // 랜덤 인증번호 생성
+            String randomCode = generateRandomCode();
 
-                    // 이메일 전송
-                    sendEmail(email + "@suwon.ac.kr", "인증번호", "인증번호: " + randomCode);
-                }, () -> {
-                    // memberId 또는 email이 유효하지 않을 경우 예외 처리
-                    throw new VerificationCodeException("아이디 또는 이메일을 다시 확인해주세요");
-                });
+            // Redis에 인증번호 저장
+            saveCodeToRedis(codeRequestMemberId, randomCode);
 
-        // 성공한 경우 true 반환
-        return true;
+            // 이메일 전송
+            sendEmail(email + "@suwon.ac.kr", "인증번호", "인증번호: " + randomCode);
+        });
+
+        // 성공한 경우 응답 생성
+        return new SendRandomCodeResponse(codeRequestMemberId, email);
     }
 
     // 랜덤 인증번호 검증
-    public boolean verifyCode(String memberId, String verificationCode) {
+    public boolean verifyRandomCode(String memberId, String verificationCode) throws VerificationCodeException {
+
         // Redis에서 저장된 인증번호 가져오기
         ValueOperations<String, String> valueOperations = verificationRedisTemplate.opsForValue();
         String redisKey = REDIS_KEY_PREFIX + memberId;
         String storedCode = valueOperations.get(redisKey);
 
         // 사용자가 입력한 인증번호와 저장된 인증번호 비교
-        return verificationCode.equals(storedCode);
+        boolean isValid = verificationCode.equals(storedCode);
+
+        // 검증이 완료되면 Redis에서 인증번호 삭제
+        if (isValid) {
+            verificationRedisTemplate.delete(redisKey);
+        }
+
+        return isValid;
     }
+
 
     // 비밀번호 변경
     @Transactional
@@ -121,6 +138,7 @@ public class PasswordChangeService {
         valueOperations.set(redisKey, verificationCode, EXPIRATION_TIME_VERIFICATION_CODE, TimeUnit.MINUTES);
     }
 
+    // 이메일 전송
     private void sendEmail(String to, String subject, String htmlBody) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
