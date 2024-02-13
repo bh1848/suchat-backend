@@ -13,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +44,11 @@ public class ProfileService {
 
         try {
             checkNicknameEmpty(profileRequest.getNickname());
-            member.setNickname(profileRequest.getNickname());
+            // 닉네임이 변경되었을 때만 업데이트
+            if (!member.getNickname().equals(profileRequest.getNickname())) {
+                member.setNickname(profileRequest.getNickname());
+                member.setNicknameSetDate(LocalDateTime.now());
+            }
             member.setMbti(profileRequest.getMbti());
             member.setIntro(profileRequest.getIntro());
 
