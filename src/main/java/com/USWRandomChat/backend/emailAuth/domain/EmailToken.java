@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class EmailToken {
 
     // 이메일 토큰 만료 시간
-    private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 60L;
+    private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 5L;
 
     @Id
     @GeneratedValue(generator = "uuid2")
