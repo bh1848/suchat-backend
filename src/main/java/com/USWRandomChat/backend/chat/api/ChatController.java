@@ -3,7 +3,6 @@ package com.USWRandomChat.backend.chat.api;
 import com.USWRandomChat.backend.chat.chatDTO.ChatMessage;
 import com.USWRandomChat.backend.chat.domain.ChatRoom;
 import com.USWRandomChat.backend.chat.service.ChatRepository;
-import com.USWRandomChat.backend.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 public class ChatController {
 
     private final ChatRepository chatRepository;
-    private final ChatService chatService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ChannelTopic channelTopic;
 
@@ -28,7 +26,8 @@ public class ChatController {
         닉네임 설정 모호함
         message.setSender("user_1");
         */
-        chatService.sendChatMessage(message);
+        message.setMessage(message.getSender() + "님이 입장하였습니다.");
+        redisTemplate.convertAndSend(channelTopic.getTopic(), message);
     }
 
     //채팅방 생성

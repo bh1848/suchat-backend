@@ -24,10 +24,12 @@ public class RedisSubscriber {
 
     public void sendMessage(String publishMessage) {
         try {
+            log.info("publish 전 message: {}", publishMessage);
             //ChatMessage로 객체 맵핑
             ChatMessage chatMessage = objectMapper.readValue(publishMessage, ChatMessage.class);
             //채팅방 구독한 클라이언트-> 메시지 발송
             messagingTemplate.convertAndSend("/sub/chat/room/" + chatMessage.getRoomId(), chatMessage);
+            log.info("publish 후 message: {}", chatMessage.getMessage());
         } catch (Exception e) {
             log.error("Exception {}", e);
         }
