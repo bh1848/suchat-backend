@@ -1,5 +1,7 @@
 package com.USWRandomChat.backend.profile.service;
 
+import com.USWRandomChat.backend.exception.ExceptionType;
+import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.exception.MemberNotFoundException;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
@@ -31,8 +33,10 @@ public class ProfileService {
             throw new AccessDeniedException("프로필 조회 권한이 없습니다.");
         }
 
-        Member member = memberRepository.findByAccount(targetAccount)
-                .orElseThrow(() -> new MemberNotFoundException("해당 사용자를 찾을 수 없습니다. targetaccount: " + targetAccount));
+        Member member = memberRepository.findByAccount(targetAccount);
+        if(member == null){
+            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        }
 
         Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
                 new RuntimeException("프로필을 찾을 수 없습니다."));
@@ -42,8 +46,11 @@ public class ProfileService {
 
     // 프로필 업데이트
     public ProfileResponse updateProfile(String account, ProfileRequest profileRequest) {
-        Member member = memberRepository.findByAccount(account)
-                .orElseThrow(() -> new MemberNotFoundException("해당 사용자를 찾을 수 없습니다. account: " + account));
+
+        Member member = memberRepository.findByAccount(account);
+        if(member == null){
+            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        }
 
         Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
                 new RuntimeException("프로필을 찾을 수 없습니다."));

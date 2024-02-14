@@ -1,5 +1,7 @@
 package com.USWRandomChat.backend.security.jwt;
 
+import com.USWRandomChat.backend.exception.ExceptionType;
+import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.security.domain.Authority;
 import com.USWRandomChat.backend.security.jwt.service.JpaUserDetailsService;
 import io.jsonwebtoken.*;
@@ -22,15 +24,12 @@ import java.util.List;
 @Component
 public class JwtProvider {
 
-    @Value("${jwt.secret.key}")
-    private String salt;
-
-    private Key secretKey;
-
     // 만료시간 30분
     private final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 30;
-
     private final JpaUserDetailsService userDetailsService;
+    @Value("${jwt.secret.key}")
+    private String salt;
+    private Key secretKey;
 
     @PostConstruct
     protected void init() {
@@ -38,7 +37,7 @@ public class JwtProvider {
     }
 
     // 토큰 생성
-    public String createToken(String account, List<Authority> roles) {
+    public String createAccessToken(String account, List<Authority> roles) {
         Claims claims = Jwts.claims().setSubject(account);
         claims.put("roles", roles);
         Date now = new Date();
@@ -52,23 +51,21 @@ public class JwtProvider {
 
     // 권한정보 획득
     // Spring Security 인증과정에서 권한확인을 위한 기능
-    public Authentication getAuthentication(String token) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getAccount(token));
+    public Authentication getAuthentication(String accessToken) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getAccount(accessToken));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    // 토큰에 담겨있는 account 획득
-    public String getAccount(String token) {
+    // 토큰에 담겨있는 memberId 획득
+    public String getAccount(String accessToken) {
         // 만료된 토큰에 대해 parseClaimsJws를 수행하면 io.jsonwebtoken.ExpiredJwtException이 발생한다.
         try {
-            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
+            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken).getBody().getSubject();
         } catch (ExpiredJwtException e) {
             e.printStackTrace();
             return e.getClaims().getSubject();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken).getBody().getSubject();
     }
 
     // Authorization Header를 통해 인증을 한다.

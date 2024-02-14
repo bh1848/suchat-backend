@@ -13,4 +13,7 @@ public interface EmailTokenRepository extends JpaRepository<EmailToken, String>{
     Optional<EmailToken> findByUuid(String uuid);
     List<EmailToken> findByExpirationDateBeforeAndExpiredIsFalse(LocalDateTime expirationTime);
     void deleteByUuid(String uuid);
+
+    // Member의 id와 연관된 EmailToken 삭제
+    void deleteByMemberId(Long memberId);
 }

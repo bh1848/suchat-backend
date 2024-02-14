@@ -45,10 +45,6 @@ public class Member {
         role.forEach(o -> o.setMember(this));
     }
 
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
     public void setVerified() {
         this.isEmailVerified = true;
     }

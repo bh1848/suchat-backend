@@ -1,5 +1,8 @@
 package com.USWRandomChat.backend.member.service;
 
+import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
+import com.USWRandomChat.backend.exception.ExceptionType;
+import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
 import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
@@ -12,15 +15,15 @@ import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import com.USWRandomChat.backend.security.domain.Authority;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.security.jwt.domain.Token;
+import com.USWRandomChat.backend.security.jwt.repository.JwtRepository;
 import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -32,13 +35,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberService {
-
     private static final int NICKNAME_CHANGE_LIMIT_DAYS = 30;
+
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
+    private final EmailTokenRepository emailTokenRepository;
+    private final JwtRepository jwtRepository;
 
     // 회원가입
     public Member signUp(SignUpRequest request) {
@@ -64,22 +69,46 @@ public class MemberService {
         return savedMemberEmail;
     }
 
-    // 로그인
-    public SignInResponse signIn(SignInRequest request) throws Exception {
-        Member member = memberRepository.findByAccount(request.getAccount()).orElseThrow(() ->
-                new BadCredentialsException("잘못된 계정정보입니다."));
 
+    //로그인
+    public SignInResponse signIn(SignInRequest request) {
+        Member member = memberRepository.findByAccount(request.getAccount());
+        if (member == null) {
+            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
+        }
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
-            throw new BadCredentialsException("잘못된 계정정보입니다.");
+            throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
 
-        member.setRefreshToken(jwtService.createRefreshToken(member));
+        // refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
+        String refreshToken = jwtService.createRefreshToken(member);
+        log.info("memberId: {}, pw: {} - 로그인 완료", request.getAccount(), request.getPassword());
 
-        log.info("account: {}, pw: {} - 로그인 완료", request.getAccount(), request.getPassword());
-        return new SignInResponse(member, jwtProvider);
+        // SignInResponse 생성 시 refreshToken을 전달
+        return new SignInResponse(member, jwtProvider, jwtService);
     }
 
-    // 전체 조회
+    // 회원 탈퇴
+    public void withdraw(String account) {
+        Member member = memberRepository.findByAccount(account);
+
+        if (member == null) {
+            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        }
+
+        // EMAIL_TOKEN 테이블과 관련된 데이터 삭제
+        emailTokenRepository.deleteByMemberId(member.getId());
+
+        // 저장된 Refresh Token을 찾아 삭제
+        Optional<Token> refreshToken = jwtRepository.findById(member.getId());
+        refreshToken.ifPresent(jwtRepository::delete);
+
+        // 회원 삭제
+        memberRepository.deleteById(member.getId());
+        log.info("회원 탈퇴 완료: memberId={}", account);
+    }
+
+    //전체 조회
     public List<Member> findAll() {
         return memberRepository.findAll();
     }
@@ -96,20 +125,23 @@ public class MemberService {
         }
     }
 
-    // 아이디 중복 확인
-    public boolean validateDuplicateAccount(MemberDTO memberDTO) {
-        Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
-        // 중복
-        // 사용 가능한 ID
-        return byAccount.isPresent();
-    }
+//    // 아이디 중복 확인
+//    public boolean validateDuplicateAccount(MemberDTO memberDTO) {
+//        Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
+//        // 중복
+//        // 사용 가능한 ID
+//        return byAccount.isPresent();
+//    }
 
     // 닉네임 중복 확인, 닉네임 30일 제한 확인
     public void checkDuplicateNickname(String account, MemberDTO memberDTO) {
 
         // 닉네임 변경 제한 확인
-        Member member = memberRepository.findByAccount(account).orElseThrow(() ->
-                new RuntimeException("회원을 찾을 수 없습니다."));
+        Member member = memberRepository.findByAccount(account);
+
+        if(member == null){
+            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        }
 
         Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
                 new RuntimeException("프로필을 찾을 수 없습니다."));
