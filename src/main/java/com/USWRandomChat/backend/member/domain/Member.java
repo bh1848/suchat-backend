@@ -44,8 +44,6 @@ public class Member {
 
     private String intro;
 
-    private String refreshToken;
-
     @OneToMany(mappedBy = "member", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Builder.Default
     private List<Authority> roles = new ArrayList<>();
@@ -57,9 +55,5 @@ public class Member {
 
     public void setVerified() {
         this.isEmailVerified = true;
-    }
-
-    public void setRefreshToken(String refreshToken){
-        this.refreshToken = refreshToken;
     }
 }

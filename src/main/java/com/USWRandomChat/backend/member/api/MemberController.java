@@ -98,12 +98,6 @@ public class MemberController {
         return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
 
-    //user인증 확인
-//    @GetMapping(value = "/user/get")
-//    public ResponseEntity<SignInResponse> getUser(@RequestParam String memberId) throws Exception {
-//        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
-//    }
-
     //전체 조회
     @GetMapping("/members")
     public ListResponse<Member> findAll() {

@@ -13,6 +13,7 @@ import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import com.USWRandomChat.backend.security.jwt.domain.Token;
 import com.USWRandomChat.backend.security.jwt.repository.JwtRepository;
 import com.USWRandomChat.backend.security.jwt.service.JwtService;
+import io.jsonwebtoken.Jwt;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -30,7 +31,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberService {
-
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
@@ -66,10 +66,12 @@ public class MemberService {
             throw new BadCredentialsException("잘못된 계정정보입니다.");
         }
 
-        member.setRefreshToken(jwtService.createRefreshToken(member));
-
+        // refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
+        String refreshToken = jwtService.createRefreshToken(member);
         log.info("memberId: {}, pw: {} - 로그인 완료", request.getMemberId(), request.getPassword());
-        return new SignInResponse(member, jwtProvider);
+
+        // SignInResponse 생성 시 refreshToken을 전달
+        return new SignInResponse(member, jwtProvider, jwtService);
     }
 
     // 회원 탈퇴
@@ -88,14 +90,6 @@ public class MemberService {
         memberRepository.deleteById(member.getId());
         log.info("회원 탈퇴 완료: memberId={}", memberId);
     }
-
-    //user 인증
-//    public SignInResponse getMember(String memberId) throws Exception {
-//        Member member = memberRepository.findByMemberId(memberId)
-//                .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
-//        Jwt refreshToken = jwtRepository.findRefreshTokenByID(member.getId()).orElse(null);
-//        return new SignInResponse(member,jwtProvider, ref);
-//    }
 
     //전체 조회
     public List<Member> findAll() {
