@@ -1,5 +1,7 @@
 package com.USWRandomChat.backend.member.service;
 
+import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
+import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
@@ -8,6 +10,8 @@ import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.security.domain.Authority;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.security.jwt.domain.Token;
+import com.USWRandomChat.backend.security.jwt.repository.JwtRepository;
 import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +36,8 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final JwtService jwtService;
+    private final EmailTokenRepository emailTokenRepository;
+    private final JwtRepository jwtRepository;
 
     //회원가입
     public Member signUp(SignUpRequest request) {
@@ -65,6 +72,22 @@ public class MemberService {
         return new SignInResponse(member, jwtProvider);
     }
 
+    // 회원 탈퇴
+    public void withdraw(String memberId) {
+        Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 회원입니다."));
+
+        // EMAIL_TOKEN 테이블과 관련된 데이터 삭제
+        emailTokenRepository.deleteByMemberId(member.getId());
+
+        // 저장된 Refresh Token을 찾아 삭제
+        Optional<Token> refreshToken = jwtRepository.findById(member.getId());
+        refreshToken.ifPresent(jwtRepository::delete);
+
+        // 회원 삭제
+        memberRepository.deleteById(member.getId());
+        log.info("회원 탈퇴 완료: memberId={}", memberId);
+    }
 
     //user 인증
 //    public SignInResponse getMember(String memberId) throws Exception {

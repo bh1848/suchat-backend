@@ -1,11 +1,13 @@
 package com.USWRandomChat.backend.member.api;
 
+import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
+import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.member.service.MemberService;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -51,7 +54,7 @@ public class MemberController {
         return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
     }
 
-    // 로그아웃
+    //로그아웃
     @PostMapping("/sign-out")
     public ResponseEntity<String> signOut(@RequestParam String memberId) {
         try {
@@ -60,6 +63,21 @@ public class MemberController {
         } catch (Exception e) {
             log.error("로그아웃 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("로그아웃 실패");
+        }
+    }
+
+    // 회원 탈퇴
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<String> withdraw(@RequestParam String memberId) {
+        try {
+            memberService.withdraw(memberId);
+            return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            log.error("회원 탈퇴 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("존재하지 않는 회원입니다.");
+        } catch (Exception e) {
+            log.error("회원 탈퇴 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원 탈퇴 실패");
         }
     }
 
