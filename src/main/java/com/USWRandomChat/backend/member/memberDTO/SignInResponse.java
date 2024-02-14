@@ -14,15 +14,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SignInResponse {
 
-    private String memberId;
+    private String account;
     private String password;
     private TokenDto token;
 
     public SignInResponse(Member member, JwtProvider jwtProvider) {
-        this.memberId = member.getMemberId();
+        this.account = member.getAccount();
         this.password = member.getPassword();
         this.token = TokenDto.builder()
-                .access_token(jwtProvider.createToken(member.getMemberId(), member.getRoles()))
+                .access_token(jwtProvider.createToken(member.getAccount(), member.getRoles()))
                 .refresh_token(member.getRefreshToken())
                 .build();
     }

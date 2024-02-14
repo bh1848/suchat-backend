@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +24,7 @@ public class Member {
 
     // 중복 x, id 역할
     @Column(nullable = false, updatable = false, unique = true)
-    private String memberId;
+    private String account;
 
     @Column(nullable = false)
     private String password;
@@ -34,15 +33,6 @@ public class Member {
 
     @Column(unique = true, nullable = false)
     private String email;
-
-    @Column(unique = true, nullable = false)
-    private String nickname;
-
-    private LocalDateTime nicknameSetDate;
-
-    private String mbti;
-
-    private String intro;
 
     private String refreshToken;
 
@@ -62,21 +52,4 @@ public class Member {
     public void setVerified() {
         this.isEmailVerified = true;
     }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public void setNicknameSetDate(LocalDateTime nicknameSetDate){
-        this.nicknameSetDate = nicknameSetDate;
-    }
-
-    public void setMbti(String mbti) {
-        this.mbti = mbti;
-    }
-
-    public void setIntro(String intro) {
-        this.intro = intro;
-    }
-
 }

@@ -38,8 +38,8 @@ public class JwtProvider {
     }
 
     // 토큰 생성
-    public String createToken(String memberId, List<Authority> roles) {
-        Claims claims = Jwts.claims().setSubject(memberId);
+    public String createToken(String account, List<Authority> roles) {
+        Claims claims = Jwts.claims().setSubject(account);
         claims.put("roles", roles);
         Date now = new Date();
         return Jwts.builder()
@@ -53,12 +53,12 @@ public class JwtProvider {
     // 권한정보 획득
     // Spring Security 인증과정에서 권한확인을 위한 기능
     public Authentication getAuthentication(String token) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getMemberId(token));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getAccount(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    // 토큰에 담겨있는 memberId 획득
-    public String getMemberId(String token) {
+    // 토큰에 담겨있는 account 획득
+    public String getAccount(String token) {
         // 만료된 토큰에 대해 parseClaimsJws를 수행하면 io.jsonwebtoken.ExpiredJwtException이 발생한다.
         try {
             Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();

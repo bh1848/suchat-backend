@@ -1,6 +1,7 @@
 package com.USWRandomChat.backend.profile.dto;
 
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.profile.domain.Profile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,9 +17,9 @@ public class ProfileResponse {
 
     private String intro;
 
-    public ProfileResponse (Member member) {
-        this.nickname = member.getNickname();
-        this.mbti = member.getMbti();
-        this.intro = member.getIntro();
+    public ProfileResponse (Profile profile) {
+        this.nickname = profile.getNickname();
+        this.mbti = profile.getMbti();
+        this.intro = profile.getIntro();
     }
 }

@@ -19,9 +19,9 @@ public class ProfileController {
 
     //프로필 조회
     @GetMapping(value = "/get-profile")
-    public ResponseEntity<ProfileResponse> getProfile(@RequestParam String targetMemberId) {
+    public ResponseEntity<ProfileResponse> getProfile(@RequestParam String targetAccount) {
         try {
-            return new ResponseEntity<>(profileService.getProfile(targetMemberId), HttpStatus.OK);
+            return new ResponseEntity<>(profileService.getProfile(targetAccount), HttpStatus.OK);
         } catch (MemberNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -29,9 +29,9 @@ public class ProfileController {
 
     //프로필 업데이트
     @PostMapping(value = "/update-profile")
-    public ResponseEntity<ProfileResponse> updateProfile(@RequestParam String memberId, @RequestBody ProfileRequest profileRequest) {
+    public ResponseEntity<ProfileResponse> updateProfile(@RequestParam String account, @RequestBody ProfileRequest profileRequest) {
         try {
-            ProfileResponse updatedProfile = profileService.updateProfile(memberId, profileRequest);
+            ProfileResponse updatedProfile = profileService.updateProfile(account, profileRequest);
             return new ResponseEntity<>(updatedProfile, HttpStatus.OK);
         } catch (MemberNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

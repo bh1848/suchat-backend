@@ -29,7 +29,7 @@ public class JwtService {
     /**
      * Refresh 토큰을 생성한다.
      * Redis 내부에는
-     * refreshToken:memberId : tokenValue
+     * refreshToken:account : tokenValue
      * 형태로 저장한다.
      */
     public String createRefreshToken(Member member) {
@@ -59,19 +59,18 @@ public class JwtService {
     }
 
     public TokenDto refreshAccessToken(TokenDto token) throws Exception {
-        String memberId = jwtProvider.getMemberId(token.getAccess_token());
-        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() ->
+        String account = jwtProvider.getAccount(token.getAccess_token());
+        Member member = memberRepository.findByAccount(account).orElseThrow(() ->
                 new BadCredentialsException("잘못된 계정정보입니다."));
         Token refreshToken = validRefreshToken(member, token.getRefresh_token());
 
         if (refreshToken != null) {
             return TokenDto.builder()
-                    .access_token(jwtProvider.createToken(memberId, member.getRoles()))
+                    .access_token(jwtProvider.createToken(account, member.getRoles()))
                     .refresh_token(refreshToken.getRefresh_token())
                     .build();
         } else {
             throw new Exception("로그인을 해주세요");
         }
     }
-
 }

@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MemberDTO {
 
-    //회원가입 필수 4가지
-    //요청, 응답 합침(회원 가입은 변동사항 적음)
-    private String memberId;
+    private String account;
     private String password;
     private String email;
+
+    // Profile 관련 필드 추가
     private String nickname;
+    private String mbti;
+    private String intro;
 }

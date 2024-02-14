@@ -71,8 +71,8 @@ public class MemberController {
 
     //user인증 확인
 //    @GetMapping(value = "/user/get")
-//    public ResponseEntity<SignInResponse> getUser(@RequestParam String memberId) throws Exception {
-//        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
+//    public ResponseEntity<SignInResponse> getUser(@RequestParam String account) throws Exception {
+//        return new ResponseEntity<>(memberService.getMember(account), HttpStatus.OK);
 //    }
 
     //전체 조회
@@ -81,10 +81,10 @@ public class MemberController {
         return responseService.getListResponse(memberService.findAll());
     }
 
-    // memberID 중복 체크
+    // account 중복 체크
     @PostMapping("/check-duplicate-id")
     public boolean idCheck(@RequestBody MemberDTO request) {
-        boolean checkResult = memberService.validateDuplicateMemberId(request);
+        boolean checkResult = memberService.validateDuplicateAccount(request);
         if (checkResult == false) {
             //사용가능한 ID
             return true;
@@ -96,9 +96,9 @@ public class MemberController {
 
     //닉네임 중복 확인
     @PostMapping("/check-duplicate-nickname")
-    public ResponseEntity<String> checkDuplicateNickname(@RequestParam String memberId, @RequestBody MemberDTO memberDTO) {
+    public ResponseEntity<String> checkDuplicateNickname(@RequestParam String account, @RequestBody MemberDTO memberDTO) {
         try {
-            memberService.checkDuplicateNickname(memberId, memberDTO);
+            memberService.checkDuplicateNickname(account, memberDTO);
             return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
         } catch (CheckDuplicateNicknameException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
