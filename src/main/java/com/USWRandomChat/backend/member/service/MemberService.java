@@ -1,5 +1,7 @@
 package com.USWRandomChat.backend.member.service;
 
+import com.USWRandomChat.backend.exception.ExceptionType;
+import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
@@ -19,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import static com.USWRandomChat.backend.exception.ExceptionType.LOGIN_ID_OVERLAP;
 
 @Service
 @Transactional
@@ -51,12 +55,13 @@ public class MemberService {
     }
 
     //로그인
-    public SignInResponse signIn(SignInRequest request) throws Exception {
-        Member member = memberRepository.findByMemberId(request.getMemberId()).orElseThrow(() ->
-                new BadCredentialsException("잘못된 계정정보입니다."));
-
+    public SignInResponse signIn(SignInRequest request) {
+        Member member = memberRepository.findByMemberId(request.getMemberId());
+        if (member == null) {
+            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
+        }
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
-            throw new BadCredentialsException("잘못된 계정정보입니다.");
+            throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
 
         member.setRefreshToken(jwtService.createRefreshToken(member));
@@ -93,18 +98,22 @@ public class MemberService {
 
     //중복 검증 memberId
     public boolean validateDuplicateMemberId(MemberDTO memberDTO) {
-        Optional<Member> byMemberId = memberRepository.findByMemberId(memberDTO.getMemberId());
-        //중복
-        //사용 가능한 ID
-        return byMemberId.isPresent();
+        Member byMemberId = memberRepository.findByMemberId(memberDTO.getMemberId());
+        if (byMemberId != null) {
+            throw new AccountException(ExceptionType.LOGIN_ID_OVERLAP);
+        } else {
+            return false;
+        }
     }
 
     //중복 검증 nickname
     public boolean validateDuplicateMemberNickname(MemberDTO memberDTO) {
         Optional<Member> byNickname = memberRepository.findByNickname(memberDTO.getNickname());
-        //중복
-        //사용 가능한 ID
-        return byNickname.isPresent();
+        if (byNickname.isPresent()){
+            throw new AccountException(ExceptionType.LOGIN_NICKNAME_OVERLAP);
+        } else {
+            return false;
+        }
     }
 
     //해당 토큰 유저 삭제
