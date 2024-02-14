@@ -9,6 +9,7 @@ import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.service.MemberService;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
+import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import com.USWRandomChat.backend.security.jwt.dto.TokenDto;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 
@@ -47,6 +49,18 @@ public class MemberController {
     @PostMapping(value = "/sign-in")
     public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) throws Exception {
         return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
+    }
+
+    // 로그아웃
+    @PostMapping("/sign-out")
+    public ResponseEntity<String> signOut(@RequestParam String memberId) {
+        try {
+            jwtService.signOut(memberId);
+            return new ResponseEntity<>("로그아웃 성공", HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("로그아웃 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("로그아웃 실패");
+        }
     }
 
     //이메일 인증 확인
