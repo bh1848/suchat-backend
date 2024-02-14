@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class JwtService {
     private final JwtProvider jwtProvider;
     private final JwtRepository jwtRepository;
 
-    //만료시간 2주
+    // 만료시간 2주
     private final int REFRESH_TOKEN_EXPIRATION = 14 * 24 * 60;
 
     /**
@@ -46,22 +47,26 @@ public class JwtService {
     }
 
     public Token validRefreshToken(Member member, String refreshToken) throws Exception {
+
         Token token = jwtRepository.findById(member.getId()).orElseThrow(() -> new AccountException(ExceptionType.TOKEN_IS_EXPIRED));
-        // 해당유저의 Refresh 토큰 만료 : Redis에 해당 유저의 토큰이 존재하지 않음
-        if (token.getRefresh_token() == null) {
+
+        // 해당 유저의 Refresh 토큰이 없거나 토큰이 만료된 경우
+        if (token == null || token.getExpiration() <= System.currentTimeMillis()) {
+            throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
+        }
+
+        // 토큰이 같은지 비교
+        if (!token.getRefresh_token().equals(refreshToken)) {
             throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
         } else {
-            // 토큰이 같은지 비교
-            if(!token.getRefresh_token().equals(refreshToken)) {
-                throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
-            } else {
-                return token;
-            }
+            return token;
         }
     }
 
+    // 자동로그인
     public TokenDto refreshAccessToken(TokenDto token) throws Exception {
         String memberId = jwtProvider.getMemberId(token.getAccess_token());
+
         Member member = memberRepository.findByMemberId(memberId);
         if(member == null){
             throw new AccountException(ExceptionType.BAD_CREDENTIALS);
@@ -78,4 +83,19 @@ public class JwtService {
         }
     }
 
+    // 로그아웃
+    public void signOut(String memberId) throws Exception {
+        Member member = memberRepository.findByMemberId(memberId);
+        if(member == null){
+            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        }
+
+        Token savedRefreshToken = jwtRepository.findById(member.getId()).orElse(null);
+
+        // 저장된 Refresh Token이 있으면 삭제
+        if (savedRefreshToken != null) {
+            jwtRepository.delete(savedRefreshToken);
+            log.info("로그아웃 성공: memberId={}", memberId);
+        }
+    }
 }

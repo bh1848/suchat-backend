@@ -1,5 +1,6 @@
 package com.USWRandomChat.backend.member.api;
 
+import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
@@ -8,10 +9,12 @@ import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
+import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.member.service.MemberService;
 
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
+import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import com.USWRandomChat.backend.security.jwt.dto.TokenDto;
 import lombok.AllArgsConstructor;
@@ -24,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
+import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import static com.USWRandomChat.backend.exception.ExceptionType.*;
@@ -54,6 +59,33 @@ public class MemberController {
         return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
     }
 
+    //로그아웃
+    @PostMapping("/sign-out")
+    public ResponseEntity<String> signOut(@RequestParam String memberId) {
+        try {
+            jwtService.signOut(memberId);
+            return new ResponseEntity<>("로그아웃 성공", HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("로그아웃 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("로그아웃 실패");
+        }
+    }
+
+    // 회원 탈퇴
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<String> withdraw(@RequestParam String memberId) {
+        try {
+            memberService.withdraw(memberId);
+            return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            log.error("회원 탈퇴 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("존재하지 않는 회원입니다.");
+        } catch (Exception e) {
+            log.error("회원 탈퇴 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원 탈퇴 실패");
+        }
+    }
+
     //이메일 인증 확인
     @GetMapping("/confirm-email")
     public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {
@@ -65,12 +97,6 @@ public class MemberController {
     public ResponseEntity<String> reconfirmEmail(@RequestParam String uuid) throws MessagingException {
         return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
-
-    //user인증 확인
-//    @GetMapping(value = "/user/get")
-//    public ResponseEntity<SignInResponse> getUser(@RequestParam String memberId) throws Exception {
-//        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
-//    }
 
     //전체 조회
     @GetMapping("/members")

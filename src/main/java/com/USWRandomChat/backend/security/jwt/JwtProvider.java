@@ -40,8 +40,8 @@ public class JwtProvider {
     }
 
     // 토큰 생성
-    public String createToken(String account, List<Authority> roles) {
-        Claims claims = Jwts.claims().setSubject(account);
+    public String createToken(String memberId, List<Authority> roles) {
+        Claims claims = Jwts.claims().setSubject(memberId);
         claims.put("roles", roles);
         Date now = new Date();
         return Jwts.builder()
@@ -54,26 +54,21 @@ public class JwtProvider {
 
     // 권한정보 획득
     // Spring Security 인증과정에서 권한확인을 위한 기능
-    public Authentication getAuthentication(String token) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getMemberId(token));
+    public Authentication getAuthentication(String accessToken) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getMemberId(accessToken));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
     // 토큰에 담겨있는 memberId 획득
-    public String getMemberId(String token) {
+    public String getMemberId(String accessToken) {
         // 만료된 토큰에 대해 parseClaimsJws를 수행하면 io.jsonwebtoken.ExpiredJwtException이 발생한다.
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getSubject();
+            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken).getBody().getSubject();
         } catch (ExpiredJwtException e) {
             e.printStackTrace();
             return e.getClaims().getSubject();
         }
-        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken).getBody().getSubject();
     }
 
     // Authorization Header를 통해 인증을 한다.
@@ -82,15 +77,16 @@ public class JwtProvider {
     }
 
     // 토큰 검증
-    public boolean validateToken(String token) {
+    public boolean validateToken(String accessToken) {
         try {
             // Bearer 검증
-            if (!token.substring(0, "BEARER ".length()).equalsIgnoreCase("BEARER ")) {
+            if (!accessToken.substring(0, "BEARER ".length()).equalsIgnoreCase("BEARER ")) {
                 throw new AccountException(ExceptionType.INVALID_TOKEN_FORMAT);
             } else {
-                token = token.split(" ")[1].trim();
+                accessToken = accessToken.split(" ")[1].trim();
             }
-            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+
+            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
 
             if (claims.getBody().getExpiration().before(new Date())) {
                 throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);

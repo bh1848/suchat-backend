@@ -1,5 +1,6 @@
 package com.USWRandomChat.backend.member.service;
 
+import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
@@ -10,7 +11,10 @@ import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.security.domain.Authority;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.security.jwt.domain.Token;
+import com.USWRandomChat.backend.security.jwt.repository.JwtRepository;
 import com.USWRandomChat.backend.security.jwt.service.JwtService;
+import io.jsonwebtoken.Jwt;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -30,11 +34,12 @@ import static com.USWRandomChat.backend.exception.ExceptionType.LOGIN_ID_OVERLAP
 @Slf4j
 public class MemberService {
 
-
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final JwtService jwtService;
+    private final EmailTokenRepository emailTokenRepository;
+    private final JwtRepository jwtRepository;
 
     //회원가입
     public Member signUp(SignUpRequest request) {
@@ -64,20 +69,33 @@ public class MemberService {
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
 
-        member.setRefreshToken(jwtService.createRefreshToken(member));
-
+        // refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
+        String refreshToken = jwtService.createRefreshToken(member);
         log.info("memberId: {}, pw: {} - 로그인 완료", request.getMemberId(), request.getPassword());
-        return new SignInResponse(member, jwtProvider);
+
+        // SignInResponse 생성 시 refreshToken을 전달
+        return new SignInResponse(member, jwtProvider, jwtService);
     }
 
+    // 회원 탈퇴
+    public void withdraw(String memberId) {
+        Member member = memberRepository.findByMemberId(memberId);
 
-    //user 인증
-//    public SignInResponse getMember(String memberId) throws Exception {
-//        Member member = memberRepository.findByMemberId(memberId)
-//                .orElseThrow(() -> new Exception("계정을 찾을 수 없습니다."));
-//        Jwt refreshToken = jwtRepository.findRefreshTokenByID(member.getId()).orElse(null);
-//        return new SignInResponse(member,jwtProvider, ref);
-//    }
+        if(member == null){
+            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        }
+
+        // EMAIL_TOKEN 테이블과 관련된 데이터 삭제
+        emailTokenRepository.deleteByMemberId(member.getId());
+
+        // 저장된 Refresh Token을 찾아 삭제
+        Optional<Token> refreshToken = jwtRepository.findById(member.getId());
+        refreshToken.ifPresent(jwtRepository::delete);
+
+        // 회원 삭제
+        memberRepository.deleteById(member.getId());
+        log.info("회원 탈퇴 완료: memberId={}", memberId);
+    }
 
     //전체 조회
     public List<Member> findAll() {
