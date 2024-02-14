@@ -27,6 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String accessToken = jwtProvider.resolveToken(request);
 
+        // 토큰이 유효할 경우, 인증 정보를 설정한 후 요청을 다음 필터로 전달
         if (accessToken != null && jwtProvider.validateToken(accessToken)) {
             // check access token
             accessToken = accessToken.split(" ")[1].trim();

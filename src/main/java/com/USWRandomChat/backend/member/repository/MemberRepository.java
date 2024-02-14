@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     //memberId로 찾기
-    Optional<Member> findByMemberId(String memberId);
+    Member findByMemberId(String memberId);
 
     //email로 찾기
     Member findByEmail(String email);

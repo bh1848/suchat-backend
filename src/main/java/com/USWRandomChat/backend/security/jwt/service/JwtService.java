@@ -1,5 +1,7 @@
 package com.USWRandomChat.backend.security.jwt.service;
 
+import com.USWRandomChat.backend.exception.ExceptionType;
+import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
@@ -45,16 +47,17 @@ public class JwtService {
     }
 
     public Token validRefreshToken(Member member, String refreshToken) throws Exception {
-        Token token = jwtRepository.findById(member.getId()).orElse(null);
+
+        Token token = jwtRepository.findById(member.getId()).orElseThrow(() -> new AccountException(ExceptionType.TOKEN_IS_EXPIRED));
 
         // 해당 유저의 Refresh 토큰이 없거나 토큰이 만료된 경우
         if (token == null || token.getExpiration() <= System.currentTimeMillis()) {
-            return null;
+            throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
         }
 
         // 토큰이 같은지 비교
         if (!token.getRefresh_token().equals(refreshToken)) {
-            return null;
+            throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
         } else {
             return token;
         }
@@ -63,9 +66,11 @@ public class JwtService {
     // 자동로그인
     public TokenDto refreshAccessToken(TokenDto token) throws Exception {
         String memberId = jwtProvider.getMemberId(token.getAccess_token());
-        Member member = memberRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new BadCredentialsException("잘못된 계정정보입니다."));
 
+        Member member = memberRepository.findByMemberId(memberId);
+        if(member == null){
+            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        }
         Token refreshToken = validRefreshToken(member, token.getRefresh_token());
 
         if (refreshToken != null) {
@@ -74,14 +79,16 @@ public class JwtService {
                     .refresh_token(refreshToken.getRefresh_token())
                     .build();
         } else {
-            throw new Exception("로그인을 해주세요");
+            throw new AccountException(ExceptionType.LOGIN_REQUIRED);
         }
     }
 
     // 로그아웃
     public void signOut(String memberId) throws Exception {
-        Member member = memberRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new BadCredentialsException("잘못된 계정정보입니다."));
+        Member member = memberRepository.findByMemberId(memberId);
+        if(member == null){
+            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        }
 
         Token savedRefreshToken = jwtRepository.findById(member.getId()).orElse(null);
 
@@ -89,8 +96,6 @@ public class JwtService {
         if (savedRefreshToken != null) {
             jwtRepository.delete(savedRefreshToken);
             log.info("로그아웃 성공: memberId={}", memberId);
-        } else {
-            throw new Exception("로그아웃 실패: 토큰이 없습니다.");
         }
     }
 }

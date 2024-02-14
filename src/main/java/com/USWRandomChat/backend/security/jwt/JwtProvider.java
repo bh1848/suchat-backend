@@ -1,5 +1,7 @@
 package com.USWRandomChat.backend.security.jwt;
 
+import com.USWRandomChat.backend.exception.ExceptionType;
+import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.security.domain.Authority;
 import com.USWRandomChat.backend.security.jwt.service.JpaUserDetailsService;
 import io.jsonwebtoken.*;
@@ -65,8 +67,6 @@ public class JwtProvider {
         } catch (ExpiredJwtException e) {
             e.printStackTrace();
             return e.getClaims().getSubject();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken).getBody().getSubject();
     }
@@ -81,15 +81,19 @@ public class JwtProvider {
         try {
             // Bearer 검증
             if (!accessToken.substring(0, "BEARER ".length()).equalsIgnoreCase("BEARER ")) {
-                return false;
+                throw new AccountException(ExceptionType.INVALID_TOKEN_FORMAT);
             } else {
                 accessToken = accessToken.split(" ")[1].trim();
             }
+
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
-            // 만료되었을 시 false
-            return !claims.getBody().getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
+
+            if (claims.getBody().getExpiration().before(new Date())) {
+                throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
+            }
+            return true;
+        } catch (ExpiredJwtException e) {
+            throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
         }
     }
 }

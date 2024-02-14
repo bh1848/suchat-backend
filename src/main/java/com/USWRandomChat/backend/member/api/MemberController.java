@@ -2,6 +2,8 @@ package com.USWRandomChat.backend.member.api;
 
 import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
+import com.USWRandomChat.backend.exception.ExceptionType;
+import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
@@ -9,6 +11,7 @@ import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.member.service.MemberService;
+
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
@@ -27,6 +30,8 @@ import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+
+import static com.USWRandomChat.backend.exception.ExceptionType.*;
 
 
 @Slf4j
@@ -50,7 +55,7 @@ public class MemberController {
 
     //로그인
     @PostMapping(value = "/sign-in")
-    public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) throws Exception {
+    public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) {
         return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
     }
 
@@ -84,12 +89,7 @@ public class MemberController {
     //이메일 인증 확인
     @GetMapping("/confirm-email")
     public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {
-        try {
-            return new ResponseEntity<>(emailService.verifyEmail(uuid), HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("DATABASE_ERROR - 토큰 에러: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
-        }
+        return new ResponseEntity<>(emailService.verifyEmail(uuid), HttpStatus.OK);
     }
 
     //이메일 재인증
@@ -106,33 +106,20 @@ public class MemberController {
 
     // memberID 중복 체크
     @PostMapping("/check-duplicate-id")
-    public boolean idCheck(@RequestBody MemberDTO request) {
-        boolean checkResult = memberService.validateDuplicateMemberId(request);
-        if (checkResult == false) {
-            //사용가능한 ID
-            return true;
-        } else {
-            //중복
-            return false;
-        }
+    public ResponseEntity<Boolean> idCheck(@RequestBody MemberDTO request) {
+        return new ResponseEntity<>(memberService.validateDuplicateMemberId(request), HttpStatus.OK);
     }
 
+    // nickname 중복 체크
     @PostMapping("/check-duplicate-nickname")
-    public boolean NicknameCheck(@RequestBody MemberDTO request) {
-        boolean checkResult = memberService.validateDuplicateMemberNickname(request);
-        if (checkResult == false) {
-            //사용가능한 Nickname
-            return true;
-        } else {
-            //중복
-            return false;
-        }
+    public ResponseEntity<Boolean> NicknameCheck(@RequestBody MemberDTO request) {
+        return new ResponseEntity<>(memberService.validateDuplicateMemberNickname(request), HttpStatus.OK);
     }
 
     //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급
     @PostMapping("/auto-sign-in")
     public ResponseEntity<TokenDto> refresh(@RequestBody TokenDto token) throws Exception {
-        return new ResponseEntity<>( jwtService.refreshAccessToken(token), HttpStatus.OK);
+        return new ResponseEntity<>(jwtService.refreshAccessToken(token), HttpStatus.OK);
     }
 
     @Data
