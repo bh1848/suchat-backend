@@ -1,22 +1,18 @@
 package com.USWRandomChat.backend.member.api;
 
-import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
-import com.USWRandomChat.backend.exception.ExceptionType;
-import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
+import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
-import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.member.service.MemberService;
-
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
-import com.USWRandomChat.backend.security.jwt.JwtProvider;
-import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import com.USWRandomChat.backend.security.jwt.dto.TokenDto;
+import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-
-import static com.USWRandomChat.backend.exception.ExceptionType.*;
 
 
 @Slf4j
@@ -98,22 +91,44 @@ public class MemberController {
         return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
 
+
+    //user인증 확인
+//    @GetMapping(value = "/user/get")
+//    public ResponseEntity<SignInResponse> getUser(@RequestParam String account) throws Exception {
+//        return new ResponseEntity<>(memberService.getMember(account), HttpStatus.OK);
+//    }
+
+
     //전체 조회
     @GetMapping("/members")
     public ListResponse<Member> findAll() {
         return responseService.getListResponse(memberService.findAll());
     }
 
-    // memberID 중복 체크
-    @PostMapping("/check-duplicate-id")
-    public ResponseEntity<Boolean> idCheck(@RequestBody MemberDTO request) {
-        return new ResponseEntity<>(memberService.validateDuplicateMemberId(request), HttpStatus.OK);
-    }
+//    // account 중복 체크
+//    @PostMapping("/check-duplicate-id")
+//    public boolean idCheck(@RequestBody MemberDTO request) {
+//        boolean checkResult = memberService.validateDuplicateAccount(request);
+//        if (checkResult == false) {
+//            //사용가능한 ID
+//            return true;
+//        } else {
+//            //중복
+//            return false;
+//        }
+//    }
 
-    // nickname 중복 체크
+    //닉네임 중복 확인
     @PostMapping("/check-duplicate-nickname")
-    public ResponseEntity<Boolean> NicknameCheck(@RequestBody MemberDTO request) {
-        return new ResponseEntity<>(memberService.validateDuplicateMemberNickname(request), HttpStatus.OK);
+    public ResponseEntity<String> checkDuplicateNickname(@RequestParam String account, @RequestBody MemberDTO memberDTO) {
+        try {
+            memberService.checkDuplicateNickname(account, memberDTO);
+            return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
+        } catch (CheckDuplicateNicknameException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (NicknameChangeNotAllowedException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급

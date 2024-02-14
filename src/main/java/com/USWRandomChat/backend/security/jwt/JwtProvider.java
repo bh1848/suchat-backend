@@ -24,15 +24,12 @@ import java.util.List;
 @Component
 public class JwtProvider {
 
-    @Value("${jwt.secret.key}")
-    private String salt;
-
-    private Key secretKey;
-
     // 만료시간 30분
     private final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 30;
-
     private final JpaUserDetailsService userDetailsService;
+    @Value("${jwt.secret.key}")
+    private String salt;
+    private Key secretKey;
 
     @PostConstruct
     protected void init() {
@@ -40,8 +37,8 @@ public class JwtProvider {
     }
 
     // 토큰 생성
-    public String createToken(String memberId, List<Authority> roles) {
-        Claims claims = Jwts.claims().setSubject(memberId);
+    public String createAccessToken(String account, List<Authority> roles) {
+        Claims claims = Jwts.claims().setSubject(account);
         claims.put("roles", roles);
         Date now = new Date();
         return Jwts.builder()
@@ -55,12 +52,12 @@ public class JwtProvider {
     // 권한정보 획득
     // Spring Security 인증과정에서 권한확인을 위한 기능
     public Authentication getAuthentication(String accessToken) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getMemberId(accessToken));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getAccount(accessToken));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
     // 토큰에 담겨있는 memberId 획득
-    public String getMemberId(String accessToken) {
+    public String getAccount(String accessToken) {
         // 만료된 토큰에 대해 parseClaimsJws를 수행하면 io.jsonwebtoken.ExpiredJwtException이 발생한다.
         try {
             Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken).getBody().getSubject();
@@ -77,23 +74,19 @@ public class JwtProvider {
     }
 
     // 토큰 검증
-    public boolean validateToken(String accessToken) {
+    public boolean validateToken(String token) {
         try {
             // Bearer 검증
-            if (!accessToken.substring(0, "BEARER ".length()).equalsIgnoreCase("BEARER ")) {
-                throw new AccountException(ExceptionType.INVALID_TOKEN_FORMAT);
+            if (!token.substring(0, "BEARER ".length()).equalsIgnoreCase("BEARER ")) {
+                return false;
             } else {
-                accessToken = accessToken.split(" ")[1].trim();
+                token = token.split(" ")[1].trim();
             }
-
-            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
-
-            if (claims.getBody().getExpiration().before(new Date())) {
-                throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
-            }
-            return true;
-        } catch (ExpiredJwtException e) {
-            throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
+            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+            // 만료되었을 시 false
+            return !claims.getBody().getExpiration().before(new Date());
+        } catch (Exception e) {
+            return false;
         }
     }
 }

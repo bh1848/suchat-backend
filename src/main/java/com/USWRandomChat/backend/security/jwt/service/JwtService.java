@@ -10,7 +10,6 @@ import com.USWRandomChat.backend.security.jwt.dto.TokenDto;
 import com.USWRandomChat.backend.security.jwt.repository.JwtRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +31,7 @@ public class JwtService {
     /**
      * Refresh 토큰을 생성한다.
      * Redis 내부에는
-     * refreshToken:memberId : tokenValue
+     * refreshToken:account : tokenValue
      * 형태로 저장한다.
      */
     public String createRefreshToken(Member member) {
@@ -65,9 +64,9 @@ public class JwtService {
 
     // 자동로그인
     public TokenDto refreshAccessToken(TokenDto token) throws Exception {
-        String memberId = jwtProvider.getMemberId(token.getAccess_token());
+        String account = jwtProvider.getAccount(token.getAccess_token());
 
-        Member member = memberRepository.findByMemberId(memberId);
+        Member member = memberRepository.findByAccount(account);
         if(member == null){
             throw new AccountException(ExceptionType.BAD_CREDENTIALS);
         }
@@ -75,7 +74,7 @@ public class JwtService {
 
         if (refreshToken != null) {
             return TokenDto.builder()
-                    .access_token(jwtProvider.createToken(memberId, member.getRoles()))
+                    .access_token(jwtProvider.createAccessToken(account, member.getRoles()))
                     .refresh_token(refreshToken.getRefresh_token())
                     .build();
         } else {
@@ -83,9 +82,10 @@ public class JwtService {
         }
     }
 
+
     // 로그아웃
-    public void signOut(String memberId) throws Exception {
-        Member member = memberRepository.findByMemberId(memberId);
+    public void signOut(String account) throws Exception {
+        Member member = memberRepository.findByAccount(account);
         if(member == null){
             throw new AccountException(ExceptionType.BAD_CREDENTIALS);
         }
@@ -95,7 +95,7 @@ public class JwtService {
         // 저장된 Refresh Token이 있으면 삭제
         if (savedRefreshToken != null) {
             jwtRepository.delete(savedRefreshToken);
-            log.info("로그아웃 성공: memberId={}", memberId);
+            log.info("로그아웃 성공: memberId={}", account);
         }
     }
 }

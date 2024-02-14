@@ -61,8 +61,8 @@ public class SecurityConfig {
                 .and()
                 //조건별로 요청 허용/제한 설정
                 .authorizeRequests()
-                //회원가입과 로그인은 모두 승인
-                .antMatchers("/member/**").permitAll()
+                //일단 다 승인
+                .antMatchers("/member/**", "/profile/**").permitAll()
                 // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저만 허용
                 .antMatchers("/member/admin/**").hasRole("ADMIN")
                 // /user으로 시작하는 요청은 USER 권한이 있는 유저만 허용
