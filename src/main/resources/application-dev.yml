@@ -9,6 +9,20 @@ spring:
   config:
     activate:
       on-profile: dev
+
+  #static 파일을 개발할때 서버 재시작하지 않고 수정한 내용 반영
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: false
+    freemarker:
+      cache: false
+
+  redis:
+    host: localhost
+    port: 6379
+
   datasource:
     url: jdbc:h2:tcp://localhost/~/swchat
     username: sa

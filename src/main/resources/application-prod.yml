@@ -8,7 +8,11 @@ logging:
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: prod
+
+  redis:
+    host: 0.0.0.0
+    port: 6379
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
