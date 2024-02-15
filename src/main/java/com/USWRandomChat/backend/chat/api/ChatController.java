@@ -1,6 +1,6 @@
 package com.USWRandomChat.backend.chat.api;
 
-import com.USWRandomChat.backend.chat.chatDTO.ChatMessage;
+import com.USWRandomChat.backend.chat.dto.PubMessage;
 import com.USWRandomChat.backend.chat.domain.ChatRoom;
 import com.USWRandomChat.backend.chat.service.ChatRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class ChatController {
 
     //client에서 /pub/chat/message로 요청
     @MessageMapping("/chat/message")
-    public void message(ChatMessage message) {
+    public void message(PubMessage message) {
         //메시지 발송 시 /pub/chat/message
         //메시지 수신 시 /sub/chat/room/방 ID
         /*
