@@ -2,8 +2,6 @@ package com.USWRandomChat.backend.chat.api;
 
 import com.USWRandomChat.backend.chat.domain.PubMessage;
 import com.USWRandomChat.backend.chat.dto.MessageRequest;
-import com.USWRandomChat.backend.chat.domain.ChatRoom;
-import com.USWRandomChat.backend.chat.service.ChatRepository;
 import com.USWRandomChat.backend.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +11,6 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 
 @RestController
@@ -22,8 +19,6 @@ import java.time.LocalDateTime;
 public class ChatController {
 
     private final ChatService chatService;
-    private final ChatRepository chatRepository;
-    @Resource(name = "chatRedisTemplate")
     private final RedisTemplate<String, Object> redisTemplate;
     private final ChannelTopic channelTopic;
 
@@ -42,19 +37,5 @@ public class ChatController {
         log.info("레디스 서버에 메시지 전송");
 
         chatService.saveMessage(messageRequest, roomId);
-    }
-
-    //채팅방 생성
-    @PostMapping("/chat/room")
-    @ResponseBody
-    public ChatRoom createRoom(@RequestParam String name) {
-        return chatRepository.createChatRoom(name);
-    }
-
-    //채팅방 조회
-    @GetMapping("/chat/room/{roomId}")
-    @ResponseBody
-    public ChatRoom roomInfo(@PathVariable String roomId) {
-        return chatRepository.findRoomById(roomId);
     }
 }
