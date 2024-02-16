@@ -1,33 +1,47 @@
 package com.USWRandomChat.backend.chat.api;
 
-import com.USWRandomChat.backend.chat.dto.PubMessage;
+import com.USWRandomChat.backend.chat.domain.PubMessage;
+import com.USWRandomChat.backend.chat.dto.MessageRequest;
 import com.USWRandomChat.backend.chat.domain.ChatRoom;
 import com.USWRandomChat.backend.chat.service.ChatRepository;
+import com.USWRandomChat.backend.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
+import java.time.LocalDateTime;
+
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class ChatController {
 
+    private final ChatService chatService;
     private final ChatRepository chatRepository;
+    @Resource(name = "chatRedisTemplate")
     private final RedisTemplate<String, Object> redisTemplate;
     private final ChannelTopic channelTopic;
 
     //client에서 /pub/chat/message로 요청
-    @MessageMapping("/chat/message")
-    public void message(PubMessage message) {
-        //메시지 발송 시 /pub/chat/message
-        //메시지 수신 시 /sub/chat/room/방 ID
-        /*
-        닉네임 설정 모호함
-        message.setSender("user_1");
-        */
-        message.setMessage(message.getSender() + "님이 입장하였습니다.");
-        redisTemplate.convertAndSend(channelTopic.getTopic(), message);
+    @MessageMapping("/chat/message/{room-id}")
+    public void message(@DestinationVariable("room-id") String roomId, MessageRequest messageRequest) {
+        //dto message-> redis message
+        PubMessage pubMessage =
+                new PubMessage(messageRequest.getRoomId(),
+                        messageRequest.getSender(),
+                        messageRequest.getContents(),
+                        LocalDateTime.now());
+
+        //메시지 전송
+        redisTemplate.convertAndSend(channelTopic.getTopic(), pubMessage);
+        log.info("레디스 서버에 메시지 전송");
+
+        chatService.saveMessage(messageRequest, roomId);
     }
 
     //채팅방 생성

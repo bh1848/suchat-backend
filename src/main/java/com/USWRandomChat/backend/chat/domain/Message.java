@@ -25,7 +25,7 @@ public class Message {
     @Column(name = "MESSAGE_NUMBER")
     private int messageNumber;
 
-    @Column(name = "ROOMD_ID")
+    @Column(name = "ROOOM_ID")
     private String roomId;
 
     //불변하는 account 값으로 설정

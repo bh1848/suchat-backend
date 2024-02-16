@@ -1,6 +1,6 @@
 package com.USWRandomChat.backend.chat.service;
 
-import com.USWRandomChat.backend.chat.dto.PubMessage;
+import com.USWRandomChat.backend.chat.domain.PubMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,13 +22,13 @@ public class RedisSubscriber {
     public void sendMessage(String publishMessage) {
         try {
             log.info("publish 전 message: {}", publishMessage);
-            //ChatMessage로 객체 맵핑
+
             PubMessage pubMessage = objectMapper.readValue(publishMessage, PubMessage.class);
             //채팅방 구독한 클라이언트-> 메시지 발송
-            messagingTemplate.convertAndSend("/sub/chat/room/" + pubMessage.getRoomId(), pubMessage);
-            log.info("publish 후 message: {}", pubMessage.getMessage());
+            messagingTemplate.convertAndSend("/sub/chat/" + pubMessage.getRoomId(), pubMessage);
+            log.info("publish 후 message: {}", pubMessage.getContents());
         } catch (Exception e) {
-            log.error("Exception {}", e);
+            log.error("Exception {}", e.getMessage());
         }
     }
 }
