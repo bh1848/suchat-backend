@@ -12,7 +12,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     //email로 찾기
     Member findByEmail(String email);
-
-    //id로 삭제하기
-    void deleteById(Long id);
 }
