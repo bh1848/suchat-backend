@@ -1,5 +1,6 @@
-package com.USWRandomChat.backend.chat.chatDTO;
+package com.USWRandomChat.backend.chat.dto;
 
+import com.USWRandomChat.backend.chat.dto.PageInfo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

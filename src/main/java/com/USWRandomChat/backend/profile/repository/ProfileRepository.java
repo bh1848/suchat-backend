@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
     // 추가적인 쿼리 메서드가 필요하다면 여기에 작성
-    Optional<Profile> findById(Long id);
+    Optional<Profile> findByRoomId(String id);
 
     Optional<Profile> findByNickname(String nickname);
 }

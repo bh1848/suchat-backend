@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.chat.chatDTO;
+package com.USWRandomChat.backend.chat.dto;
 
 import lombok.Getter;
 import lombok.Setter;

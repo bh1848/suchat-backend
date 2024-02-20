@@ -29,35 +29,25 @@ public class ChatService {
     private final ProfileRepository profileRepository;
     private final MessageRepository messageRepository;
 
-    //header의 destination정보에서 roomId추출
-    public String getRoomId(String destination) {
-        int lastIndex = destination.lastIndexOf('/');
-        if (lastIndex != -1) {
-            return destination.substring(lastIndex + 1);
-        } else {
-            return "";
-        }
-    }
-
     //채팅방 찾기
-    public Profile findRoom(long roomId) {
+    public Profile findRoom(String roomId) {
         Profile profile = findExistRoom(roomId);
 
         return profile;
     }
 
     // 채팅방 존재 검증
-    private Profile findExistRoom(long roomId) {
-        Optional<Profile> optionalProfile = profileRepository.findById(roomId);
+    private Profile findExistRoom(String roomId) {
+        Optional<Profile> optionalProfile = profileRepository.findByRoomId(roomId);
 
         return optionalProfile.orElse(null);
     }
 
-    public Page<MessageRequest> findMessages(long roomId, int page, int size) {
-        Profile profile_roomId = findRoom(roomId);
+    public Page<MessageRequest> findMessages(String roomId, int page, int size) {
+        Profile profileRoomId = findRoom(roomId);
 
-        Pageable pageable = PageRequest.of(page-1, size, Sort.by("MESSAGE_NUMBER").descending());
-        Page<MessageRequest> messages = messageRepository.findByRoomId(pageable, profile_roomId);
+        Pageable pageable = PageRequest.of(page-1, size, Sort.by("messageNumber").descending());
+        Page<MessageRequest> messages = messageRepository.findByRoomId(pageable, profileRoomId);
 
         return messages;
     }
