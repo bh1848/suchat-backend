@@ -1,6 +1,5 @@
 package com.USWRandomChat.backend.chat.domain;
 
-import com.USWRandomChat.backend.member.domain.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +15,6 @@ import java.time.LocalDateTime;
 @Builder
 @Table(name = "Message_table")
 public class Message {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MESSAGE_ID")

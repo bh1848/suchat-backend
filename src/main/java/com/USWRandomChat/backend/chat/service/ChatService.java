@@ -1,21 +1,66 @@
 package com.USWRandomChat.backend.chat.service;
 
-import com.USWRandomChat.backend.chat.domain.Message;
 import com.USWRandomChat.backend.chat.dto.MessageRequest;
 import com.USWRandomChat.backend.chat.repository.MessageRepository;
+import com.USWRandomChat.backend.profile.domain.Profile;
+import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.stereotype.Service;
-
+import com.USWRandomChat.backend.chat.domain.Message;
 import java.time.LocalDateTime;
+import java.util.Optional;
+
+
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ChatService {
 
+    private final ChannelTopic channelTopic;
+    private final RedisTemplate redisTemplate;
+    private final ProfileRepository profileRepository;
     private final MessageRepository messageRepository;
 
+    //header의 destination정보에서 roomId추출
+    public String getRoomId(String destination) {
+        int lastIndex = destination.lastIndexOf('/');
+        if (lastIndex != -1) {
+            return destination.substring(lastIndex + 1);
+        } else {
+            return "";
+        }
+    }
+
+    //채팅방 찾기
+    public Profile findRoom(long roomId) {
+        Profile profile = findExistRoom(roomId);
+
+        return profile;
+    }
+
+    // 채팅방 존재 검증
+    private Profile findExistRoom(long roomId) {
+        Optional<Profile> optionalProfile = profileRepository.findById(roomId);
+
+        return optionalProfile.orElse(null);
+    }
+
+    public Page<MessageRequest> findMessages(long roomId, int page, int size) {
+        Profile profile_roomId = findRoom(roomId);
+
+        Pageable pageable = PageRequest.of(page-1, size, Sort.by("MESSAGE_NUMBER").descending());
+        Page<MessageRequest> messages = messageRepository.findByRoomId(pageable, profile_roomId);
+
+        return messages;
+    }
     public void saveMessage(MessageRequest messageRequest, String roomId) {
 
         /*
