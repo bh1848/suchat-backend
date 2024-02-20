@@ -15,23 +15,24 @@ import java.time.LocalDateTime;
 @Builder
 @Table(name = "Message_table")
 public class Message {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MESSAGE_ID")
     private Long id;
 
-    @Column(name = "ROOM_ID")
-    private String roomId;
-
-    private String sender;
-
-    @Column(name = "CONTENTS")
-    private String contents;
-
-    @Column(name = "SEND_TIME")
-    private LocalDateTime sendTime;
-
     @Column(name = "MESSAGE_NUMBER")
     private int messageNumber;
+
+    @Column(name = "ROOOM_ID")
+    private String roomId;
+
+    //불변하는 account 값으로 설정
+    @Column(name = "SENDER")
+    private String sender;
+
+    @Column(name = "CONTENTS", nullable = false)
+    private String contents;
+
+    @Column(name = "SEND_TIME", nullable = false)
+    private LocalDateTime sendTime;
 }

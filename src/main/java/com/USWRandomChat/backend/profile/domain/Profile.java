@@ -33,6 +33,8 @@ public class Profile {
 
     private String intro;
 
+    private String roomId;
+
     public void setNickname(String nickname){
         this.nickname = nickname;
     }
@@ -49,5 +51,8 @@ public class Profile {
         this.intro = intro;
     }
 
+    public void setRoomId(String roomId){
+        this.roomId = roomId;
+    }
 }
 
