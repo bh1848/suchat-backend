@@ -32,7 +32,19 @@ public enum ExceptionType {
      * Domain : Token
      */
     TOKEN_IS_EXPIRED("TOKEN001", "토큰이 만료되었습니다 다시 로그인 해주세요", UNAUTHORIZED),
-    INVALID_TOKEN_FORMAT("TOKEN002", "올바른 토큰 형식이 아닙니다", BAD_REQUEST);
+    INVALID_TOKEN_FORMAT("TOKEN002", "올바른 토큰 형식이 아닙니다", BAD_REQUEST),
+
+    /**
+     * Domain:ConfirmationToken
+     */
+    EMAIL_NOT_AUTHED("CONFIRMATION_TOKEN001", "이메일 인증을 받지 않은 사용자 입니다.", UNAUTHORIZED),
+
+    /**
+     * 공통
+     */
+    SEND_MAIL_FAILED("MAIL001", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR), //500
+
+    ;
 
     private final String code;
     private final String message;
