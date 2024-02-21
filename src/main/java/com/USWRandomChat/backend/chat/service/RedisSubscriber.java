@@ -1,12 +1,9 @@
 package com.USWRandomChat.backend.chat.service;
 
-import com.USWRandomChat.backend.chat.chatDTO.ChatMessage;
+import com.USWRandomChat.backend.chat.domain.PubMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +22,13 @@ public class RedisSubscriber {
     public void sendMessage(String publishMessage) {
         try {
             log.info("publish 전 message: {}", publishMessage);
-            //ChatMessage로 객체 맵핑
-            ChatMessage chatMessage = objectMapper.readValue(publishMessage, ChatMessage.class);
+
+            PubMessage pubMessage = objectMapper.readValue(publishMessage, PubMessage.class);
             //채팅방 구독한 클라이언트-> 메시지 발송
-            messagingTemplate.convertAndSend("/sub/chat/room/" + chatMessage.getRoomId(), chatMessage);
-            log.info("publish 후 message: {}", chatMessage.getMessage());
+            messagingTemplate.convertAndSend("/sub/chat/" + pubMessage.getRoomId(), pubMessage);
+            log.info("publish 후 message: {}", pubMessage.getContents());
         } catch (Exception e) {
-            log.error("Exception {}", e);
+            log.error("Exception {}", e.getMessage());
         }
     }
 }
