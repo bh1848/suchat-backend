@@ -62,7 +62,15 @@ public class SecurityConfig {
                 //조건별로 요청 허용/제한 설정
                 .authorizeRequests()
                 //회원가입과 로그인은 모두 승인
-                .antMatchers("/member/sign-up", "/member/sign-in", "/member/confirm-email", "/member/reconfirm-email", "/member/auto-sign-in", "/live", "/addToMatchingQueue", "/performMatching", "/matchingSuccess").permitAll()
+                .antMatchers(
+                        "/member/**"
+                        , "/profile/**"
+                        ,"/password/**"
+                        , "/stomp/**"
+                        , "/chat/**"
+                        , "/pub/**"
+                        , "/sub/**").permitAll()
+
                 // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저만 허용
                 .antMatchers("/member/admin/**").hasRole("ADMIN")
                 // /user으로 시작하는 요청은 USER 권한이 있는 유저만 허용
@@ -70,7 +78,6 @@ public class SecurityConfig {
                 .anyRequest().denyAll()
                 .and()
                 //JWT 인증 필터 적용
-                //별도의 인증 로직을 가진 필터 생성 후 사용 JwtAuthenticationFilter()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
                 //에러 핸들링
                 .exceptionHandling()

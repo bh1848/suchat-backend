@@ -18,7 +18,6 @@ import java.util.List;
 @Slf4j
 public class EmailAuthSchedulerService {
 
-    private final MemberRepository memberRepository;
     private final MemberService memberService;
     private final EmailTokenRepository emailTokenRepository;
 
@@ -35,11 +34,10 @@ public class EmailAuthSchedulerService {
         List<EmailToken> emailTokens = findExpiredFalse(LocalDateTime.now());
 
         for (EmailToken emailToken : emailTokens) {
-            Long memberId = emailToken.getMember().getId();
-            memberService.deleteFromId(memberId);
+            Long account = emailToken.getMember().getId();
+            memberService.deleteFromId(account);
 
         }
         log.info("{} - 이메일 인증을 수행하지 않은 유저 검증 종료", LocalDateTime.now());
     }
-
 }

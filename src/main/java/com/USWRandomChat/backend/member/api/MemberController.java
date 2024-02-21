@@ -1,15 +1,19 @@
 package com.USWRandomChat.backend.member.api;
 
-import com.USWRandomChat.backend.member.service.MemberService;
+import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.exception.CheckDuplicateEmailException;
+import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
+import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
-import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
+import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
+import com.USWRandomChat.backend.member.service.MemberService;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
-import com.USWRandomChat.backend.security.jwt.JwtDto;
-import com.USWRandomChat.backend.emailAuth.service.EmailService;
+import com.USWRandomChat.backend.security.jwt.dto.TokenDto;
+import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +24,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
-
 
 @Slf4j
 @RestController
@@ -32,6 +36,7 @@ public class MemberController {
     private final MemberService memberService;
     private final ResponseService responseService;
     private final EmailService emailService;
+    private final JwtService jwtService;
 
     //회원가입
     @PostMapping(value = "/sign-up")
@@ -41,21 +46,48 @@ public class MemberController {
                 , HttpStatus.OK);
     }
 
+    @PostMapping(value="/sign-up-finish")
+    public ResponseEntity<Boolean> signUpFinish(@RequestBody MemberDTO memberDTO){
+        return new ResponseEntity<>(memberService.signUpFinish(memberDTO), HttpStatus.OK);
+    }
+
     //로그인
     @PostMapping(value = "/sign-in")
-    public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) throws Exception {
+    public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) {
         return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
+    }
+
+    //로그아웃
+    @PostMapping("/sign-out")
+    public ResponseEntity<String> signOut(@RequestParam String account) {
+        try {
+            jwtService.signOut(account);
+            return new ResponseEntity<>("로그아웃 성공", HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("로그아웃 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("로그아웃 실패");
+        }
+    }
+
+    // 회원 탈퇴
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<String> withdraw(@RequestParam String account) {
+        try {
+            memberService.withdraw(account);
+            return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            log.error("회원 탈퇴 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("존재하지 않는 회원입니다.");
+        } catch (Exception e) {
+            log.error("회원 탈퇴 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원 탈퇴 실패");
+        }
     }
 
     //이메일 인증 확인
     @GetMapping("/confirm-email")
     public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {
-        try {
-            return new ResponseEntity<>(emailService.verifyEmail(uuid), HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("DATABASE_ERROR - 토큰 에러: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
-        }
+        return new ResponseEntity<>(emailService.verifyEmail(uuid), HttpStatus.OK);
     }
 
     //이메일 재인증
@@ -64,47 +96,64 @@ public class MemberController {
         return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
 
-    //user인증 확인
-//    @GetMapping(value = "/user/get")
-//    public ResponseEntity<SignInResponse> getUser(@RequestParam String memberId) throws Exception {
-//        return new ResponseEntity<>(memberService.getMember(memberId), HttpStatus.OK);
-//    }
-
     //전체 조회
     @GetMapping("/members")
     public ListResponse<Member> findAll() {
         return responseService.getListResponse(memberService.findAll());
     }
 
-    // memberID 중복 체크
-    @PostMapping("/check-duplicate-id")
-    public boolean idCheck(@RequestBody MemberDTO request) {
-        boolean checkResult = memberService.validateDuplicateMemberId(request);
-        if (checkResult == false) {
-            //사용가능한 ID
-            return true;
-        } else {
-            //중복
-            return false;
+//    // account 중복 체크
+//    @PostMapping("/check-duplicate-id")
+//    public boolean idCheck(@RequestBody MemberDTO request) {
+//        boolean checkResult = memberService.validateDuplicateAccount(request);
+//        if (checkResult == false) {
+//            //사용가능한 ID
+//            return true;
+//        } else {
+//            //중복
+//            return false;
+//        }
+//    }
+
+    //이메일 중복 확인
+    @PostMapping("/check-duplicate-email")
+    public ResponseEntity<String> checkDuplicateEmail(@RequestBody MemberDTO memberDTO) {
+        try {
+            memberService.checkDuplicateEmail(memberDTO);
+            return new ResponseEntity<>("사용 가능한 이메일입니다.", HttpStatus.OK);
+        } catch (CheckDuplicateEmailException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
     }
 
+    //회원가입시의 닉네임 확인
+    @PostMapping("/check-duplicate-nickname-signUp")
+    public ResponseEntity<String> signUp(@RequestBody MemberDTO memberDTO) {
+        try {
+            memberService.checkDuplicateNicknameSignUp(memberDTO);
+            return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.CREATED);
+        } catch (CheckDuplicateNicknameException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
+    }
+
+    //이미 가입된 사용자의 닉네임 중복 확인
     @PostMapping("/check-duplicate-nickname")
-    public boolean NicknameCheck(@RequestBody MemberDTO request) {
-        boolean checkResult = memberService.validateDuplicateMemberNickname(request);
-        if (checkResult == false) {
-            //사용가능한 Nickname
-            return true;
-        } else {
-            //중복
-            return false;
+    public ResponseEntity<String> checkDuplicateNickname(@RequestParam String account, @RequestBody MemberDTO memberDTO) {
+        try {
+            memberService.checkDuplicateNickname(account, memberDTO);
+            return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
+        } catch (CheckDuplicateNicknameException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (NicknameChangeNotAllowedException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
     //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급
     @PostMapping("/auto-sign-in")
-    public ResponseEntity<JwtDto> refresh(@RequestBody JwtDto token) throws Exception {
-        return new ResponseEntity<>( memberService.refreshAccessToken(token), HttpStatus.OK);
+    public ResponseEntity<TokenDto> refresh(@RequestBody TokenDto token) throws Exception {
+        return new ResponseEntity<>(jwtService.refreshAccessToken(token), HttpStatus.OK);
     }
 
     @Data

@@ -3,6 +3,13 @@ server:
 
 spring:
 
+  jpa:
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+
   #  smtp
   mail:
     host: smtp.gmail.com
@@ -27,6 +34,14 @@ spring:
 #  profiles:
 #    active: local
 
+    # Redis 설정 추가
+  redis:
+    host: localhost
+    port: 6379
+    #password: 'redis6379'
+  # profiles:
+  #   active: local
+
 logging.level:
   org.hibernate.SQL: debug
 #  p6spygotj
@@ -35,4 +50,9 @@ logging.level:
 #jwt.secret.key 값
 jwt:
   secret:
-    key: FC7DEE6E587E7E7EDE7A8E7DEEE6E6EF7E6DE7E7E6E76E7E6E6E7E76E6DEEF7
+    key: NL3ry0HzppvUHgnoSh/Tb5YssYPizNE9OLWMM3x9u3U=
+
+# 인증번호 4자리 설정
+verification:
+  code:
+    length: 4
