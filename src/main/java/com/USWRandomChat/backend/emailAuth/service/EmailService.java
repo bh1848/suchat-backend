@@ -53,6 +53,9 @@ public class EmailService {
         findEmailToken.setTokenToUsed();
         deleteEmailTokenByUuid(uuid);
 
+        // 회원 이메일 인증 여부 true로 바꾼다.
+        findMember.setVerified();
+
         return true;
     }
 

@@ -6,6 +6,7 @@ import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.exception.CheckDuplicateEmailException;
 import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
+import com.USWRandomChat.backend.member.exception.MemberNotFoundException;
 import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
@@ -70,6 +71,19 @@ public class MemberService {
         return savedMemberEmail;
     }
 
+    // 회원가입 할 때 이메일 인증 유무 확인
+    public Boolean signUpFinish(MemberDTO memberDTO){
+        Member findMember = memberRepository.findByAccount(memberDTO.getAccount());
+
+        if (findMember == null) {
+            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
+        }
+        if (!findMember.isEmailVerified()){
+            throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
+        }
+        return true;
+    }
+
     //로그인
     public SignInResponse signIn(SignInRequest request) {
         Member member = memberRepository.findByAccount(request.getAccount());
@@ -78,6 +92,10 @@ public class MemberService {
         }
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
+        }
+        // 로그인 할 때 이메일 인증 유무 확인
+        if (!member.isEmailVerified()){
+            throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
 
         // refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
@@ -185,4 +203,7 @@ public class MemberService {
     public void deleteFromId(Long id) {
         memberRepository.deleteById(id);
     }
+
+
+
 }

@@ -46,6 +46,11 @@ public class MemberController {
                 , HttpStatus.OK);
     }
 
+    @PostMapping(value="/sign-up-finish")
+    public ResponseEntity<Boolean> signUpFinish(@RequestBody MemberDTO memberDTO){
+        return new ResponseEntity<>(memberService.signUpFinish(memberDTO), HttpStatus.OK);
+    }
+
     //로그인
     @PostMapping(value = "/sign-in")
     public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) {
