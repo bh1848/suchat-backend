@@ -109,7 +109,7 @@ public class MemberController {
 //            return false;
 //        }
 //    }
-    
+
     //이메일 중복 확인
     @PostMapping("/check-duplicate-email")
     public ResponseEntity<String> checkDuplicateEmail(@RequestBody MemberDTO memberDTO) {
