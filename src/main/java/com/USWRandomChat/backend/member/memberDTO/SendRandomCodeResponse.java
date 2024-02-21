@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.emailAuth.dto;
+package com.USWRandomChat.backend.member.memberDTO;
 
 import com.USWRandomChat.backend.member.domain.Member;
 import lombok.AllArgsConstructor;
@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SendRandomCodeResponse {
-    private String memberId;
+    private String account;
     private String email;
 }

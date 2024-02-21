@@ -1,9 +1,9 @@
-package com.USWRandomChat.backend.emailAuth.dto;
+package com.USWRandomChat.backend.member.memberDTO;
 
 import lombok.Data;
 
 @Data
 public class SendRandomCodeRequest {
-    private String memberId;
+    private String account;
     private String email;
 }

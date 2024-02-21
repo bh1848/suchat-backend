@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.emailAuth.exception;
+package com.USWRandomChat.backend.member.exception;
 
 import lombok.Getter;
 

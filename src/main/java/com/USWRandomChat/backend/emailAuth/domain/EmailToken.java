@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class EmailToken {
 
     // 이메일 토큰 만료 시간
-    private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 60L;
+    private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 5L;
 
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -29,7 +29,7 @@ public class EmailToken {
 
     //토큰과 연관된 회원 id
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id", unique = true, nullable = false)
+    @JoinColumn(name = "member_id")
     private Member member;
 
     // 이메일 인증 토큰 생성
