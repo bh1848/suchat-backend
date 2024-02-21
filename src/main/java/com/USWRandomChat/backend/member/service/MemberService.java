@@ -69,7 +69,6 @@ public class MemberService {
         return savedMemberEmail;
     }
 
-
     //로그인
     public SignInResponse signIn(SignInRequest request) {
         Member member = memberRepository.findByAccount(request.getAccount());
@@ -97,7 +96,7 @@ public class MemberService {
         }
 
         // EMAIL_TOKEN 테이블과 관련된 데이터 삭제
-        emailTokenRepository.deleteByMemberId(member.getId());
+        emailTokenRepository.deleteById(String.valueOf(member.getId()));
 
         // 저장된 Refresh Token을 찾아 삭제
         Optional<Token> refreshToken = jwtRepository.findById(member.getId());

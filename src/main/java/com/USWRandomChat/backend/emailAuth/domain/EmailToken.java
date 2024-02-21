@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class EmailToken {
 
@@ -28,7 +29,7 @@ public class EmailToken {
 
     //토큰과 연관된 회원 id
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id", unique = true, nullable = false)
+    @JoinColumn(name = "member_id")
     private Member member;
 
     // 이메일 인증 토큰 생성

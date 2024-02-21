@@ -18,7 +18,7 @@ public class Token {
 
     @Id
     @JsonIgnore
-    private String id;
+    private Long id;
 
     private String refresh_token;
 

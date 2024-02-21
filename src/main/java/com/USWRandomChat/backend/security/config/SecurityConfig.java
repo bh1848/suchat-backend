@@ -65,6 +65,7 @@ public class SecurityConfig {
                 .antMatchers(
                         "/member/**"
                         , "/profile/**"
+                        ,"/password/**"
                         , "/stomp/**"
                         , "/chat/**"
                         , "/pub/**"
@@ -76,7 +77,6 @@ public class SecurityConfig {
                 .anyRequest().denyAll()
                 .and()
                 //JWT 인증 필터 적용
-                //별도의 인증 로직을 가진 필터 생성 후 사용 JwtAuthenticationFilter()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
                 //에러 핸들링
                 .exceptionHandling()

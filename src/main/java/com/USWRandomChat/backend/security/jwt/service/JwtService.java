@@ -37,7 +37,7 @@ public class JwtService {
     public String createRefreshToken(Member member) {
         Token token = jwtRepository.save(
                 Token.builder()
-                        .id(member.getId().toString())
+                        .id(member.getId())
                         .refresh_token(UUID.randomUUID().toString())
                         .expiration(REFRESH_TOKEN_EXPIRATION)
                         .build()

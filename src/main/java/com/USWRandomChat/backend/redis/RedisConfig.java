@@ -55,6 +55,16 @@ public class RedisConfig {
         return matchredisTemplate;
     }
 
+    // 인증번호 redisTemplate
+    @Bean
+    public RedisTemplate<String, String> verificationRedisTemplate() {
+        RedisTemplate<String, String> verificationRedisTemplate = new RedisTemplate<>();
+        verificationRedisTemplate.setConnectionFactory(redisConnectionFactory());
+        verificationRedisTemplate.setKeySerializer(new StringRedisSerializer());
+        verificationRedisTemplate.setValueSerializer(new StringRedisSerializer());
+        return verificationRedisTemplate;
+    }
+
     @Bean
     public RedisCacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()

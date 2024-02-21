@@ -26,7 +26,6 @@ import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
-
 @Slf4j
 @RestController
 @RequestMapping("/member")
@@ -54,9 +53,9 @@ public class MemberController {
 
     //로그아웃
     @PostMapping("/sign-out")
-    public ResponseEntity<String> signOut(@RequestParam String memberId) {
+    public ResponseEntity<String> signOut(@RequestParam String account) {
         try {
-            jwtService.signOut(memberId);
+            jwtService.signOut(account);
             return new ResponseEntity<>("로그아웃 성공", HttpStatus.OK);
         } catch (Exception e) {
             log.error("로그아웃 실패: {}", e.getMessage());
@@ -66,9 +65,9 @@ public class MemberController {
 
     // 회원 탈퇴
     @DeleteMapping("/withdraw")
-    public ResponseEntity<String> withdraw(@RequestParam String memberId) {
+    public ResponseEntity<String> withdraw(@RequestParam String account) {
         try {
-            memberService.withdraw(memberId);
+            memberService.withdraw(account);
             return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
         } catch (EntityNotFoundException e) {
             log.error("회원 탈퇴 실패: {}", e.getMessage());
@@ -90,14 +89,6 @@ public class MemberController {
     public ResponseEntity<String> reconfirmEmail(@RequestParam String uuid) throws MessagingException {
         return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
-
-
-    //user인증 확인
-//    @GetMapping(value = "/user/get")
-//    public ResponseEntity<SignInResponse> getUser(@RequestParam String account) throws Exception {
-//        return new ResponseEntity<>(memberService.getMember(account), HttpStatus.OK);
-//    }
-
 
     //전체 조회
     @GetMapping("/members")
