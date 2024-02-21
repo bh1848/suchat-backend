@@ -4,6 +4,7 @@ import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.exception.CheckDuplicateEmailException;
 import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
 import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
@@ -45,7 +46,7 @@ public class MemberService {
     private final EmailTokenRepository emailTokenRepository;
     private final JwtRepository jwtRepository;
 
-    // 회원가입
+    //회원가입
     public Member signUp(SignUpRequest request) {
         Member member = Member.builder()
                 .account(request.getAccount())
@@ -87,7 +88,7 @@ public class MemberService {
         return new SignInResponse(member, jwtProvider, jwtService);
     }
 
-    // 회원 탈퇴
+    //회원 탈퇴
     public void withdraw(String account) {
         Member member = memberRepository.findByAccount(account);
 
@@ -112,7 +113,7 @@ public class MemberService {
         return memberRepository.findAll();
     }
 
-    // id 조회
+    //id 조회
     public Member findById(Long id) {
         Optional<Member> byId = memberRepository.findById(id);
         if (byId.isPresent()) {
@@ -124,7 +125,7 @@ public class MemberService {
         }
     }
 
-//    // 아이디 중복 확인
+//    //아이디 중복 확인
 //    public boolean validateDuplicateAccount(MemberDTO memberDTO) {
 //        Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
 //        // 중복
@@ -132,13 +133,31 @@ public class MemberService {
 //        return byAccount.isPresent();
 //    }
 
-    // 닉네임 중복 확인, 닉네임 30일 제한 확인
+    //이메일 중복 확인
+    public void checkDuplicateEmail(MemberDTO memberDTO) {
+        Member member = memberRepository.findByEmail(memberDTO.getEmail());
+
+        if (member != null) {
+            throw new CheckDuplicateEmailException("이미 사용 중인 이메일입니다.");
+        }
+    }
+
+    //회원가입 시의 닉네임 중복 확인
+    public void checkDuplicateNicknameSignUp(MemberDTO memberDTO){
+        Profile profile = profileRepository.findByNickname(memberDTO.getNickname());
+
+        if (profile != null){
+            throw new CheckDuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+        }
+    }
+
+    //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
     public void checkDuplicateNickname(String account, MemberDTO memberDTO) {
 
-        // 닉네임 변경 제한 확인
+        //닉네임 변경 제한 확인
         Member member = memberRepository.findByAccount(account);
 
-        if(member == null){
+        if (member == null) {
             throw new AccountException(ExceptionType.BAD_CREDENTIALS);
         }
 
@@ -149,19 +168,20 @@ public class MemberService {
         LocalDateTime lastChangeTime = Optional.ofNullable(profile.getNicknameChangeDate())
                 .orElse(LocalDateTime.MIN);
 
-        // 30일 이내에 변경한 경우 예외 발생
+        //30일 이내에 변경한 경우 예외 발생
         if (ChronoUnit.DAYS.between(lastChangeTime, now) < NICKNAME_CHANGE_LIMIT_DAYS) {
             throw new NicknameChangeNotAllowedException("닉네임 변경 후 30일이 지나야 변경이 가능합니다.");
         }
 
-        // 닉네임 중복 확인
-        Optional<Profile> byNickname = profileRepository.findByNickname(memberDTO.getNickname());
-        if (byNickname.isPresent()) {
+        //닉네임 중복 확인
+        Profile byNickname = profileRepository.findByNickname(memberDTO.getNickname());
+        if (byNickname != null) {
             throw new CheckDuplicateNicknameException("이미 사용 중인 닉네임입니다.");
         }
     }
 
-    // 해당 토큰 유저 삭제
+
+    //해당 토큰 유저 삭제
     public void deleteFromId(Long id) {
         memberRepository.deleteById(id);
     }

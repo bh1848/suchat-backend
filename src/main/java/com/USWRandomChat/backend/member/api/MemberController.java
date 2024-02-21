@@ -2,6 +2,7 @@ package com.USWRandomChat.backend.member.api;
 
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.exception.CheckDuplicateEmailException;
 import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
 import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
@@ -108,8 +109,30 @@ public class MemberController {
 //            return false;
 //        }
 //    }
+    
+    //이메일 중복 확인
+    @PostMapping("/check-duplicate-email")
+    public ResponseEntity<String> checkDuplicateEmail(@RequestBody MemberDTO memberDTO) {
+        try {
+            memberService.checkDuplicateEmail(memberDTO);
+            return new ResponseEntity<>("사용 가능한 이메일입니다.", HttpStatus.OK);
+        } catch (CheckDuplicateEmailException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
+    }
 
-    //닉네임 중복 확인
+    //회원가입시의 닉네임 확인
+    @PostMapping("/check-duplicate-nickname-signUp")
+    public ResponseEntity<String> signUp(@RequestBody MemberDTO memberDTO) {
+        try {
+            memberService.checkDuplicateNicknameSignUp(memberDTO);
+            return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.CREATED);
+        } catch (CheckDuplicateNicknameException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
+    }
+
+    //이미 가입된 사용자의 닉네임 중복 확인
     @PostMapping("/check-duplicate-nickname")
     public ResponseEntity<String> checkDuplicateNickname(@RequestParam String account, @RequestBody MemberDTO memberDTO) {
         try {
@@ -141,6 +164,4 @@ public class MemberController {
         Member findMember = memberService.signUp(new SignUpRequest("admin", "password", "cookie_31", "nick"));
         emailService.createEmailToken(findMember);
     }
-
-
 }
