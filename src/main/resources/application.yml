@@ -34,13 +34,6 @@ spring:
 #  profiles:
 #    active: local
 
-    # Redis 설정 추가
-  redis:
-    host: localhost
-    port: 6379
-    #password: 'redis6379'
-  # profiles:
-  #   active: local
 
 logging.level:
   org.hibernate.SQL: debug
