@@ -9,6 +9,7 @@ import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
+import com.USWRandomChat.backend.member.service.FindIdService;
 import com.USWRandomChat.backend.member.service.MemberService;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
@@ -37,6 +38,7 @@ public class MemberController {
     private final ResponseService responseService;
     private final EmailService emailService;
     private final JwtService jwtService;
+    private final FindIdService findIdService;
 
     //회원가입
     @PostMapping(value = "/sign-up")
@@ -163,10 +165,11 @@ public class MemberController {
         private String uuid;
     }
 
-    //임의의 데이터 넣기
-    @PostConstruct
-    public void init() throws MessagingException {
-        Member findMember = memberService.signUp(new SignUpRequest("admin", "password", "cookie_31", "nick"));
-        emailService.createEmailToken(findMember);
+    //Id 찾기 로직: 이메일 인증된 회원만
+    @PostMapping(value = "/find-Id")
+    public ResponseEntity<Boolean> findId(@RequestParam String email) throws MessagingException {
+        return new ResponseEntity<>(findIdService.findById(email), HttpStatus.OK);
     }
+
+
 }
