@@ -66,6 +66,7 @@ public class SecurityConfig {
                         "/member/**"
                         , "/profile/**"
                         ,"/password/**"
+                        ,"/match/**"
                         , "/stomp/**"
                         , "/chat/**"
                         , "/pub/**"

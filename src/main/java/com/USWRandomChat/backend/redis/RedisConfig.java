@@ -45,14 +45,14 @@ public class RedisConfig {
         return new LettuceConnectionFactory(redisStandaloneConfiguration);
     }
 
-    // match팀 redisTemplate
+    // matching redisTemplate
     @Bean
-    public RedisTemplate<String, String> matchRedisTemplate() {
-        RedisTemplate<String, String> matchredisTemplate = new RedisTemplate<>();
-        matchredisTemplate.setConnectionFactory(redisConnectionFactory());
-        matchredisTemplate.setKeySerializer(new StringRedisSerializer());
-        matchredisTemplate.setValueSerializer(new StringRedisSerializer());
-        return matchredisTemplate;
+    public RedisTemplate<String, String> matchRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, String> matchRedisTemplate = new RedisTemplate<>();
+        matchRedisTemplate.setConnectionFactory(redisConnectionFactory);
+        matchRedisTemplate.setKeySerializer(new StringRedisSerializer());
+        matchRedisTemplate.setValueSerializer(new StringRedisSerializer());
+        return matchRedisTemplate;
     }
 
     // 인증번호 redisTemplate
