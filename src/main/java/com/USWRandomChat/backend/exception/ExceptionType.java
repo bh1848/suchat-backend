@@ -53,7 +53,7 @@ public enum ExceptionType {
      * 공통
      */
     SEND_MAIL_FAILED("MAIL001", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR), //500
-
+    CODE_ERROR("CODE001", "인증번호를 확인해주세요", BAD_REQUEST),
     ;
 
     private final String code;
