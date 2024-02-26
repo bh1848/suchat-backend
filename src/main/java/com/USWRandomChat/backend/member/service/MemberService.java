@@ -6,9 +6,6 @@ import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.member.exception.CheckDuplicateEmailException;
-import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
-import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
@@ -165,7 +162,7 @@ public class MemberService {
         Member member = memberRepository.findByEmail(memberDTO.getEmail());
 
         if (member != null) {
-            throw new CheckDuplicateEmailException("이미 사용 중인 이메일입니다.");
+            throw new AccountException(ExceptionType.EMAIL_OVERLAP);
         }
     }
 
@@ -174,7 +171,7 @@ public class MemberService {
         Profile profile = profileRepository.findByNickname(memberDTO.getNickname());
 
         if (profile != null){
-            throw new CheckDuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+            throw new AccountException(ExceptionType.NICKNAME_OVERLAP);
         }
     }
 
@@ -201,13 +198,13 @@ public class MemberService {
 
         //30일 이내에 변경한 경우 예외 발생
         if (ChronoUnit.DAYS.between(lastChangeTime, now) < NICKNAME_CHANGE_LIMIT_DAYS) {
-            throw new NicknameChangeNotAllowedException("닉네임 변경 후 30일이 지나야 변경이 가능합니다.");
+            throw new AccountException(ExceptionType.NICKNAME_EXPIRATION_TIME);
         }
 
         //닉네임 중복 확인
         Profile byNickname = profileRepository.findByNickname(memberDTO.getNickname());
         if (byNickname != null) {
-            throw new CheckDuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+            throw new AccountException(ExceptionType.NICKNAME_OVERLAP);
         }
     }
 

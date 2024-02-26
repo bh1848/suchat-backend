@@ -2,6 +2,7 @@ package com.USWRandomChat.backend.profile.service;
 
 import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
+import com.USWRandomChat.backend.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
@@ -62,7 +63,7 @@ public class ProfileService {
     //닉네임 빈칸 확인 및 프로필 업데이트 로직
     private Profile updateProfileDetails(Member member, ProfileRequest profileRequest) {
         Profile profile = profileRepository.findById(member.getId())
-                .orElseThrow(() -> new ProfileUpdateException("프로필을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
 
         checkNicknameEmpty(profileRequest.getNickname());
 
@@ -81,7 +82,7 @@ public class ProfileService {
     // 닉네임 빈칸 확인
     private void checkNicknameEmpty(String nickname) {
         if (nickname == null || nickname.trim().isEmpty()) {
-            throw new ProfileUpdateException("닉네임을 설정해주세요.");
+            throw new ProfileException(ExceptionType.NICKNAME_ERROR);
         }
     }
 

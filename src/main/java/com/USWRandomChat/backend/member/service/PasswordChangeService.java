@@ -5,7 +5,6 @@ import com.USWRandomChat.backend.member.memberDTO.PasswordChangeRequest;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeResponse;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeRequest;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeResponse;
-import com.USWRandomChat.backend.member.exception.VerificationCodeException;
 import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
@@ -55,7 +54,7 @@ public class PasswordChangeService {
 
 
     //랜덤 인증번호 전송
-    public SendRandomCodeResponse sendRandomCode(String accessToken, SendRandomCodeRequest request) throws VerificationCodeException {
+    public SendRandomCodeResponse sendRandomCode(String accessToken, SendRandomCodeRequest request) {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {
             throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
@@ -84,7 +83,7 @@ public class PasswordChangeService {
 
 
     //랜덤 인증번호 검증
-    public boolean verifyRandomCode(String accessToken, String verificationCode) throws VerificationCodeException {
+    public boolean verifyRandomCode(String accessToken, String verificationCode) {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {
             throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);

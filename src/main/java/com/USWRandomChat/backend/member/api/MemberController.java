@@ -2,9 +2,6 @@ package com.USWRandomChat.backend.member.api;
 
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.member.exception.CheckDuplicateEmailException;
-import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
-import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
@@ -22,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
