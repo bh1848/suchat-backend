@@ -1,10 +1,10 @@
 package com.USWRandomChat.backend.member.api;
 
+import com.USWRandomChat.backend.exception.errortype.MailException;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeRequest;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeResponse;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeRequest;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeResponse;
-import com.USWRandomChat.backend.member.exception.VerificationCodeException;
 import com.USWRandomChat.backend.member.service.PasswordChangeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class PasswordChangeController {
         try {
             SendRandomCodeResponse response = passwordChangeService.sendRandomCode(account, sendRandomCodeRequest);
             return new ResponseEntity<>("인증번호가 전송됐습니다. account: " + response.getAccount() + ", email: " + response.getEmail(), HttpStatus.OK);
-        } catch (VerificationCodeException e) {
+        } catch (MailException e) {
             return new ResponseEntity<>("올바르지 않은 아이디 혹은 이메일입니다. " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
@@ -48,7 +48,7 @@ public class PasswordChangeController {
         try {
             PasswordChangeResponse response = passwordChangeService.updatePassword(account, passwordChangeRequest);
             return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (VerificationCodeException e) {
+        } catch (MailException e) {
             return new ResponseEntity<>((e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }

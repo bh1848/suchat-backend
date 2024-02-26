@@ -1,6 +1,9 @@
 package com.USWRandomChat.backend.member.api;
 
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
+import com.USWRandomChat.backend.exception.errortype.MailException;
+import com.USWRandomChat.backend.exception.errortype.ProfileException;
+import com.USWRandomChat.backend.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
@@ -43,8 +46,8 @@ public class MemberController {
                 , HttpStatus.OK);
     }
 
-    @PostMapping(value="/sign-up-finish")
-    public ResponseEntity<Boolean> signUpFinish(@RequestBody MemberDTO memberDTO){
+    @PostMapping(value = "/sign-up-finish")
+    public ResponseEntity<Boolean> signUpFinish(@RequestBody MemberDTO memberDTO) {
         return new ResponseEntity<>(memberService.signUpFinish(memberDTO), HttpStatus.OK);
     }
 
@@ -62,17 +65,20 @@ public class MemberController {
 
     //로그아웃
     @PostMapping("/sign-out")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String accessToken) {
+    public ResponseEntity<String> signOut(@RequestHeader("Authorization") String accessToken) {
         try {
             jwtService.signOut(accessToken);
-            return ResponseEntity.ok().body("로그아웃 되었습니다.");
-        } catch (Exception e) {
-            // 예외 처리: 유효하지 않은 토큰, 데이터베이스 오류 등
+            return ResponseEntity.ok("로그아웃 성공");
+        } catch (TokenException e) {
+            log.error("로그아웃 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그아웃 실패: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("로그아웃 처리 중 예외 발생: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("로그아웃 처리 중 오류 발생");
         }
     }
 
-    // 회원 탈퇴
+    //회원 탈퇴
     @DeleteMapping("/withdraw")
     public ResponseEntity<String> withdraw(@RequestHeader("Authorization") String accessToken) {
         try {
@@ -105,18 +111,18 @@ public class MemberController {
         return responseService.getListResponse(memberService.findAll());
     }
 
-//    // account 중복 체크
-//    @PostMapping("/check-duplicate-id")
-//    public boolean idCheck(@RequestBody MemberDTO request) {
-//        boolean checkResult = memberService.validateDuplicateAccount(request);
-//        if (checkResult == false) {
-//            //사용가능한 ID
-//            return true;
-//        } else {
-//            //중복
-//            return false;
-//        }
-//    }
+//  //account 중복 체크
+//  @PostMapping("/check-duplicate-id")
+//  public boolean idCheck(@RequestBody MemberDTO request) {
+//      boolean checkResult = memberService.validateDuplicateAccount(request);
+//      if (checkResult == false) {
+//          //사용가능한 ID
+//          return true;
+//      } else {
+//          //중복
+//          return false;
+//      }
+//  }
 
     //이메일 중복 확인
     @PostMapping("/check-duplicate-email")
@@ -124,7 +130,7 @@ public class MemberController {
         try {
             memberService.checkDuplicateEmail(memberDTO);
             return new ResponseEntity<>("사용 가능한 이메일입니다.", HttpStatus.OK);
-        } catch (CheckDuplicateEmailException e) {
+        } catch (MailException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
     }
@@ -135,7 +141,7 @@ public class MemberController {
         try {
             memberService.checkDuplicateNicknameSignUp(memberDTO);
             return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.CREATED);
-        } catch (CheckDuplicateNicknameException e) {
+        } catch (ProfileException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
     }
@@ -146,20 +152,9 @@ public class MemberController {
         try {
             memberService.checkDuplicateNickname(account, memberDTO);
             return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
-        } catch (CheckDuplicateNicknameException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (NicknameChangeNotAllowedException e) {
+        } catch (ProfileException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-    }
-
-    
-
-    @Data
-    @AllArgsConstructor
-    static class SignUpResponse {
-
-        private String uuid;
     }
 
     //Id 찾기 로직: 이메일 인증된 회원만
@@ -168,5 +163,10 @@ public class MemberController {
         return new ResponseEntity<>(findIdService.findById(email), HttpStatus.OK);
     }
 
+    @Data
+    @AllArgsConstructor
+    static class SignUpResponse {
 
+        private String uuid;
+    }
 }

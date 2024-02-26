@@ -52,7 +52,6 @@ public class PasswordChangeService {
         return code.toString();
     }
 
-
     //랜덤 인증번호 전송
     public SendRandomCodeResponse sendRandomCode(String accessToken, SendRandomCodeRequest request) {
         //엑세스 토큰의 유효성 검사
@@ -80,7 +79,6 @@ public class PasswordChangeService {
         //성공한 경우 응답 생성
         return new SendRandomCodeResponse(codeRequestAccount, email);
     }
-
 
     //랜덤 인증번호 검증
     public boolean verifyRandomCode(String accessToken, String verificationCode) {
@@ -113,7 +111,6 @@ public class PasswordChangeService {
 
     //비밀번호 변경
     @Transactional
-
     public PasswordChangeResponse updatePassword(String accessToken, PasswordChangeRequest passwordChangeRequest) {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {
