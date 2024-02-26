@@ -14,7 +14,6 @@ import java.io.IOException;
 /**
  * Jwt가 유효성을 검증하는 Filter
  */
-
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -25,19 +24,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String accessToken = jwtProvider.resolveAccessToken(request);
-
-        try {
-            if (accessToken != null && jwtProvider.validateAccessToken(accessToken)) {
-                Authentication auth = jwtProvider.getAuthentication(accessToken);
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
-        } catch (Exception e) {
-            log.error("보안 컨텍스트를 설정할 수 없습니다. 이유: {}", e.getMessage());
-            SecurityContextHolder.clearContext();
+        if (accessToken != null && jwtProvider.validateAccessToken(accessToken)) {
+            Authentication auth = jwtProvider.getAuthentication(accessToken);
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
-
         filterChain.doFilter(request, response);
     }
 }

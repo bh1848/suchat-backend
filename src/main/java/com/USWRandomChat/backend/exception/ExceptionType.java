@@ -31,12 +31,10 @@ public enum ExceptionType {
     /**
      * Domain : Token
      */
-    TOKEN_IS_EXPIRED("TOKEN001", "토큰이 만료되었습니다 다시 로그인 해주세요", UNAUTHORIZED),
-    INVALID_TOKEN_FORMAT("TOKEN002", "올바른 토큰 형식이 아닙니다", BAD_REQUEST),
-    ACCESS_TOKEN_REQUIRED("TOKEN003", "엑세스 토큰이 필요합니다", BAD_REQUEST),
-    INVALID_ACCESS_TOKEN("TOKEN004", "잘못된 엑세스 토큰입니다.", BAD_REQUEST),
-    REFRESH_TOKEN_EXPIRED("TOKEN005", "리프레시 토큰 만료", BAD_REQUEST),
-    INVALID_REFRESH_TOKEN("TOKEN006", "잘못된 리프레시 토큰", BAD_REQUEST),
+    ACCESS_TOKEN_REQUIRED("TOKEN001", "엑세스 토큰이 필요합니다", BAD_REQUEST),
+    INVALID_ACCESS_TOKEN("TOKEN002", "잘못된 엑세스 토큰입니다.", BAD_REQUEST),
+    REFRESH_TOKEN_EXPIRED("TOKEN003", "리프레시 토큰 만료", BAD_REQUEST),
+    INVALID_REFRESH_TOKEN("TOKEN004", "잘못된 리프레시 토큰", BAD_REQUEST),
 
 
     /**

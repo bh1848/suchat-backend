@@ -57,32 +57,30 @@ public class MemberController {
     public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) {
         return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
     }
-    
-    //자동로그인
+
+    //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급
     @PostMapping("/auto-sign-in")
     public ResponseEntity<String> refresh(@RequestHeader("Authorization") String accessToken) throws Exception {
-        // "Bearer " 접두사 제거
-        accessToken = accessToken.startsWith("Bearer ") ? accessToken.substring(7) : accessToken;
         return new ResponseEntity<>(jwtService.refreshAccessToken(accessToken), HttpStatus.OK);
     }
 
     //로그아웃
     @PostMapping("/sign-out")
-    public ResponseEntity<String> signOut(@RequestParam String account) {
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String accessToken) {
         try {
-            jwtService.signOut(account);
-            return new ResponseEntity<>("로그아웃 성공", HttpStatus.OK);
+            jwtService.signOut(accessToken);
+            return ResponseEntity.ok().body("로그아웃 되었습니다.");
         } catch (Exception e) {
-            log.error("로그아웃 실패: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("로그아웃 실패");
+            // 예외 처리: 유효하지 않은 토큰, 데이터베이스 오류 등
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그아웃 실패: " + e.getMessage());
         }
     }
 
     // 회원 탈퇴
     @DeleteMapping("/withdraw")
-    public ResponseEntity<String> withdraw(@RequestParam String account) {
+    public ResponseEntity<String> withdraw(@RequestHeader("Authorization") String accessToken) {
         try {
-            memberService.withdraw(account);
+            memberService.withdraw(accessToken);
             return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
         } catch (EntityNotFoundException e) {
             log.error("회원 탈퇴 실패: {}", e.getMessage());
@@ -135,7 +133,7 @@ public class MemberController {
         }
     }
 
-    //회원가입시의 닉네임 확인
+    //회원가입 시의 닉네임 확인
     @PostMapping("/check-duplicate-nickname-signUp")
     public ResponseEntity<String> signUp(@RequestBody MemberDTO memberDTO) {
         try {

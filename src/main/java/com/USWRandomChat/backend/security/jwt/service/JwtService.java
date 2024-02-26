@@ -42,23 +42,6 @@ public class JwtService {
         return token.getRefreshToken();
     }
 
-    public Token validRefreshToken(Member member, String refreshToken) throws Exception {
-
-        Token token = jwtRepository.findById(member.getId()).orElseThrow(() -> new AccountException(ExceptionType.TOKEN_IS_EXPIRED));
-
-        // 해당 유저의 Refresh 토큰이 없거나 토큰이 만료된 경우
-        if (token == null || token.getExpiration() <= System.currentTimeMillis()) {
-            throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
-        }
-
-        // 토큰이 같은지 비교
-        if (!token.getRefreshToken().equals(refreshToken)) {
-            throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
-        } else {
-            return token;
-        }
-    }
-
     //자동로그인
     public String refreshAccessToken(String accessToken) throws AccountException, TokenException{
         //엑세스 토큰의 유효성 검사

@@ -1,7 +1,5 @@
 package com.USWRandomChat.backend.security.jwt.service;
 
-import com.USWRandomChat.backend.exception.ExceptionType;
-import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.security.jwt.CustomUserDetails;
@@ -18,9 +16,12 @@ public class JpaUserDetailsService implements UserDetailsService {
     private final MemberRepository memberRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String account) throws UsernameNotFoundException {
-        Member member = memberRepository.findByAccount(account)
-                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+        Member member = memberRepository.findByAccount(username).orElseThrow(
+                () -> new UsernameNotFoundException("인증권한 식별 불가")
+        );
+
         return new CustomUserDetails(member);
     }
 }
