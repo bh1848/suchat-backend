@@ -1,9 +1,9 @@
 package com.USWRandomChat.backend.member.service;
 
-import com.USWRandomChat.backend.exception.ExceptionType;
-import com.USWRandomChat.backend.exception.errortype.AccountException;
-import com.USWRandomChat.backend.exception.errortype.CodeException;
-import com.USWRandomChat.backend.exception.errortype.TokenException;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.CodeException;
+import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeRequest;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeResponse;
