@@ -4,6 +4,7 @@ import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
 import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
+import com.USWRandomChat.backend.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
@@ -190,7 +191,7 @@ public class MemberService {
 
 
         Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
-                new RuntimeException("프로필을 찾을 수 없습니다."));
+                new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime lastChangeTime = Optional.ofNullable(profile.getNicknameChangeDate())
@@ -208,12 +209,8 @@ public class MemberService {
         }
     }
 
-
     //해당 토큰 유저 삭제
     public void deleteFromId(Long id) {
         memberRepository.deleteById(id);
     }
-
-
-
 }

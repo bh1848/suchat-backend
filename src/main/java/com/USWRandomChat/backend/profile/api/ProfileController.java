@@ -1,9 +1,9 @@
 package com.USWRandomChat.backend.profile.api;
 
 import com.USWRandomChat.backend.exception.errortype.AccountException;
+import com.USWRandomChat.backend.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import com.USWRandomChat.backend.profile.dto.ProfileResponse;
-import com.USWRandomChat.backend.profile.exception.ProfileUpdateException;
 import com.USWRandomChat.backend.profile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,7 +35,7 @@ public class ProfileController {
             return new ResponseEntity<>(updatedProfile, HttpStatus.OK);
         } catch (AccountException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (ProfileUpdateException e) {
+        } catch (ProfileException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

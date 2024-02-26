@@ -9,7 +9,6 @@ import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import com.USWRandomChat.backend.profile.dto.ProfileResponse;
-import com.USWRandomChat.backend.profile.exception.ProfileUpdateException;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +36,7 @@ public class ProfileService {
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
         Profile profile = profileRepository.findById(member.getId())
-                .orElseThrow(() -> new ProfileUpdateException("프로필을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
         return new ProfileResponse(profile);
     }
 
