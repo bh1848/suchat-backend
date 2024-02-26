@@ -12,10 +12,6 @@ import com.USWRandomChat.backend.profile.dto.ProfileResponse;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,8 +25,11 @@ public class ProfileService {
     private final JwtProvider jwtProvider;
 
     // 프로필 조회
-    public ProfileResponse getProfile(String targetAccount) {
-        ensureAuthenticatedUser();
+    public ProfileResponse getProfile(String accessToken, String targetAccount) {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
+        }
 
         Member member = memberRepository.findByAccount(targetAccount)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
@@ -41,7 +40,7 @@ public class ProfileService {
     }
 
     //프로필 업데이트
-    public ProfileResponse updateProfile(String accessToken, ProfileRequest profileRequest) {
+    public ProfileResponse updateProfile(String accessToken, ProfileRequest request) {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {
             throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
@@ -54,42 +53,34 @@ public class ProfileService {
         Member member = memberRepository.findByAccount(account)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
-        Profile profile = updateProfileDetails(member, profileRequest);
+        Profile profile = updateProfileDetails(member, request);
 
         return new ProfileResponse(profile);
     }
 
     //닉네임 빈칸 확인 및 프로필 업데이트 로직
-    private Profile updateProfileDetails(Member member, ProfileRequest profileRequest) {
+    private Profile updateProfileDetails(Member member, ProfileRequest request) {
         Profile profile = profileRepository.findById(member.getId())
                 .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
 
-        checkNicknameEmpty(profileRequest.getNickname());
+        checkNicknameEmpty(request.getNickname());
 
         //닉네임이 변경되었을 때만 업데이트
-        if (!profile.getNickname().equals(profileRequest.getNickname())) {
-            profile.setNickname(profileRequest.getNickname());
+        if (!profile.getNickname().equals(request.getNickname())) {
+            profile.setNickname(request.getNickname());
             profile.setNicknameChangeDate(LocalDateTime.now());
         }
 
-        profile.setMbti(profileRequest.getMbti());
-        profile.setIntro(profileRequest.getIntro());
+        profile.setMbti(request.getMbti());
+        profile.setIntro(request.getIntro());
 
         return profileRepository.save(profile);
     }
 
-    // 닉네임 빈칸 확인
+    //닉네임 빈칸 확인
     private void checkNicknameEmpty(String nickname) {
         if (nickname == null || nickname.trim().isEmpty()) {
             throw new ProfileException(ExceptionType.NICKNAME_ERROR);
-        }
-    }
-
-    //인증된 사용자 확인
-    private void ensureAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            throw new AccessDeniedException("프로필 조회 권한이 없습니다.");
         }
     }
 }
