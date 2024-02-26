@@ -10,4 +10,6 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
     Optional<Profile> findByRoomId(String id);
 
     Profile findByNickname(String nickname);
+
+    Optional<Profile> findByMemberAccount(String account);
 }
