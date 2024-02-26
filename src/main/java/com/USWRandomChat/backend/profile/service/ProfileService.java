@@ -32,7 +32,6 @@ public class ProfileService {
     public ProfileResponse getProfile(String targetAccount) {
         ensureAuthenticatedUser();
 
-
         Member member = memberRepository.findByAccount(targetAccount)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
@@ -45,11 +44,11 @@ public class ProfileService {
     public ProfileResponse updateProfile(String accessToken, ProfileRequest profileRequest) {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {
-            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
             throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
-        String account = jwtProvider.getAccount(accessToken); //유효하지 않으면 계정 정보 추출
+        //토큰이 유효한 경우, 계정 정보를 추출
+        String account = jwtProvider.getAccount(accessToken);
 
         //account로 회원 조회
         Member member = memberRepository.findByAccount(account)

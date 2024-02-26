@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.Duration;
 import java.util.UUID;
 
 @Service
@@ -23,7 +23,7 @@ import java.util.UUID;
 public class JwtService {
 
     //리프레시 토큰 2주로 설정
-    private static final long REFRESH_TOKEN_EXPIRY_MINUTES = 14 * 24 * 60;
+    private static final long REFRESH_TOKEN_EXPIRY_DAYS = 14;
     private final MemberRepository memberRepository;
     private final JwtProvider jwtProvider;
     private final JwtRepository jwtRepository;
@@ -31,7 +31,7 @@ public class JwtService {
 
     //리프레시 토큰 생성
     public String createRefreshToken(Member member) {
-        long expiryTimeInMillis = Instant.now().plusMillis(REFRESH_TOKEN_EXPIRY_MINUTES * 60 * 1000).toEpochMilli();
+        long expiryTimeInMillis = Duration.ofDays(REFRESH_TOKEN_EXPIRY_DAYS).toMillis();
         Token token = jwtRepository.save(
                 Token.builder()
                         .account(member.getAccount())

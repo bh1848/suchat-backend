@@ -35,7 +35,7 @@ public class PasswordChangeService {
     private static final String REDIS_KEY_PREFIX = "verification-code:";
     private static final String CHARACTERS = "0123456789";
     private static final int CODE_LENGTH = 4;
-    // 만료 시간(3분)
+    //만료 시간(3분)
     private static final long EXPIRATION_TIME_VERIFICATION_CODE = 3;
     private final JavaMailSender javaMailSender;
     private final MemberRepository memberRepository;
@@ -58,28 +58,27 @@ public class PasswordChangeService {
     public SendRandomCodeResponse sendRandomCode(String accessToken, SendRandomCodeRequest request) throws VerificationCodeException {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {
-            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
             throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
         String codeRequestAccount = request.getAccount();
         String email = request.getEmail();
 
-        // account와 email이 유효한지 확인
+        //account와 email이 유효한지 확인
         Optional<Member> optionalMember = memberRepository.findByAccountAndEmail(codeRequestAccount, email);
 
         optionalMember.ifPresent(member -> {
-            // 랜덤 인증번호 생성
+            //랜덤 인증번호 생성
             String randomCode = generateRandomCode();
 
-            // Redis에 인증번호 저장
+            //Redis에 인증번호 저장
             saveCodeToRedis(codeRequestAccount, randomCode);
 
-            // 이메일 전송
+            //이메일 전송
             sendEmail(email + "@suwon.ac.kr", "인증번호", "인증번호: " + randomCode);
         });
 
-        // 성공한 경우 응답 생성
+        //성공한 경우 응답 생성
         return new SendRandomCodeResponse(codeRequestAccount, email);
     }
 
@@ -88,11 +87,10 @@ public class PasswordChangeService {
     public boolean verifyRandomCode(String accessToken, String verificationCode) throws VerificationCodeException {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {
-            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
             throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
-        //토큰이 유효한 경우, 계정 정보를 추출합니다.
+        //토큰이 유효한 경우, 계정 정보를 추출
         String account = jwtProvider.getAccount(accessToken);
 
         memberRepository.findByAccount(account)
@@ -103,10 +101,10 @@ public class PasswordChangeService {
         String redisKey = REDIS_KEY_PREFIX + account;
         String storedCode = valueOperations.get(redisKey);
 
-        // 사용자가 입력한 인증번호와 저장된 인증번호 비교
+        //사용자가 입력한 인증번호와 저장된 인증번호 비교
         boolean isValid = verificationCode.equals(storedCode);
 
-        // 검증이 완료되면 Redis에서 인증번호 삭제
+        //검증이 완료되면 Redis에서 인증번호 삭제
         if (isValid) {
             verificationRedisTemplate.delete(redisKey);
         }
@@ -114,45 +112,44 @@ public class PasswordChangeService {
         return isValid;
     }
 
-    // 비밀번호 변경
+    //비밀번호 변경
     @Transactional
 
     public PasswordChangeResponse updatePassword(String accessToken, PasswordChangeRequest passwordChangeRequest) {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {
-            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
             throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
-        //토큰이 유효한 경우, 계정 정보를 추출합니다.
+        //토큰이 유효한 경우, 계정 정보를 추출
         String account = jwtProvider.getAccount(accessToken);
 
         Member member = memberRepository.findByAccount(account)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
-        // 새로운 비밀번호를 암호화
+        //새로운 비밀번호를 암호화
         String encryptedPassword = passwordEncoder.encode(passwordChangeRequest.getNewPassword());
 
-        // 암호화된 비밀번호로 변경
+        //암호화된 비밀번호로 변경
         member.updatePassword(encryptedPassword);
 
-        // 변경된 비밀번호를 데이터베이스에 저장
+        //변경된 비밀번호를 데이터베이스에 저장
         memberRepository.save(member);
 
         log.info("비밀번호 변경 완료: account={}", account);
 
-        // 변경된 비밀번호를 포함한 응답 반환
+        //변경된 비밀번호를 포함한 응답 반환
         return new PasswordChangeResponse(member);
     }
 
-    // redis에 인증 번호 저장
+    //redis에 인증 번호 저장
     private void saveCodeToRedis(String account, String verificationCode) {
         ValueOperations<String, String> valueOperations = verificationRedisTemplate.opsForValue();
         String redisKey = REDIS_KEY_PREFIX + account;
         valueOperations.set(redisKey, verificationCode, EXPIRATION_TIME_VERIFICATION_CODE, TimeUnit.MINUTES);
     }
 
-    // 이메일 전송
+    //이메일 전송
     private void sendEmail(String to, String subject, String htmlBody) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
