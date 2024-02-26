@@ -1,5 +1,6 @@
 package com.USWRandomChat.backend.profile.repository;
 
+import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.profile.domain.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,5 +12,5 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
     Profile findByNickname(String nickname);
 
-    Optional<Profile> findByMemberAccount(String account);
+    Profile findByMember(Optional<Member> member);
 }
