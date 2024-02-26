@@ -2,17 +2,18 @@ package com.USWRandomChat.backend.security.jwt.service;
 
 import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
+import com.USWRandomChat.backend.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import com.USWRandomChat.backend.security.jwt.domain.Token;
-import com.USWRandomChat.backend.security.jwt.dto.TokenDto;
 import com.USWRandomChat.backend.security.jwt.repository.JwtRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -21,28 +22,24 @@ import java.util.UUID;
 @Slf4j
 public class JwtService {
 
+    //리프레시 토큰 2주로 설정
+    private static final long REFRESH_TOKEN_EXPIRY_MINUTES = 14 * 24 * 60;
     private final MemberRepository memberRepository;
     private final JwtProvider jwtProvider;
     private final JwtRepository jwtRepository;
 
-    // 만료시간 2주
-    private final int REFRESH_TOKEN_EXPIRATION = 14 * 24 * 60;
 
-    /**
-     * Refresh 토큰을 생성한다.
-     * Redis 내부에는
-     * refreshToken:account : tokenValue
-     * 형태로 저장한다.
-     */
+    //리프레시 토큰 생성
     public String createRefreshToken(Member member) {
+        long expiryTimeInMillis = Instant.now().plusMillis(REFRESH_TOKEN_EXPIRY_MINUTES * 60 * 1000).toEpochMilli();
         Token token = jwtRepository.save(
                 Token.builder()
-                        .id(member.getId())
-                        .refresh_token(UUID.randomUUID().toString())
-                        .expiration(REFRESH_TOKEN_EXPIRATION)
+                        .account(member.getAccount())
+                        .refreshToken(UUID.randomUUID().toString())
+                        .expiration(expiryTimeInMillis)
                         .build()
         );
-        return token.getRefresh_token();
+        return token.getRefreshToken();
     }
 
     public Token validRefreshToken(Member member, String refreshToken) throws Exception {
@@ -55,47 +52,55 @@ public class JwtService {
         }
 
         // 토큰이 같은지 비교
-        if (!token.getRefresh_token().equals(refreshToken)) {
+        if (!token.getRefreshToken().equals(refreshToken)) {
             throw new AccountException(ExceptionType.TOKEN_IS_EXPIRED);
         } else {
             return token;
         }
     }
 
-    // 자동로그인
-    public TokenDto refreshAccessToken(TokenDto token) throws Exception {
-        String account = jwtProvider.getAccount(token.getAccess_token());
-
-        Member member = memberRepository.findByAccount(account);
-        if(member == null){
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+    //자동로그인
+    public String refreshAccessToken(String accessToken) throws AccountException, TokenException{
+        //엑세스 토큰의 유효성 검사
+        if (jwtProvider.validateAccessToken(accessToken)) {
+            return accessToken; //유효한 토큰이면 재사용
         }
-        Token refreshToken = validRefreshToken(member, token.getRefresh_token());
 
-        if (refreshToken != null) {
-            return TokenDto.builder()
-                    .access_token(jwtProvider.createAccessToken(account, member.getRoles()))
-                    .refresh_token(refreshToken.getRefresh_token())
-                    .build();
-        } else {
-            throw new AccountException(ExceptionType.LOGIN_REQUIRED);
+        String account = jwtProvider.getAccount(accessToken); //유효하지 않으면 계정 정보 추출
+
+        //account로 회원 조회
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
+        //해당 account의 리프레시 토큰 조회
+        Token refreshToken = jwtRepository.findByAccount(account)
+                .orElseThrow(() -> new TokenException(ExceptionType.REFRESH_TOKEN_EXPIRED));
+
+        //리프레시 토큰 검증
+        if (refreshToken.getExpiration() <= System.currentTimeMillis()) {
+            throw new TokenException(ExceptionType.INVALID_REFRESH_TOKEN);
         }
+
+        //새 엑세스 토큰 발급
+        return jwtProvider.createAccessToken(account, member.getRoles());
     }
 
+    //로그아웃
+    public void signOut(String accessToken) throws Exception {
 
-    // 로그아웃
-    public void signOut(String account) throws Exception {
-        Member member = memberRepository.findByAccount(account);
-        if(member == null){
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
-        Token savedRefreshToken = jwtRepository.findById(member.getId()).orElse(null);
+        //토큰이 유효한 경우, 계정 정보를 추출합니다.
+        String account = jwtProvider.getAccount(accessToken);
 
-        // 저장된 Refresh Token이 있으면 삭제
-        if (savedRefreshToken != null) {
-            jwtRepository.delete(savedRefreshToken);
-            log.info("로그아웃 성공: memberId={}", account);
-        }
+        //해당 account의 리프레시 토큰 조회 및 삭제
+        jwtRepository.findByAccount(account).ifPresent(token -> {
+            jwtRepository.delete(token); //리프레시 토큰 삭제
+            log.info("로그아웃 성공: account={}", account);
+        });
     }
 }

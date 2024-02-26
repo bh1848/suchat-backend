@@ -1,6 +1,6 @@
 package com.USWRandomChat.backend.profile.api;
 
-import com.USWRandomChat.backend.member.exception.MemberNotFoundException;
+import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import com.USWRandomChat.backend.profile.dto.ProfileResponse;
 import com.USWRandomChat.backend.profile.exception.ProfileUpdateException;
@@ -22,7 +22,7 @@ public class ProfileController {
     public ResponseEntity<ProfileResponse> getProfile(@RequestParam String targetAccount) {
         try {
             return new ResponseEntity<>(profileService.getProfile(targetAccount), HttpStatus.OK);
-        } catch (MemberNotFoundException e) {
+        } catch (AccountException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -33,7 +33,7 @@ public class ProfileController {
         try {
             ProfileResponse updatedProfile = profileService.updateProfile(account, profileRequest);
             return new ResponseEntity<>(updatedProfile, HttpStatus.OK);
-        } catch (MemberNotFoundException e) {
+        } catch (AccountException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (ProfileUpdateException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

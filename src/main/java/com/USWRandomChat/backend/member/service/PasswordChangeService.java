@@ -1,5 +1,6 @@
 package com.USWRandomChat.backend.member.service;
 
+import com.USWRandomChat.backend.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeRequest;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeResponse;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeRequest;
@@ -9,6 +10,7 @@ import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
+import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -39,6 +41,7 @@ public class PasswordChangeService {
     private final MemberRepository memberRepository;
     private final RedisTemplate<String, String> verificationRedisTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
     //랜덤 인증번호 생성
     private String generateRandomCode() {
@@ -50,13 +53,17 @@ public class PasswordChangeService {
         return code.toString();
     }
 
-    // 랜덤 인증번호 전송
-    public SendRandomCodeResponse sendRandomCode(String account, SendRandomCodeRequest sendRandomCodeRequest) throws VerificationCodeException {
-        // account 검증
-        memberRepository.findByAccount(account);
 
-        String codeRequestAccount = sendRandomCodeRequest.getAccount();
-        String email = sendRandomCodeRequest.getEmail();
+    //랜덤 인증번호 전송
+    public SendRandomCodeResponse sendRandomCode(String accessToken, SendRandomCodeRequest request) throws VerificationCodeException {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
+        }
+
+        String codeRequestAccount = request.getAccount();
+        String email = request.getEmail();
 
         // account와 email이 유효한지 확인
         Optional<Member> optionalMember = memberRepository.findByAccountAndEmail(codeRequestAccount, email);
@@ -76,10 +83,22 @@ public class PasswordChangeService {
         return new SendRandomCodeResponse(codeRequestAccount, email);
     }
 
-    // 랜덤 인증번호 검증
-    public boolean verifyRandomCode(String account, String verificationCode) throws VerificationCodeException {
 
-        // Redis에서 저장된 인증번호 가져오기
+    //랜덤 인증번호 검증
+    public boolean verifyRandomCode(String accessToken, String verificationCode) throws VerificationCodeException {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
+        }
+
+        //토큰이 유효한 경우, 계정 정보를 추출합니다.
+        String account = jwtProvider.getAccount(accessToken);
+
+        memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
+        //Redis에서 저장된 인증번호 가져오기
         ValueOperations<String, String> valueOperations = verificationRedisTemplate.opsForValue();
         String redisKey = REDIS_KEY_PREFIX + account;
         String storedCode = valueOperations.get(redisKey);
@@ -97,23 +116,19 @@ public class PasswordChangeService {
 
     // 비밀번호 변경
     @Transactional
-    public PasswordChangeResponse updatePassword(String account, PasswordChangeRequest passwordChangeRequest) {
 
-        // 새로운 비밀번호와 확인 비밀번호가 일치하는지 확인
-        if (!passwordChangeRequest.getNewPassword().equals(passwordChangeRequest.getConfirmNewPassword())) {
-            log.error("비밀번호가 일치하지 않습니다.");
-            throw new VerificationCodeException("비밀번호가 일치하지 않습니다.");
+    public PasswordChangeResponse updatePassword(String accessToken, PasswordChangeRequest passwordChangeRequest) {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
-        // Redis에서 저장된 인증번호 제거
-        String redisKey = REDIS_KEY_PREFIX + account;
-        verificationRedisTemplate.delete(redisKey);
+        //토큰이 유효한 경우, 계정 정보를 추출합니다.
+        String account = jwtProvider.getAccount(accessToken);
 
-        // 비밀번호 변경
-        Member member = memberRepository.findByAccount(account);
-        if (member == null) {
-            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
-        }
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
         // 새로운 비밀번호를 암호화
         String encryptedPassword = passwordEncoder.encode(passwordChangeRequest.getNewPassword());

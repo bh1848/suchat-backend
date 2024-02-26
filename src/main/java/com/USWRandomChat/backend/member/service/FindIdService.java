@@ -29,7 +29,7 @@ public class FindIdService {
 
         // 이메일에 해당하는 회원이 없을 때 예외 발생
         if (findmember == null){
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
         }
 
         // 이메일이 인증되지 않은 경우 예외를 던집니다.

@@ -13,7 +13,6 @@ import com.USWRandomChat.backend.member.service.FindIdService;
 import com.USWRandomChat.backend.member.service.MemberService;
 import com.USWRandomChat.backend.response.ListResponse;
 import com.USWRandomChat.backend.response.ResponseService;
-import com.USWRandomChat.backend.security.jwt.dto.TokenDto;
 import com.USWRandomChat.backend.security.jwt.service.JwtService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -57,6 +56,14 @@ public class MemberController {
     @PostMapping(value = "/sign-in")
     public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) {
         return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
+    }
+    
+    //자동로그인
+    @PostMapping("/auto-sign-in")
+    public ResponseEntity<String> refresh(@RequestHeader("Authorization") String accessToken) throws Exception {
+        // "Bearer " 접두사 제거
+        accessToken = accessToken.startsWith("Bearer ") ? accessToken.substring(7) : accessToken;
+        return new ResponseEntity<>(jwtService.refreshAccessToken(accessToken), HttpStatus.OK);
     }
 
     //로그아웃
@@ -152,11 +159,7 @@ public class MemberController {
         }
     }
 
-    //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급
-    @PostMapping("/auto-sign-in")
-    public ResponseEntity<TokenDto> refresh(@RequestBody TokenDto token) throws Exception {
-        return new ResponseEntity<>(jwtService.refreshAccessToken(token), HttpStatus.OK);
-    }
+    
 
     @Data
     @AllArgsConstructor

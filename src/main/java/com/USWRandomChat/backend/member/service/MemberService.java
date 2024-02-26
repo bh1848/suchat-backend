@@ -3,10 +3,10 @@ package com.USWRandomChat.backend.member.service;
 import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.exception.ExceptionType;
 import com.USWRandomChat.backend.exception.errortype.AccountException;
+import com.USWRandomChat.backend.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.exception.CheckDuplicateEmailException;
 import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
-import com.USWRandomChat.backend.member.exception.MemberNotFoundException;
 import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
@@ -73,12 +73,11 @@ public class MemberService {
 
     // 회원가입 할 때 이메일 인증 유무 확인
     public Boolean signUpFinish(MemberDTO memberDTO){
-        Member findMember = memberRepository.findByAccount(memberDTO.getAccount());
 
-        if (findMember == null) {
-            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
-        }
-        if (!findMember.isEmailVerified()){
+        Member member = memberRepository.findByAccount(memberDTO.getAccount())
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
+        if (!member.isEmailVerified()){
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
         return true;
@@ -86,13 +85,14 @@ public class MemberService {
 
     //로그인
     public SignInResponse signIn(SignInRequest request) {
-        Member member = memberRepository.findByAccount(request.getAccount());
-        if (member == null) {
-            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
-        }
+
+        Member member = memberRepository.findByAccount(request.getAccount())
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
+
         // 로그인 할 때 이메일 인증 유무 확인
         if (!member.isEmailVerified()){
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
@@ -107,12 +107,19 @@ public class MemberService {
     }
 
     //회원 탈퇴
-    public void withdraw(String account) {
-        Member member = memberRepository.findByAccount(account);
 
-        if (member == null) {
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+    public void withdraw(String accessToken) {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
+
+        //토큰이 유효한 경우, 계정 정보를 추출합니다.
+        String account = jwtProvider.getAccount(accessToken);
+
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
         // EMAIL_TOKEN 테이블과 관련된 데이터 삭제
         emailTokenRepository.deleteById(String.valueOf(member.getId()));
@@ -170,14 +177,20 @@ public class MemberService {
     }
 
     //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
-    public void checkDuplicateNickname(String account, MemberDTO memberDTO) {
 
-        //닉네임 변경 제한 확인
-        Member member = memberRepository.findByAccount(account);
-
-        if (member == null) {
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+    public void checkDuplicateNickname(String accessToken, MemberDTO memberDTO) {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            //토큰이 유효하지 않은 경우, 예외를 발생시킵니다.
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
+
+        //토큰이 유효한 경우, 계정 정보를 추출합니다.
+        String account = jwtProvider.getAccount(accessToken);
+
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
 
         Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
                 new RuntimeException("프로필을 찾을 수 없습니다."));

@@ -1,10 +1,11 @@
 package com.USWRandomChat.backend.security.jwt.domain;
 
+import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 
@@ -13,20 +14,25 @@ import java.util.concurrent.TimeUnit;
 
 @Getter
 @RedisHash("refreshToken")
-@Builder @AllArgsConstructor @NoArgsConstructor
+@Builder @AllArgsConstructor
 public class Token {
 
     @Id
-    @JsonIgnore
     private Long id;
 
-    private String refresh_token;
+    private String account;
+
+    private String refreshToken;
 
     @TimeToLive(unit = TimeUnit.SECONDS)
-    private Integer expiration;
+    private long expiration;
 
-    public void setExpiration(Integer expiration) {
+    public void setExpiration(long expiration) {
         this.expiration = expiration;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }
 
