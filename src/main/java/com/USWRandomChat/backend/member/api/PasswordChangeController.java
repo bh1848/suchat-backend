@@ -1,7 +1,7 @@
 package com.USWRandomChat.backend.member.api;
 
-import com.USWRandomChat.backend.exception.errortype.AccountException;
-import com.USWRandomChat.backend.exception.errortype.CodeException;
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.CodeException;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeRequest;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeResponse;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeRequest;

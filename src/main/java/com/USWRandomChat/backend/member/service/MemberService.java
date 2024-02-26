@@ -2,10 +2,10 @@ package com.USWRandomChat.backend.member.service;
 
 import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
 import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
-import com.USWRandomChat.backend.exception.ExceptionType;
-import com.USWRandomChat.backend.exception.errortype.AccountException;
-import com.USWRandomChat.backend.exception.errortype.ProfileException;
-import com.USWRandomChat.backend.exception.errortype.TokenException;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
+import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;

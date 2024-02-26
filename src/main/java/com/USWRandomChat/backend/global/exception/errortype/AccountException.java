@@ -1,7 +1,7 @@
-package com.USWRandomChat.backend.exception.errortype;
+package com.USWRandomChat.backend.global.exception.errortype;
 
 
-import com.USWRandomChat.backend.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
 
 public class AccountException extends BaseException {
 
