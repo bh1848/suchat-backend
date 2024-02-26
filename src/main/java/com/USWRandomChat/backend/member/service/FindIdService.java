@@ -1,8 +1,8 @@
 package com.USWRandomChat.backend.member.service;
 
-import com.USWRandomChat.backend.exception.ExceptionType;
-import com.USWRandomChat.backend.exception.errortype.AccountException;
-import com.USWRandomChat.backend.exception.errortype.MailException;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.MailException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-import static com.USWRandomChat.backend.exception.ExceptionType.EMAIL_NOT_AUTHED;
-import static com.USWRandomChat.backend.exception.ExceptionType.SEND_MAIL_FAILED;
+import static com.USWRandomChat.backend.global.exception.ExceptionType.EMAIL_NOT_AUTHED;
+import static com.USWRandomChat.backend.global.exception.ExceptionType.SEND_MAIL_FAILED;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +29,7 @@ public class FindIdService {
 
         // 이메일에 해당하는 회원이 없을 때 예외 발생
         if (findmember == null){
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
         }
 
         // 이메일이 인증되지 않은 경우 예외를 던집니다.

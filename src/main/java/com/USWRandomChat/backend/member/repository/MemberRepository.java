@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     //account로 찾기
-    Member findByAccount(String account);
+    Optional<Member> findByAccount(String account);
 
     //email로 찾기
     Member findByEmail(String email);

@@ -1,13 +1,12 @@
 package com.USWRandomChat.backend.member.service;
 
+import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
 import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
-import com.USWRandomChat.backend.exception.ExceptionType;
-import com.USWRandomChat.backend.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
+import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.member.exception.CheckDuplicateEmailException;
-import com.USWRandomChat.backend.member.exception.CheckDuplicateNicknameException;
-import com.USWRandomChat.backend.member.exception.MemberNotFoundException;
-import com.USWRandomChat.backend.member.exception.NicknameChangeNotAllowedException;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
@@ -65,20 +64,19 @@ public class MemberService {
         memberRepository.save(member);
         profileRepository.save(profile);
 
-        // 이메일 인증
+        //이메일 인증
         Member savedMemberEmail = memberRepository.findByEmail(member.getEmail());
 
         return savedMemberEmail;
     }
 
-    // 회원가입 할 때 이메일 인증 유무 확인
+    //회원가입 할 때 이메일 인증 유무 확인
     public Boolean signUpFinish(MemberDTO memberDTO){
-        Member findMember = memberRepository.findByAccount(memberDTO.getAccount());
 
-        if (findMember == null) {
-            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
-        }
-        if (!findMember.isEmailVerified()){
+        Member member = memberRepository.findByAccount(memberDTO.getAccount())
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
+        if (!member.isEmailVerified()){
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
         return true;
@@ -86,42 +84,51 @@ public class MemberService {
 
     //로그인
     public SignInResponse signIn(SignInRequest request) {
-        Member member = memberRepository.findByAccount(request.getAccount());
-        if (member == null) {
-            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
-        }
+
+        Member member = memberRepository.findByAccount(request.getAccount())
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
-        // 로그인 할 때 이메일 인증 유무 확인
+
+        //로그인 할 때 이메일 인증 유무 확인
         if (!member.isEmailVerified()){
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
 
-        // refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
-        String refreshToken = jwtService.createRefreshToken(member);
+        //refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
+        jwtService.createRefreshToken(member);
         log.info("memberId: {}, pw: {} - 로그인 완료", request.getAccount(), request.getPassword());
 
-        // SignInResponse 생성 시 refreshToken을 전달
+        //SignInResponse 생성 시 refreshToken을 전달
         return new SignInResponse(member, jwtProvider, jwtService);
     }
 
     //회원 탈퇴
-    public void withdraw(String account) {
-        Member member = memberRepository.findByAccount(account);
-
-        if (member == null) {
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+    public void withdraw(String accessToken) {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
-        // EMAIL_TOKEN 테이블과 관련된 데이터 삭제
-        emailTokenRepository.deleteById(String.valueOf(member.getId()));
+        //토큰이 유효한 경우, 계정 정보를 추출
+        String account = jwtProvider.getAccount(accessToken);
 
-        // 저장된 Refresh Token을 찾아 삭제
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
+        //이메일 토큰 삭제
+        EmailToken emailToken = emailTokenRepository.findByMember(member);
+        if (emailToken != null) {
+            emailTokenRepository.delete(emailToken);
+        }
+
+        //저장된 Refresh Token을 찾아 삭제
         Optional<Token> refreshToken = jwtRepository.findById(member.getId());
         refreshToken.ifPresent(jwtRepository::delete);
 
-        // 회원 삭제
+        //회원 삭제
         memberRepository.deleteById(member.getId());
         log.info("회원 탈퇴 완료: memberId={}", account);
     }
@@ -135,28 +142,28 @@ public class MemberService {
     public Member findById(Long id) {
         Optional<Member> byId = memberRepository.findById(id);
         if (byId.isPresent()) {
-            // 조회 성공
+            //조회 성공
             return byId.get();
         } else {
-            // 조회 실패
+            //조회 실패
             return byId.orElse(null);
         }
     }
 
-//    //아이디 중복 확인
-//    public boolean validateDuplicateAccount(MemberDTO memberDTO) {
-//        Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
-//        // 중복
-//        // 사용 가능한 ID
-//        return byAccount.isPresent();
-//    }
+////아이디 중복 확인
+//public boolean validateDuplicateAccount(MemberDTO memberDTO) {
+//    Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
+//    //중복
+//    //사용 가능한 ID
+//    return byAccount.isPresent();
+//}
 
     //이메일 중복 확인
     public void checkDuplicateEmail(MemberDTO memberDTO) {
         Member member = memberRepository.findByEmail(memberDTO.getEmail());
 
         if (member != null) {
-            throw new CheckDuplicateEmailException("이미 사용 중인 이메일입니다.");
+            throw new AccountException(ExceptionType.EMAIL_OVERLAP);
         }
     }
 
@@ -165,22 +172,26 @@ public class MemberService {
         Profile profile = profileRepository.findByNickname(memberDTO.getNickname());
 
         if (profile != null){
-            throw new CheckDuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+            throw new AccountException(ExceptionType.NICKNAME_OVERLAP);
         }
     }
 
     //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
-    public void checkDuplicateNickname(String account, MemberDTO memberDTO) {
-
-        //닉네임 변경 제한 확인
-        Member member = memberRepository.findByAccount(account);
-
-        if (member == null) {
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+    public void checkDuplicateNickname(String accessToken, MemberDTO memberDTO) {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
+        //토큰이 유효한 경우, 계정 정보를 추출
+        String account = jwtProvider.getAccount(accessToken);
+
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
+
         Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
-                new RuntimeException("프로필을 찾을 수 없습니다."));
+                new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime lastChangeTime = Optional.ofNullable(profile.getNicknameChangeDate())
@@ -188,22 +199,18 @@ public class MemberService {
 
         //30일 이내에 변경한 경우 예외 발생
         if (ChronoUnit.DAYS.between(lastChangeTime, now) < NICKNAME_CHANGE_LIMIT_DAYS) {
-            throw new NicknameChangeNotAllowedException("닉네임 변경 후 30일이 지나야 변경이 가능합니다.");
+            throw new AccountException(ExceptionType.NICKNAME_EXPIRATION_TIME);
         }
 
         //닉네임 중복 확인
         Profile byNickname = profileRepository.findByNickname(memberDTO.getNickname());
         if (byNickname != null) {
-            throw new CheckDuplicateNicknameException("이미 사용 중인 닉네임입니다.");
+            throw new AccountException(ExceptionType.NICKNAME_OVERLAP);
         }
     }
-
 
     //해당 토큰 유저 삭제
     public void deleteFromId(Long id) {
         memberRepository.deleteById(id);
     }
-
-
-
 }
