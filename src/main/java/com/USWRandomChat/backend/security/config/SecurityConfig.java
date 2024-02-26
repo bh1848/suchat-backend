@@ -69,9 +69,7 @@ public class SecurityConfig {
                         , "/stomp/**"
                         , "/chat/**"
                         , "/pub/**"
-                        , "/sub/**"
-                        , "/match/**").permitAll()
-
+                        , "/sub/**").permitAll()
                 // /admin으로 시작하는 요청은 ADMIN 권한이 있는 유저만 허용
                 .antMatchers("/member/admin/**").hasRole("ADMIN")
                 // /user으로 시작하는 요청은 USER 권한이 있는 유저만 허용

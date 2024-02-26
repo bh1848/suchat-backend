@@ -55,4 +55,3 @@ public class Profile {
         this.roomId = roomId;
     }
 }
-
