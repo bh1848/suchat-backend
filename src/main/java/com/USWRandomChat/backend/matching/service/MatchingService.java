@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,44 +35,39 @@ public class MatchingService {
         matchQueue = matchRedisTemplate.opsForZSet();
     }
 
-    // 매칭 큐에 회원 추가
     public void addToMatchingQueue(String account) {
         Member member = memberRepository.findByAccount(account);
-        if (member == null) {
+        if(member == null){
             throw new AccountException(ExceptionType.USER_NOT_EXISTS);
         }
         matchQueue.add(randomQueue, member.getAccount(), System.currentTimeMillis());
     }
 
-    // 매칭 취소 시 randomQueue에서 회원 삭제
     public void removeCancelParticipants(String account) {
         matchQueue.remove(randomQueue, account);
         log.info("매칭 취소 회원: {} 그리고 큐에서 지웠습니다.", account);
     }
 
-    // MatchingService 내 performMatching 메서드 수정
-    public String[] performMatching() {
-        long size = matchQueue.size(randomQueue);
-        if (size < 2) {
-            log.info("큐에 있는 회원: 매칭할 회원 수가 부족합니다.");
-            return null; // 매칭할 회원 수가 부족할 때 null 반환
+    public String performMatching() {
+        if (matchQueue.size(randomQueue) < 2) {
+            log.info("매칭할 회원 수가 부족합니다.");
+            return null;
         }
 
-        String participant1 = matchQueue.range(randomQueue, 0, 0).iterator().next(); // 첫 번째 사용자
-        String participant2 = matchQueue.range(randomQueue, 1, 1).iterator().next(); // 두 번째 사용자
+        String participant1 = matchQueue.range(randomQueue, 0, 0).iterator().next();
+        String participant2 = matchQueue.range(randomQueue, 1, 1).iterator().next();
 
-        String chatRoomId = UUID.randomUUID().toString(); // 매칭된 회원 2명의 채팅방 uuid 생성
+        String chatRoomId = UUID.randomUUID().toString();
 
         updateMemberRoomId(participant1, chatRoomId);
         updateMemberRoomId(participant2, chatRoomId);
 
-        matchQueue.remove(randomQueue, participant1, participant2); // Queue에서 매칭된 사용자 제거
-        log.info("{} 및 {} 회원을 {} 방에 매칭", participant1, participant2, chatRoomId);
+        matchQueue.remove(randomQueue, participant1, participant2);
+        log.info("매칭된 회원들을 {} 방에 매칭하였습니다.", chatRoomId);
 
-        return new String[]{participant1, participant2, chatRoomId}; // 매칭된 회원과 채팅방 ID 반환
+        return chatRoomId; // 매칭된 채팅방 ID 반환
     }
 
-    // randomQueue에서 2분이 지난 회원 삭제
     public void removeExpiredParticipants() {
         long currentTime = System.currentTimeMillis();
         Set<String> expiredParticipants = matchQueue.rangeByScore(randomQueue, 0, currentTime - MAX_MATCHING_TIME);
