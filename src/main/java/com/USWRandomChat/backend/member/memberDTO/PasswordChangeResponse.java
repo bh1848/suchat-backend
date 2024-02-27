@@ -9,12 +9,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PasswordChangeResponse {
+    private String account;
     private String newPassword;
     private String confirmNewPassword;
 
     public PasswordChangeResponse(Member member){
+        this.account = member.getAccount();
         this.newPassword = member.getPassword();
         this.confirmNewPassword = member.getPassword();
     }
-
 }

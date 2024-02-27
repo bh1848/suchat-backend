@@ -1,10 +1,11 @@
 package com.USWRandomChat.backend.member.api;
 
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.CodeException;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeRequest;
 import com.USWRandomChat.backend.member.memberDTO.PasswordChangeResponse;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeRequest;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeResponse;
-import com.USWRandomChat.backend.member.exception.VerificationCodeException;
 import com.USWRandomChat.backend.member.service.PasswordChangeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,36 +21,40 @@ public class PasswordChangeController {
 
     private final PasswordChangeService passwordChangeService;
 
-    // 비밀번호 재설정을 위한 인증번호 생성 및 이메일 전송 API
+    //비밀번호 재설정을 위한 인증번호 생성 및 이메일 전송 API
     @PostMapping("/send-verification-code")
-    public ResponseEntity<String> sendVerificationCode(@RequestParam String account, @RequestBody SendRandomCodeRequest sendRandomCodeRequest) {
+    public ResponseEntity<String> sendVerificationCode(@RequestHeader("Authorization") String accessToken, @RequestBody SendRandomCodeRequest sendRandomCodeRequest) {
         try {
-            SendRandomCodeResponse response = passwordChangeService.sendRandomCode(account, sendRandomCodeRequest);
-            return new ResponseEntity<>("인증번호가 전송됐습니다. account: " + response.getAccount() + ", email: " + response.getEmail(), HttpStatus.OK);
-        } catch (VerificationCodeException e) {
-            return new ResponseEntity<>("올바르지 않은 아이디 혹은 이메일입니다. " + e.getMessage(), HttpStatus.BAD_REQUEST);
+            SendRandomCodeResponse response = passwordChangeService.sendRandomCode(accessToken, sendRandomCodeRequest);
+            return ResponseEntity.ok("인증번호가 전송됐습니다. account: " + response.getAccount() + ", email: " + response.getEmail());
+        } catch (AccountException | CodeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 처리 중 오류가 발생했습니다. " + e.getMessage());
         }
     }
 
-    // 인증번호 검증
+    //인증번호 검증
     @PostMapping("/verify-code")
-    public ResponseEntity<String> verifyCode(@RequestParam String account, @RequestParam String verificationCode) {
-        boolean isValid = passwordChangeService.verifyRandomCode(account, verificationCode);
-        if (isValid) {
-            return new ResponseEntity<>("인증번호가 확인됐습니다.", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("인증번호가 맞지 않습니다.", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<String> verifyCode(@RequestHeader("Authorization") String accessToken, @RequestParam String verificationCode) {
+        try {
+            boolean isValid = passwordChangeService.verifyRandomCode(accessToken, verificationCode);
+            if (isValid) {
+                return ResponseEntity.ok("인증번호가 확인됐습니다.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("인증번호가 맞지 않습니다.");
+            }
+        } catch (CodeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 실패: " + e.getMessage());
         }
     }
 
-    // 비밀번호 변경
+    //비밀번호 변경
     @PostMapping("/update-password")
-    public ResponseEntity<Object> updatePassword(@RequestParam String account, @RequestBody PasswordChangeRequest passwordChangeRequest) {
+    public ResponseEntity<String> updatePassword(@RequestHeader("Authorization") String accessToken, @RequestBody PasswordChangeRequest passwordChangeRequest) {
         try {
-            PasswordChangeResponse response = passwordChangeService.updatePassword(account, passwordChangeRequest);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (VerificationCodeException e) {
-            return new ResponseEntity<>((e.getMessage()), HttpStatus.BAD_REQUEST);
+            PasswordChangeResponse response = passwordChangeService.updatePassword(accessToken, passwordChangeRequest);
+            return ResponseEntity.ok("비밀번호가 변경되었습니다. account: " + response.getAccount());
+        } catch (AccountException | CodeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("비밀번호 변경 중 오류가 발생했습니다. " + e.getMessage());
         }
     }
 }

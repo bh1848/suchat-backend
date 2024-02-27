@@ -1,7 +1,7 @@
 package com.USWRandomChat.backend.matching.service;
 
-import com.USWRandomChat.backend.exception.ExceptionType;
-import com.USWRandomChat.backend.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
@@ -36,10 +36,8 @@ public class MatchingService {
     }
 
     public void addToMatchingQueue(String account) {
-        Member member = memberRepository.findByAccount(account);
-        if(member == null){
-            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
-        }
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
         matchQueue.add(randomQueue, member.getAccount(), System.currentTimeMillis());
     }
 
@@ -78,11 +76,9 @@ public class MatchingService {
     // 각 회원의 roomId를 업데이트하는 메서드
     private void updateMemberRoomId(String account, String roomId) {
         // account를 사용하여 Member 객체를 조회
-        Member member = memberRepository.findByAccount(account);
-        if (member == null) {
-            // Member가 존재하지 않는 경우 예외 발생
-            throw new AccountException(ExceptionType.USER_NOT_EXISTS);
-        }
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+        matchQueue.add(randomQueue, member.getAccount(), System.currentTimeMillis());
 
         // 해당 Member와 연관된 Profile 조회
         Profile profile = profileRepository.findByMember(member);

@@ -1,11 +1,11 @@
-package com.USWRandomChat.backend.exception.errortype;
+package com.USWRandomChat.backend.global.exception.errortype;
 
-import com.USWRandomChat.backend.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
 import lombok.Getter;
 
+@Getter
 public class BaseException extends RuntimeException {
 
-    @Getter
     private final ExceptionType exceptionType;
 
     public BaseException(ExceptionType exceptionType) {

@@ -1,20 +1,17 @@
 package com.USWRandomChat.backend.profile.service;
 
-import com.USWRandomChat.backend.exception.ExceptionType;
-import com.USWRandomChat.backend.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
+import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.member.exception.MemberNotFoundException;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import com.USWRandomChat.backend.profile.dto.ProfileResponse;
-import com.USWRandomChat.backend.profile.exception.ProfileUpdateException;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
+import com.USWRandomChat.backend.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,62 +22,65 @@ public class ProfileService {
 
     private final MemberRepository memberRepository;
     private final ProfileRepository profileRepository;
+    private final JwtProvider jwtProvider;
 
     // 프로필 조회
-    public ProfileResponse getProfile(String targetAccount) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            throw new AccessDeniedException("프로필 조회 권한이 없습니다.");
+    public ProfileResponse getProfile(String accessToken, String targetAccount) {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
-        Member member = memberRepository.findByAccount(targetAccount);
-        if(member == null){
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        Member member = memberRepository.findByAccount(targetAccount)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
+        Profile profile = profileRepository.findById(member.getId())
+                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
+        return new ProfileResponse(profile);
+    }
+
+    //프로필 업데이트
+    public ProfileResponse updateProfile(String accessToken, ProfileRequest request) {
+        //엑세스 토큰의 유효성 검사
+        if (!jwtProvider.validateAccessToken(accessToken)) {
+            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
         }
 
-        Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
-                new RuntimeException("프로필을 찾을 수 없습니다."));
+        //토큰이 유효한 경우, 계정 정보를 추출
+        String account = jwtProvider.getAccount(accessToken);
+
+        //account로 회원 조회
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
+        Profile profile = updateProfileDetails(member, request);
 
         return new ProfileResponse(profile);
     }
 
-    // 프로필 업데이트
-    public ProfileResponse updateProfile(String account, ProfileRequest profileRequest) {
+    //닉네임 빈칸 확인 및 프로필 업데이트 로직
+    private Profile updateProfileDetails(Member member, ProfileRequest request) {
+        Profile profile = profileRepository.findById(member.getId())
+                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
 
-        Member member = memberRepository.findByAccount(account);
-        if(member == null){
-            throw new AccountException(ExceptionType.BAD_CREDENTIALS);
+        checkNicknameEmpty(request.getNickname());
+
+        //닉네임이 변경되었을 때만 업데이트
+        if (!profile.getNickname().equals(request.getNickname())) {
+            profile.setNickname(request.getNickname());
+            profile.setNicknameChangeDate(LocalDateTime.now());
         }
 
-        Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
-                new RuntimeException("프로필을 찾을 수 없습니다."));
-        try {
-            checkNicknameEmpty(profileRequest.getNickname());
+        profile.setMbti(request.getMbti());
+        profile.setIntro(request.getIntro());
 
-            // 닉네임이 변경되었을 때만 업데이트
-            if (!profile.getNickname().equals(profileRequest.getNickname())) {
-                profile.setNickname(profileRequest.getNickname());
-                profile.setNicknameChangeDate(LocalDateTime.now());
-            }
-
-            profile.setMbti(profileRequest.getMbti());
-            profile.setIntro(profileRequest.getIntro());
-
-
-            profileRepository.save(profile);
-
-            return new ProfileResponse(profile);
-        } catch (IllegalArgumentException e) {
-            throw new ProfileUpdateException("닉네임을 설정해주세요.");
-        } catch (Exception e) {
-            throw new ProfileUpdateException("프로필 업데이트 중 오류가 발생했습니다.");
-        }
+        return profileRepository.save(profile);
     }
 
-    // 닉네임 빈칸 확인
+    //닉네임 빈칸 확인
     private void checkNicknameEmpty(String nickname) {
-        if (nickname.trim().isEmpty()) {
-            throw new IllegalArgumentException("닉네임을 설정해주세요.");
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new ProfileException(ExceptionType.NICKNAME_ERROR);
         }
     }
 }
