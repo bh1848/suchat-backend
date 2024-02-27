@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.security.domain;
+package com.USWRandomChat.backend.global.security.domain;
 
 import com.USWRandomChat.backend.member.domain.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;

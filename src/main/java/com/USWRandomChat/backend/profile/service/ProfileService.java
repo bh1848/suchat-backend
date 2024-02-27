@@ -10,7 +10,7 @@ import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import com.USWRandomChat.backend.profile.dto.ProfileResponse;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
-import com.USWRandomChat.backend.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

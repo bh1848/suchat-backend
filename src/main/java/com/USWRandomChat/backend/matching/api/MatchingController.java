@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -16,10 +15,10 @@ public class MatchingController {
     private final MatchingService matchingService;
 
     @PostMapping("/in")
-    public ResponseEntity<?> randomMatch(@RequestParam String account) {
+    public ResponseEntity<String> randomMatch(@RequestHeader("Authorization") String accessToken) {
         try {
             // 매칭 전에 큐에 회원 추가
-            matchingService.addToMatchingQueue(account);
+            matchingService.addToMatchingQueue(accessToken);
             // 만료된 참가자 제거
             matchingService.removeExpiredParticipants();
             // 매칭 시도하고 채팅방 ID 반환
@@ -40,9 +39,9 @@ public class MatchingController {
     }
 
     @DeleteMapping("/cancel")
-    public ResponseEntity<?> cancelMatch(@RequestParam String account) {
+    public ResponseEntity<String> cancelMatch(@RequestHeader("Authorization") String accessToken) {
         // 매칭 취소 요청 처리
-        matchingService.removeCancelParticipants(account);
+        matchingService.removeCancelParticipants(accessToken);
         // 매칭 취소 성공 응답
         return ResponseEntity.ok().body("매칭 취소가 성공적으로 이루어졌습니다.");
     }

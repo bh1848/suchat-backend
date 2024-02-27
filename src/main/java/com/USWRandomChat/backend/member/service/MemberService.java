@@ -14,11 +14,11 @@ import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
-import com.USWRandomChat.backend.security.domain.Authority;
-import com.USWRandomChat.backend.security.jwt.JwtProvider;
-import com.USWRandomChat.backend.security.jwt.domain.Token;
-import com.USWRandomChat.backend.security.jwt.repository.JwtRepository;
-import com.USWRandomChat.backend.security.jwt.service.JwtService;
+import com.USWRandomChat.backend.global.security.domain.Authority;
+import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.global.security.jwt.domain.Token;
+import com.USWRandomChat.backend.global.security.jwt.repository.JwtRepository;
+import com.USWRandomChat.backend.global.security.jwt.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -71,12 +71,12 @@ public class MemberService {
     }
 
     //회원가입 할 때 이메일 인증 유무 확인
-    public Boolean signUpFinish(MemberDTO memberDTO){
+    public Boolean signUpFinish(MemberDTO memberDTO) {
 
         Member member = memberRepository.findByAccount(memberDTO.getAccount())
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
-        if (!member.isEmailVerified()){
+        if (!member.isEmailVerified()) {
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
         return true;
@@ -92,8 +92,9 @@ public class MemberService {
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
 
+
         //로그인 할 때 이메일 인증 유무 확인
-        if (!member.isEmailVerified()){
+        if (!member.isEmailVerified()) {
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
 
@@ -152,10 +153,10 @@ public class MemberService {
 
 ////아이디 중복 확인
 //public boolean validateDuplicateAccount(MemberDTO memberDTO) {
-//    Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
-//    //중복
-//    //사용 가능한 ID
-//    return byAccount.isPresent();
+//   Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
+//   //중복
+//   //사용 가능한 ID
+//   return byAccount.isPresent();
 //}
 
     //이메일 중복 확인
@@ -168,12 +169,11 @@ public class MemberService {
     }
 
     //회원가입 시의 닉네임 중복 확인
-    public void checkDuplicateNicknameSignUp(MemberDTO memberDTO){
-        Profile profile = profileRepository.findByNickname(memberDTO.getNickname());
-
-        if (profile != null){
-            throw new AccountException(ExceptionType.NICKNAME_OVERLAP);
-        }
+    public void checkDuplicateNicknameSignUp(MemberDTO memberDTO) {
+        profileRepository.findByNickname(memberDTO.getNickname())
+                .ifPresent(profile -> {
+                    throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);
+                });
     }
 
     //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
@@ -189,7 +189,6 @@ public class MemberService {
         Member member = memberRepository.findByAccount(account)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
-
         Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
                 new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
 
@@ -202,11 +201,13 @@ public class MemberService {
             throw new AccountException(ExceptionType.NICKNAME_EXPIRATION_TIME);
         }
 
-        //닉네임 중복 확인
-        Profile byNickname = profileRepository.findByNickname(memberDTO.getNickname());
-        if (byNickname != null) {
-            throw new AccountException(ExceptionType.NICKNAME_OVERLAP);
-        }
+        //닉네임 중복 확인 (현재 사용자의 닉네임 제외)
+        profileRepository.findByNickname(memberDTO.getNickname())
+                .ifPresent(existingProfile -> {
+                    if (!existingProfile.getMember().getId().equals(member.getId())) {
+                        throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);
+                    }
+                });
     }
 
     //해당 토큰 유저 삭제

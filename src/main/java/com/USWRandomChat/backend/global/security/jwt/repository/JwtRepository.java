@@ -1,6 +1,6 @@
-package com.USWRandomChat.backend.security.jwt.repository;
+package com.USWRandomChat.backend.global.security.jwt.repository;
 
-import com.USWRandomChat.backend.security.jwt.domain.Token;
+import com.USWRandomChat.backend.global.security.jwt.domain.Token;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

@@ -1,13 +1,13 @@
-package com.USWRandomChat.backend.security.jwt.service;
+package com.USWRandomChat.backend.global.security.jwt.service;
 
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.TokenException;
+import com.USWRandomChat.backend.global.security.jwt.domain.Token;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
-import com.USWRandomChat.backend.security.jwt.JwtProvider;
-import com.USWRandomChat.backend.security.jwt.domain.Token;
-import com.USWRandomChat.backend.security.jwt.repository.JwtRepository;
+import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.global.security.jwt.repository.JwtRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
