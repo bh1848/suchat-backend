@@ -1,8 +1,8 @@
 package com.USWRandomChat.backend.member.memberDTO;
 
 import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.security.jwt.JwtProvider;
-import com.USWRandomChat.backend.security.jwt.service.JwtService;
+import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.global.security.jwt.service.JwtService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

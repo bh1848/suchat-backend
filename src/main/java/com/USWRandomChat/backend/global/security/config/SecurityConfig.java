@@ -1,7 +1,7 @@
-package com.USWRandomChat.backend.security.config;
+package com.USWRandomChat.backend.global.security.config;
 
-import com.USWRandomChat.backend.security.jwt.JwtAuthenticationFilter;
-import com.USWRandomChat.backend.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.global.security.jwt.JwtAuthenticationFilter;
+import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

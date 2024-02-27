@@ -10,7 +10,7 @@ import com.USWRandomChat.backend.member.memberDTO.PasswordChangeResponse;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeRequest;
 import com.USWRandomChat.backend.member.memberDTO.SendRandomCodeResponse;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
-import com.USWRandomChat.backend.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

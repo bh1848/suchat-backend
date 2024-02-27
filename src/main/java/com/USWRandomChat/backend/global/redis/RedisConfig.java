@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.redis;
+package com.USWRandomChat.backend.global.redis;
 
 import com.USWRandomChat.backend.chat.service.RedisSubscriber;
 import org.springframework.beans.factory.annotation.Value;

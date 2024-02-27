@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.response;
+package com.USWRandomChat.backend.global.response;
 
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.security.jwt.domain;
+package com.USWRandomChat.backend.global.security.jwt.domain;
 
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;

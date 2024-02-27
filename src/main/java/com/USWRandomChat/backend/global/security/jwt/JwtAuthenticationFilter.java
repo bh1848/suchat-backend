@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.security.jwt;
+package com.USWRandomChat.backend.global.security.jwt;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;

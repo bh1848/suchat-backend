@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.security.jwt;
+package com.USWRandomChat.backend.global.security.jwt;
 
 import com.USWRandomChat.backend.member.domain.Member;
 import org.springframework.security.core.GrantedAuthority;

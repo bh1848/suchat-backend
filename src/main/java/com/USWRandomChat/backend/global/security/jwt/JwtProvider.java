@@ -1,7 +1,7 @@
-package com.USWRandomChat.backend.security.jwt;
+package com.USWRandomChat.backend.global.security.jwt;
 
-import com.USWRandomChat.backend.security.domain.Authority;
-import com.USWRandomChat.backend.security.jwt.service.JpaUserDetailsService;
+import com.USWRandomChat.backend.global.security.domain.Authority;
+import com.USWRandomChat.backend.global.security.jwt.service.JpaUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
