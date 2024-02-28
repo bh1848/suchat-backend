@@ -38,7 +38,7 @@ public class VerificationController {
     }
 
     //비밀번호 변경 요청 처리
-    @PatchMapping("/change-password")
+    @PatchMapping("/update-password")
     public ResponseEntity<String> updatePassword(@RequestParam String uuid ,@RequestBody UpdatePasswordRequest request) {
         try {
             verificationService.updatePassword(uuid, request.getNewPassword(), request.getConfirmNewPassword());
