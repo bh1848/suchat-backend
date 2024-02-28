@@ -15,6 +15,7 @@ public enum ExceptionType {
      */
     EMAILTOKEN_IS_EXPIRED("EMAILTOKEN001", "토큰이 만료되었습니다. 다시 이메일인증 해주세요", BAD_REQUEST),
     EMAIL_NOT_VERIFIED("EMAILTOKEN002", "이메일 인증되지 않은 회원입니다.", FORBIDDEN),
+    Email_Token_Not_Found("EMAILTOKEN003", "해당 토큰이 존재하지 않습니다.", BAD_REQUEST),
 
     /**
      * Domain: Member
@@ -43,6 +44,13 @@ public enum ExceptionType {
     INVALID_REFRESH_TOKEN("TOKEN004", "잘못된 리프레시 토큰", BAD_REQUEST),
 
     /**
+     * Domain : VerificationCode
+     */
+    CODE_ERROR("CODE001", "인증번호를 확인해주세요", BAD_REQUEST),
+    UUID_NOT_FOUND("CODE002","회원의 uuid를 찾을 수 없습니다.", BAD_REQUEST),
+    VERIFICATION_NOT_COMPLETED("CODE003", "인증번호가 확인이 되지 않은 사용자 입니다.", BAD_REQUEST),
+
+    /**
      * Domain : Chat
      */
     ROOM_ID_UPDATE_ERROR("CHAT001", "RoomId 업데이트 실패", BAD_REQUEST),
@@ -58,7 +66,7 @@ public enum ExceptionType {
      * 공통
      */
     SEND_MAIL_FAILED("MAIL001", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR), //500
-    CODE_ERROR("CODE001", "인증번호를 확인해주세요", BAD_REQUEST),
+
     ;
 
     private final String code;

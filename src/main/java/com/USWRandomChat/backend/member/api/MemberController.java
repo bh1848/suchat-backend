@@ -46,9 +46,9 @@ public class MemberController {
                 , HttpStatus.OK);
     }
 
-    @PostMapping(value = "/sign-up-finish")
-    public ResponseEntity<Boolean> signUpFinish(@RequestBody MemberDTO memberDTO) {
-        return new ResponseEntity<>(memberService.signUpFinish(memberDTO), HttpStatus.OK);
+    @GetMapping(value = "/sign-up-finish")
+    public ResponseEntity<Boolean> signUpFinish(@RequestParam String uuid) {
+        return new ResponseEntity<>(memberService.signUpFinish(uuid), HttpStatus.OK);
     }
 
     //로그인
@@ -101,7 +101,7 @@ public class MemberController {
 
     //이메일 재인증
     @PostMapping("/reconfirm-email")
-    public ResponseEntity<String> reconfirmEmail(@RequestParam String uuid) throws MessagingException {
+    public ResponseEntity<String> reconfirmEmail(@Valid @RequestParam String uuid) throws MessagingException {
         return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
 
