@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .antMatchers(
                         "/member/**"
                         , "/profile/**"
-                        ,"/password/**"
+                        ,"/verification/**"
                         ,"/match/**"
                         , "/stomp/**"
                         , "/chat/**"

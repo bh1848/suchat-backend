@@ -34,7 +34,7 @@ public class ProfileController {
     }
 
     // 프로필 업데이트
-    @PostMapping("/update-profile")
+    @PatchMapping("/update-profile")
     public ResponseEntity<?> updateProfile(@RequestHeader("Authorization") String accessToken, @RequestBody ProfileRequest profileRequest) {
         try {
             ProfileResponse updatedProfile = profileService.updateProfile(accessToken, profileRequest);

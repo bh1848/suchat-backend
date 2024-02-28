@@ -16,7 +16,6 @@ import java.util.Optional;
 @Slf4j
 public class RoomService {
 
-    private final Profile profile;
     private final MessageRepository messageRepository;
     private final ProfileRepository profileRepository;
 
