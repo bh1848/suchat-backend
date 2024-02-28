@@ -3,10 +3,7 @@ package com.USWRandomChat.backend.member.domain;
 import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
 import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.global.security.domain.Authority;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -28,6 +25,7 @@ public class Member {
     @Column(nullable = false, updatable = false, unique = true)
     private String account;
 
+    @Setter
     @Column(nullable = false)
     private String password;
 
@@ -51,11 +49,9 @@ public class Member {
         role.forEach(o -> o.setMember(this));
     }
 
-    public void updatePassword(String newPassword){
-        this.password = newPassword;
-    }
 
     public void setVerified() {
         this.isEmailVerified = true;
     }
+
 }

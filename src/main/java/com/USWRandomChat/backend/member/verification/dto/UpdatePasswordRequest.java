@@ -1,10 +1,9 @@
-package com.USWRandomChat.backend.member.memberDTO;
+package com.USWRandomChat.backend.member.verification.dto;
 
 import lombok.Data;
 
 @Data
-public class PasswordChangeRequest {
-
+public class UpdatePasswordRequest {
     private String newPassword;
     private String confirmNewPassword;
 }
