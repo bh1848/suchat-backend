@@ -71,10 +71,12 @@ public class MemberService {
     }
 
     //회원가입 할 때 이메일 인증 유무 확인
-    public Boolean signUpFinish(MemberDTO memberDTO) {
+    public Boolean signUpFinish(String uuid) {
 
-        Member member = memberRepository.findByAccount(memberDTO.getAccount())
-                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+        Optional<EmailToken> findEmailToken = emailTokenRepository.findByUuid(uuid);
+        EmailToken emailToken = findEmailToken.orElseThrow(() -> new AccountException(ExceptionType.Email_Token_Not_Found));
+
+        Member member = emailToken.getMember();
 
         if (!member.isEmailVerified()) {
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
@@ -93,10 +95,10 @@ public class MemberService {
         }
 
 
-        //로그인 할 때 이메일 인증 유무 확인
-        if (!member.isEmailVerified()) {
-            throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
-        }
+//        //로그인 할 때 이메일 인증 유무 확인
+//        if (!member.isEmailVerified()) {
+//            throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
+//        }
 
         //refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
         jwtService.createRefreshToken(member);
