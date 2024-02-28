@@ -10,8 +10,6 @@ import static org.springframework.http.HttpStatus.*;
 @AllArgsConstructor
 public enum ExceptionType {
 
-
-
     /**
      * Domain: EmailToken
      */
@@ -44,6 +42,13 @@ public enum ExceptionType {
     INVALID_ACCESS_TOKEN("TOKEN002", "잘못된 엑세스 토큰입니다.", BAD_REQUEST),
     REFRESH_TOKEN_EXPIRED("TOKEN003", "리프레시 토큰 만료", BAD_REQUEST),
     INVALID_REFRESH_TOKEN("TOKEN004", "잘못된 리프레시 토큰", BAD_REQUEST),
+
+    /**
+     * Domain : Chat
+     */
+    ROOM_ID_UPDATE_ERROR("CHAT001", "RoomId 업데이트 실패", BAD_REQUEST),
+    MEMBER_COUNT_ERROR("CHAT002","인원 확인이 실패했습니다.",BAD_REQUEST),
+    MESSAGE_DELETE_ERROR("CHAT003","메세지가 삭제되지 않았습니다.",BAD_REQUEST),
 
     /**
      * Domain:ConfirmationToken
