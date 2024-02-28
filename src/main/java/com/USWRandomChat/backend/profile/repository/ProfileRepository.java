@@ -11,6 +11,8 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
     // 추가적인 쿼리 메서드가 필요하다면 여기에 작성
     Optional<Profile> findByRoomId(String roomId);
 
+    Optional<Profile> findByMemberAndRoomId(Member member, String roomId);
+
     List<Profile> findAllProfilesByRoomId(String roomId);
 
     Optional<Profile> findByNickname(String nickname);
