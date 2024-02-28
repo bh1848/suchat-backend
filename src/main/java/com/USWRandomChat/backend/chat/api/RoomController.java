@@ -33,10 +33,13 @@ public class RoomController {
         redisTemplate.convertAndSend(channelTopic.getTopic(), exitMessage);
         log.info("roomId: {} 채팅 종료", roomId);
 
-        roomService.deleteRoomIdMessage(roomId);
-        log.info("메시지 삭제 완료");
-
         roomService.exitRoomId(roomId);
-        log.info("roomId 초기화 완료");
+        log.info("roomId: {} 초기화 완료", roomId);
+
+        //채팅방에 남은 마지막 한명이 나갈 때 메시지 삭제
+        if (roomService.countRemainingMembers(roomId) == 0) {
+            roomService.deleteRoomIdMessage(roomId);
+            log.info("roomId: {}의 메시지 삭제 완료", roomId);
+        }
     }
 }

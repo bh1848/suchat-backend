@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,7 +17,6 @@ import java.util.Optional;
 @Slf4j
 public class RoomService {
 
-    private final Profile profile;
     private final MessageRepository messageRepository;
     private final ProfileRepository profileRepository;
 
@@ -24,6 +24,13 @@ public class RoomService {
     public void deleteRoomIdMessage(String roomId) {
         messageRepository.deleteByRoomId(roomId);
     }
+
+    //방에 남아 있는 인원 수 확인
+    public int countRemainingMembers(String roomId) {
+        List<Profile> remainingMembers = profileRepository.findAllProfilesByRoomId(roomId);
+        return remainingMembers.size();
+    }
+
 
     //roomId 초기화
     public void exitRoomId(String exitRoomId) {
