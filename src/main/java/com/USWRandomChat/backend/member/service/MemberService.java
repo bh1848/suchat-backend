@@ -71,10 +71,12 @@ public class MemberService {
     }
 
     //회원가입 할 때 이메일 인증 유무 확인
-    public Boolean signUpFinish(MemberDTO memberDTO) {
+    public Boolean signUpFinish(String uuid) {
 
-        Member member = memberRepository.findByAccount(memberDTO.getAccount())
-                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+        Optional<EmailToken> findEmailToken = emailTokenRepository.findByUuid(uuid);
+        EmailToken emailToken = findEmailToken.orElseThrow(() -> new AccountException(ExceptionType.Email_Token_Not_Found));
+
+        Member member = emailToken.getMember();
 
         if (!member.isEmailVerified()) {
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
