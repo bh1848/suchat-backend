@@ -48,23 +48,34 @@ public class MemberService {
 
     //회원가입
     public Member signUp(SignUpRequest request) {
+        if (request.getEmail() == null) {
+            throw new AccountException(ExceptionType.Email_Not_Provided);
+        } else if (request.getAccount() == null) {
+            throw new AccountException(ExceptionType.Account_Not_Provided);
+        } else if (request.getNickname() == null) {
+            throw new AccountException(ExceptionType.Nickname_Not_Provided);
+        }
+
+        // Member 객체 생성
         Member member = Member.builder()
                 .account(request.getAccount())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .build();
 
+        // Profile 객체 생성 및 저장
         Profile profile = Profile.builder()
                 .member(member)
                 .nickname(request.getNickname())
                 .nicknameChangeDate(LocalDateTime.now())
                 .build();
 
+        // 권한 설정 및 Member 저장
         member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));
         memberRepository.save(member);
         profileRepository.save(profile);
 
-        //이메일 인증
+        // 저장된 Member 조회
         Member savedMemberEmail = memberRepository.findByEmail(member.getEmail());
 
         return savedMemberEmail;

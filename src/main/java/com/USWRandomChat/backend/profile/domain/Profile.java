@@ -25,6 +25,7 @@ public class Profile {
     @JoinColumn(name = "member_id",referencedColumnName = "id")
     private Member member;
 
+    @Column(nullable = false)
     private String nickname;
 
     private LocalDateTime nicknameChangeDate;
