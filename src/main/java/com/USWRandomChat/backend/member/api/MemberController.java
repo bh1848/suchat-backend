@@ -5,6 +5,7 @@ import com.USWRandomChat.backend.global.exception.errortype.MailException;
 import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.domain.MemberTemp;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
@@ -41,7 +42,7 @@ public class MemberController {
     //회원가입
     @PostMapping(value = "/sign-up")
     public ResponseEntity<SignUpResponse> signUp(@RequestBody SignUpRequest request) throws MessagingException {
-        Member findMember = memberService.signUp(request);
+        MemberTemp findMember = memberService.signUp(request);
         return new ResponseEntity<>(new SignUpResponse(emailService.createEmailToken(findMember))
                 , HttpStatus.OK);
     }

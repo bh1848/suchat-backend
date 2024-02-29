@@ -32,10 +32,10 @@ public class FindIdService {
             throw new AccountException(ExceptionType.USER_NOT_EXISTS);
         }
 
-        // 이메일이 인증되지 않은 경우 예외를 던집니다.
-        if (!findmember.isEmailVerified()) {
-            throw new AccountException(EMAIL_NOT_AUTHED);
-        }
+//        // 이메일이 인증되지 않은 경우 예외를 던집니다.
+//        if (!findmember.isEmailVerified()) {
+//            throw new AccountException(EMAIL_NOT_AUTHED);
+//        }
 
         try {
             //MimeMessage  생성

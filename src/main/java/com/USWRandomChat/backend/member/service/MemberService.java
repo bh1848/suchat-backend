@@ -7,11 +7,13 @@ import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.domain.MemberTemp;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
+import com.USWRandomChat.backend.member.repository.MemberTempRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import com.USWRandomChat.backend.global.security.domain.Authority;
@@ -45,9 +47,10 @@ public class MemberService {
     private final ProfileRepository profileRepository;
     private final EmailTokenRepository emailTokenRepository;
     private final JwtRepository jwtRepository;
+    private final MemberTempRepository memberTempRepository;
 
     //회원가입
-    public Member signUp(SignUpRequest request) {
+    public MemberTemp signUp(SignUpRequest request) {
         Member member = Member.builder()
                 .account(request.getAccount())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -65,7 +68,7 @@ public class MemberService {
         profileRepository.save(profile);
 
         //이메일 인증
-        Member savedMemberEmail = memberRepository.findByEmail(member.getEmail());
+        MemberTemp savedMemberEmail = memberTempRepository.findByEmail(member.getEmail());
 
         return savedMemberEmail;
     }
@@ -76,9 +79,9 @@ public class MemberService {
         Optional<EmailToken> findEmailToken = emailTokenRepository.findByUuid(uuid);
         EmailToken emailToken = findEmailToken.orElseThrow(() -> new AccountException(ExceptionType.Email_Token_Not_Found));
 
-        Member member = emailToken.getMember();
+        MemberTemp memberTemp = emailToken.getMemberTemp();
 
-        if (!member.isEmailVerified()) {
+        if (!memberTemp.isEmailVerified()) {
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
         return true;
@@ -95,10 +98,10 @@ public class MemberService {
         }
 
 
-        //로그인 할 때 이메일 인증 유무 확인
-        if (!member.isEmailVerified()) {
-            throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
-        }
+//        //로그인 할 때 이메일 인증 유무 확인
+//        if (!member.isEmailVerified()) {
+//            throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
+//        }
 
         //refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
         jwtService.createRefreshToken(member);
@@ -121,11 +124,11 @@ public class MemberService {
         Member member = memberRepository.findByAccount(account)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
-        //이메일 토큰 삭제
-        EmailToken emailToken = emailTokenRepository.findByMember(member);
-        if (emailToken != null) {
-            emailTokenRepository.delete(emailToken);
-        }
+//        //이메일 토큰 삭제
+//        EmailToken emailToken = emailTokenRepository.findByMember(member);
+//        if (emailToken != null) {
+//            emailTokenRepository.delete(emailToken);
+//        }
 
         //저장된 Refresh Token을 찾아 삭제
         Optional<Token> refreshToken = jwtRepository.findById(member.getId());

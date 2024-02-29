@@ -34,8 +34,8 @@ public class Member {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private EmailToken emailToken;
+//    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//    private EmailToken emailToken;
 
     @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Profile profile;

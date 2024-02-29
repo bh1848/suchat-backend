@@ -1,5 +1,6 @@
 package com.USWRandomChat.backend.member.domain;
 
+import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
 import lombok.*;
 
 import javax.persistence.*;
@@ -41,6 +42,9 @@ public class MemberTemp {
     private LocalDateTime nicknameChangeDate;
 
     private boolean isEmailVerified;
+
+    @OneToOne(mappedBy = "memberTemp", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private EmailToken emailToken;
 
     public void setVerified() {
         this.isEmailVerified = true;

@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Service
+//@Service
 @RequiredArgsConstructor
 @Slf4j
 public class EmailAuthSchedulerService {
@@ -34,7 +34,7 @@ public class EmailAuthSchedulerService {
         List<EmailToken> emailTokens = findExpiredFalse(LocalDateTime.now());
 
         for (EmailToken emailToken : emailTokens) {
-            Long account = emailToken.getMember().getId();
+            Long account = emailToken.getMemberTemp().getId();
             memberService.deleteFromId(account);
 
         }

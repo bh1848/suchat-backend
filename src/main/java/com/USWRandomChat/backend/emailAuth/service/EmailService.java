@@ -5,7 +5,9 @@ import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.domain.MemberTemp;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
+import com.USWRandomChat.backend.member.repository.MemberTempRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -27,6 +29,7 @@ public class EmailService {
     private final JavaMailSender javaMailSender;
     private final MemberRepository memberRepository;
     private final EmailTokenRepository emailTokenRepository;
+    private final MemberTempRepository memberTempRepository;
 
     //서버주소
     private static final String BASE_URL = "http://localhost:8080";
@@ -47,7 +50,7 @@ public class EmailService {
         EmailToken findEmailToken = findByUuidAndExpirationDateAfterAndExpired(uuid);
 
         //토큰의 유저 ID를 이용하여 유저 인증 정보를 가져온다.
-        Member findMember = findEmailToken.getMember();
+        MemberTemp findMember = findEmailToken.getMemberTemp();
 
         // 사용 완료
         findEmailToken.setTokenToUsed();
@@ -60,14 +63,14 @@ public class EmailService {
     }
 
     // 이메일 인증 토큰 생성
-    public String createEmailToken(Member member) throws MessagingException {
+    public String createEmailToken(MemberTemp memberTemp) throws MessagingException {
 
         // 이메일 토큰 저장
-        EmailToken emailToken = EmailToken.createEmailToken(member);
+        EmailToken emailToken = EmailToken.createEmailToken(memberTemp);
         emailTokenRepository.save(emailToken);
 
         // 이메일 전송을 위한 MimeMessage 생성 및 설정
-        MimeMessage mimeMessage = createVerifyLink(member, emailToken);
+        MimeMessage mimeMessage = createVerifyLink(memberTemp, emailToken);
 
         // 이메일 전송
         sendEmail(mimeMessage);
@@ -83,7 +86,7 @@ public class EmailService {
         EmailToken findToken = emailTokenRepository.findByUuid(uuid).get();
 
         //uuid의 소유자 찾기
-        Member findMember = memberRepository.findById(findToken.getId()).get();
+        MemberTemp findMember = memberTempRepository.findById(findToken.getId()).get();
 
         findToken.updateExpiredToken(LocalDateTime.now().plusMinutes(EMAIL_TOKEN_EXPIRATION_TIME_VALUE),
                 false,
@@ -100,7 +103,7 @@ public class EmailService {
         EmailToken updateEmailToken = updateEmailToken(uuid);
 
         // 이메일 전송을 위한 MimeMessage 생성 및 설정
-        MimeMessage mimeMessage = createVerifyLink(updateEmailToken.getMember(), updateEmailToken);
+        MimeMessage mimeMessage = createVerifyLink(updateEmailToken.getMemberTemp(), updateEmailToken);
 
         // 이메일 전송
         sendEmail(mimeMessage);
@@ -111,11 +114,11 @@ public class EmailService {
     }
 
     //이메일 인증 링크 생성
-    public MimeMessage createVerifyLink(Member member, EmailToken emailToken) throws MessagingException {
+    public MimeMessage createVerifyLink(MemberTemp memberTemp, EmailToken emailToken) throws MessagingException {
         // 이메일 전송을 위한 MimeMessage 생성 및 설정
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-        helper.setTo(member.getEmail()+"@suwon.ac.kr");
+        helper.setTo(memberTemp.getEmail()+"@suwon.ac.kr");
         helper.setSubject("회원가입 이메일 인증");
         helper.setFrom("nkdy50315031@gmail.com");
 
