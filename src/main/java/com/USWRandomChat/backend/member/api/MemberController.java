@@ -65,32 +65,16 @@ public class MemberController {
 
     //로그아웃
     @PostMapping("/sign-out")
-    public ResponseEntity<String> signOut(@RequestHeader("Authorization") String accessToken) {
-        try {
-            jwtService.signOut(accessToken);
-            return ResponseEntity.ok("로그아웃 성공");
-        } catch (TokenException e) {
-            log.error("로그아웃 실패: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그아웃 실패: " + e.getMessage());
-        } catch (Exception e) {
-            log.error("로그아웃 처리 중 예외 발생: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("로그아웃 처리 중 오류 발생");
-        }
+    public ResponseEntity<String> signOut(@RequestHeader("Authorization") String accessToken) throws Exception {
+        jwtService.signOut(accessToken);
+        return ResponseEntity.ok("로그아웃 성공");
     }
 
     //회원 탈퇴
     @DeleteMapping("/withdraw")
     public ResponseEntity<String> withdraw(@RequestHeader("Authorization") String accessToken) {
-        try {
-            memberService.withdraw(accessToken);
-            return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
-        } catch (EntityNotFoundException e) {
-            log.error("회원 탈퇴 실패: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("존재하지 않는 회원입니다.");
-        } catch (Exception e) {
-            log.error("회원 탈퇴 실패: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원 탈퇴 실패");
-        }
+        memberService.withdraw(accessToken);
+        return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
     }
 
     //이메일 인증 확인
@@ -111,18 +95,12 @@ public class MemberController {
         return responseService.getListResponse(memberService.findAll());
     }
 
-//  //account 중복 체크
-//  @PostMapping("/check-duplicate-id")
-//  public boolean idCheck(@RequestBody MemberDTO request) {
-//      boolean checkResult = memberService.validateDuplicateAccount(request);
-//      if (checkResult == false) {
-//          //사용가능한 ID
-//          return true;
-//      } else {
-//          //중복
-//          return false;
-//      }
-//  }
+  //account 중복 체크
+    @PostMapping("/check-duplicate-id-signUp")
+    public ResponseEntity<String> idCheck(@RequestBody MemberDTO request) {
+        memberService.validateDuplicateAccount(request);
+        return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
+    }
 
     //이메일 중복 확인
     @PostMapping("/check-duplicate-email")
@@ -138,23 +116,15 @@ public class MemberController {
     //회원가입 시의 닉네임 확인
     @PostMapping("/check-duplicate-nickname-signUp")
     public ResponseEntity<String> signUp(@RequestBody MemberDTO memberDTO) {
-        try {
-            memberService.checkDuplicateNicknameSignUp(memberDTO);
-            return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.CREATED);
-        } catch (ProfileException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-        }
+        memberService.checkDuplicateNicknameSignUp(memberDTO);
+        return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.CREATED);
     }
 
     //이미 가입된 사용자의 닉네임 중복 확인
     @PostMapping("/check-duplicate-nickname")
     public ResponseEntity<String> checkDuplicateNickname(@RequestParam String account, @RequestBody MemberDTO memberDTO) {
-        try {
-            memberService.checkDuplicateNickname(account, memberDTO);
-            return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
-        } catch (ProfileException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+        memberService.checkDuplicateNickname(account, memberDTO);
+        return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
     }
 
     //Id 찾기 로직: 이메일 인증된 회원만

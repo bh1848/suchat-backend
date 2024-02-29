@@ -153,13 +153,13 @@ public class MemberService {
         }
     }
 
-////아이디 중복 확인
-//public boolean validateDuplicateAccount(MemberDTO memberDTO) {
-//   Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
-//   //중복
-//   //사용 가능한 ID
-//   return byAccount.isPresent();
-//}
+    //아이디 중복 확인
+    public void validateDuplicateAccount(MemberDTO memberDTO) {
+        Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
+        if (byAccount.isPresent()) {
+            throw new AccountException(ExceptionType.ID_OVERLAP);
+        }
+}
 
     //이메일 중복 확인
     public void checkDuplicateEmail(MemberDTO memberDTO) {
