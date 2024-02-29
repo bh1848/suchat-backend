@@ -29,7 +29,7 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-    private boolean isEmailVerified;
+//    private boolean isEmailVerified;
 
     @Column(unique = true, nullable = false)
     private String email;
