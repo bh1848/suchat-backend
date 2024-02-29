@@ -50,8 +50,8 @@ public class Member {
     }
 
 
-    public void setVerified() {
-        this.isEmailVerified = true;
-    }
+//    public void setVerified() {
+//        this.isEmailVerified = true;
+//    }
 
 }
