@@ -29,7 +29,7 @@ public class EmailToken {
 
     //토큰과 연관된 회원 id
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id",referencedColumnName = "id")
     private Member member;
 
     // 이메일 인증 토큰 생성

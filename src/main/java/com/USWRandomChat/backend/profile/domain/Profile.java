@@ -22,7 +22,7 @@ public class Profile {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id",referencedColumnName = "id")
     private Member member;
 
     private String nickname;
