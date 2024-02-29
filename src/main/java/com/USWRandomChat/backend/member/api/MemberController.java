@@ -122,8 +122,8 @@ public class MemberController {
 
     //이미 가입된 사용자의 닉네임 중복 확인
     @PostMapping("/check-duplicate-nickname")
-    public ResponseEntity<String> checkDuplicateNickname(@RequestParam String account, @RequestBody MemberDTO memberDTO) {
-        memberService.checkDuplicateNickname(account, memberDTO);
+    public ResponseEntity<String> checkDuplicateNickname(@RequestParam String accessToken, @RequestBody MemberDTO memberDTO) {
+        memberService.checkDuplicateNickname(accessToken, memberDTO);
         return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
     }
 
