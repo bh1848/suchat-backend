@@ -75,12 +75,14 @@ public class MemberService {
                 .email(memberTemp.getEmail())
                 .build();
 
+        // Profile 객체 생성 및 저장
         Profile profile = Profile.builder()
                 .member(member)
                 .nickname(memberTemp.getNickname())
                 .nicknameChangeDate(memberTemp.getNicknameChangeDate())
                 .build();
 
+        // 권한 설정 및 Member 저장
         member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));
         memberRepository.save(member);
         profileRepository.save(profile);
