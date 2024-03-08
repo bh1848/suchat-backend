@@ -239,7 +239,7 @@ public class MemberService {
     }
 
     //해당 토큰 유저 삭제
-    public void deleteFromId(Long id) {
-        memberRepository.deleteById(id);
-    }
+//    public void deleteFromId(Long id) {
+//        memberRepository.deleteById(id);
+//    }
 }

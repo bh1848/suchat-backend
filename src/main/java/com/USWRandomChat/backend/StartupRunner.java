@@ -4,7 +4,7 @@ import com.USWRandomChat.backend.emailAuth.service.EmailAuthSchedulerService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-//@Component
+@Component
 public class StartupRunner implements CommandLineRunner {
 
     private final EmailAuthSchedulerService schedulerService;
