@@ -137,12 +137,6 @@ public class MemberService {
         Member member = memberRepository.findByAccount(account)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
-//        //이메일 토큰 삭제
-//        EmailToken emailToken = emailTokenRepository.findByMember(member);
-//        if (emailToken != null) {
-//            emailTokenRepository.delete(emailToken);
-//        }
-
         //저장된 Refresh Token을 찾아 삭제
         Optional<Token> refreshToken = jwtRepository.findById(member.getId());
         refreshToken.ifPresent(jwtRepository::delete);
@@ -233,8 +227,4 @@ public class MemberService {
                 });
     }
 
-    //해당 토큰 유저 삭제
-//    public void deleteFromId(Long id) {
-//        memberRepository.deleteById(id);
-//    }
 }
