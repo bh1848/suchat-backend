@@ -4,9 +4,8 @@ import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
 import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
-import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.global.exception.errortype.MailException;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
-import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.member.repository.MemberTempRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,6 @@ import java.util.Optional;
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
-    private final MemberRepository memberRepository;
     private final EmailTokenRepository emailTokenRepository;
     private final MemberTempRepository memberTempRepository;
 
@@ -42,24 +40,6 @@ public class EmailService {
     @Async
     public void sendEmail(MimeMessage mimeMessage) {
         javaMailSender.send(mimeMessage);
-    }
-
-    @Transactional
-    public boolean verifyEmail(String uuid) {
-        //이메일 토큰을 찾아옴 ( 만료되지 않고, 현재보다 이후에 만료되는 토큰이어야함)
-        EmailToken findEmailToken = findByUuidAndExpirationDateAfterAndExpired(uuid);
-
-        //토큰의 유저 ID를 이용하여 유저 인증 정보를 가져온다.
-        MemberTemp findMember = findEmailToken.getMemberTemp();
-
-        // 사용 완료
-        findEmailToken.setTokenToUsed();
-        deleteEmailTokenByUuid(uuid);
-
-        // 회원 이메일 인증 여부 true로 바꾼다.
-        findMember.setVerified();
-
-        return true;
     }
 
     // 이메일 인증 토큰 생성
@@ -142,4 +122,10 @@ public class EmailService {
         emailTokenRepository.deleteByUuid(uuid);
     }
 
+    //uuid와 연결된 memberTemp 조회
+    public MemberTemp findByUuid(String uuid) {
+        return emailTokenRepository.findByUuid(uuid)
+                .map(EmailToken::getMemberTemp)
+                .orElseThrow(()-> new MailException(ExceptionType.EMAILTOKEN_AND_MEMBERTEMP_Not_Found));
+    }
 }

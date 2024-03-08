@@ -2,8 +2,6 @@ package com.USWRandomChat.backend.member.api;
 
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.global.exception.errortype.MailException;
-import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
-import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
@@ -24,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
-import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
 @Slf4j
@@ -39,12 +36,20 @@ public class MemberController {
     private final JwtService jwtService;
     private final FindIdService findIdService;
 
-    //회원가입
+    //임시 회원가입
     @PostMapping(value = "/sign-up")
     public ResponseEntity<SignUpResponse> signUp(@RequestBody SignUpRequest request) throws MessagingException {
-        MemberTemp findMember = memberService.signUp(request);
-        return new ResponseEntity<>(new SignUpResponse(emailService.createEmailToken(findMember))
+        MemberTemp findTempMember = memberService.signUpMemberTemp(request);
+        return new ResponseEntity<>(new SignUpResponse(emailService.createEmailToken(findTempMember))
                 , HttpStatus.OK);
+    }
+
+    //이메일 인증 확인 후 회원가입
+    @GetMapping("/confirm-email")
+    public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {
+        MemberTemp memberTemp = emailService.findByUuid(uuid);
+        memberService.signUpMember(memberTemp);
+        return new ResponseEntity<>(true, HttpStatus.OK);
     }
 
     @GetMapping(value = "/sign-up-finish")
@@ -76,12 +81,6 @@ public class MemberController {
     public ResponseEntity<String> withdraw(@RequestHeader("Authorization") String accessToken) {
         memberService.withdraw(accessToken);
         return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
-    }
-
-    //이메일 인증 확인
-    @GetMapping("/confirm-email")
-    public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {
-        return new ResponseEntity<>(emailService.verifyEmail(uuid), HttpStatus.OK);
     }
 
     //이메일 재인증

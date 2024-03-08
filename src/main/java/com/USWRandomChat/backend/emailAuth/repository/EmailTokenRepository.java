@@ -1,7 +1,6 @@
 package com.USWRandomChat.backend.emailAuth.repository;
 
 import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
-import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -17,6 +16,6 @@ public interface EmailTokenRepository extends JpaRepository<EmailToken, String>{
     void deleteByUuid(String uuid);
     
     //member_id로 이메일 토큰 삭제하기 위해 필요
-    EmailToken findByMember(MemberTemp memberTemp);
+//    EmailToken findByMember(MemberTemp memberTemp);
 
 }

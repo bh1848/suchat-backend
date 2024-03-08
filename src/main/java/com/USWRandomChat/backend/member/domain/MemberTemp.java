@@ -49,5 +49,4 @@ public class MemberTemp {
     public void setVerified() {
         this.isEmailVerified = true;
     }
-    
 }

@@ -1,9 +1,9 @@
 -- 더미 데이터
 
 -- 회원 2명
-INSERT INTO member_table (account, password, is_email_verified, email) VALUES
-('admin', 'password', false, 'cookie_31'),
-('user', '1234', true, 'suwonsuwon');
+INSERT INTO member_table (account, password, email) VALUES
+('admin', 'password', 'suwon999'),
+('user', '1234', 'suwonsuwon');
 
 -- 회원 프로필 roomid 배정
 INSERT INTO profile_table (nickname, mbti, intro, room_id) VALUES

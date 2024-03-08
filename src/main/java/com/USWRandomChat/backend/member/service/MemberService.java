@@ -41,39 +41,58 @@ public class MemberService {
     private static final int NICKNAME_CHANGE_LIMIT_DAYS = 30;
 
     private final MemberRepository memberRepository;
+    private final MemberTempRepository memberTempRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final JwtService jwtService;
     private final ProfileRepository profileRepository;
     private final EmailTokenRepository emailTokenRepository;
     private final JwtRepository jwtRepository;
-    private final MemberTempRepository memberTempRepository;
 
-    //회원가입
-    public MemberTemp signUp(SignUpRequest request) {
-        Member member = Member.builder()
+    //임시 회원가입
+    public MemberTemp signUpMemberTemp(SignUpRequest request) {
+        MemberTemp tempMember = MemberTemp.builder()
                 .account(request.getAccount())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
+                .nickname(request.getNickname())
+                .nicknameChangeDate(LocalDateTime.now())
+                .build();
+
+        memberTempRepository.save(tempMember);
+        log.info("임시 회원가입 완료: {}", tempMember.getAccount());
+        //이메일 인증
+        MemberTemp tempMemberEmail = memberTempRepository.findByEmail(tempMember.getEmail());
+
+        return tempMemberEmail;
+    }
+
+    //인증 후 회원가입
+    public void signUpMember(MemberTemp memberTemp) {
+        Member member = Member.builder()
+                .account(memberTemp.getAccount())
+                .password(passwordEncoder.encode(memberTemp.getPassword()))
+                .email(memberTemp.getEmail())
                 .build();
 
         Profile profile = Profile.builder()
                 .member(member)
-                .nickname(request.getNickname())
-                .nicknameChangeDate(LocalDateTime.now())
+                .nickname(memberTemp.getNickname())
+                .nicknameChangeDate(memberTemp.getNicknameChangeDate())
                 .build();
 
         member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));
         memberRepository.save(member);
         profileRepository.save(profile);
+        log.info("회원가입 완료: {}", member.getAccount());
 
-        //이메일 인증
-        MemberTemp savedMemberEmail = memberTempRepository.findByEmail(member.getEmail());
-
-        return savedMemberEmail;
+        //임시 회원 테이블 삭제
+        log.info("임시 회원 삭제 완료: {}", member.getAccount());
+        memberTempRepository.delete(memberTemp);
     }
 
     //회원가입 할 때 이메일 인증 유무 확인
+    @Transactional(readOnly = true)
     public Boolean signUpFinish(String uuid) {
 
         Optional<EmailToken> findEmailToken = emailTokenRepository.findByUuid(uuid);
@@ -96,7 +115,6 @@ public class MemberService {
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
-
 
 //        //로그인 할 때 이메일 인증 유무 확인
 //        if (!member.isEmailVerified()) {
@@ -140,6 +158,7 @@ public class MemberService {
     }
 
     //전체 조회
+    @Transactional(readOnly = true)
     public List<Member> findAll() {
         return memberRepository.findAll();
     }
@@ -157,6 +176,7 @@ public class MemberService {
     }
 
     //아이디 중복 확인
+    @Transactional(readOnly = true)
     public void validateDuplicateAccount(MemberDTO memberDTO) {
         Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
         if (byAccount.isPresent()) {
@@ -165,6 +185,7 @@ public class MemberService {
 }
 
     //이메일 중복 확인
+    @Transactional(readOnly = true)
     public void checkDuplicateEmail(MemberDTO memberDTO) {
         Member member = memberRepository.findByEmail(memberDTO.getEmail());
 
@@ -174,6 +195,7 @@ public class MemberService {
     }
 
     //회원가입 시의 닉네임 중복 확인
+    @Transactional(readOnly = true)
     public void checkDuplicateNicknameSignUp(MemberDTO memberDTO) {
         profileRepository.findByNickname(memberDTO.getNickname())
                 .ifPresent(profile -> {
@@ -182,6 +204,7 @@ public class MemberService {
     }
 
     //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
+    @Transactional(readOnly = true)
     public void checkDuplicateNickname(String accessToken, MemberDTO memberDTO) {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {

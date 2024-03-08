@@ -16,6 +16,7 @@ public enum ExceptionType {
     EMAILTOKEN_IS_EXPIRED("EMAILTOKEN001", "토큰이 만료되었습니다. 다시 이메일인증 해주세요", BAD_REQUEST),
     EMAIL_NOT_VERIFIED("EMAILTOKEN002", "이메일 인증되지 않은 회원입니다.", FORBIDDEN),
     Email_Token_Not_Found("EMAILTOKEN003", "해당 토큰이 존재하지 않습니다.", BAD_REQUEST),
+    EMAILTOKEN_AND_MEMBERTEMP_Not_Found("EMAILTOKEN004", "해당 토큰과 일치하는 회원이 존재하지 않습니다.", BAD_REQUEST),
 
     /**
      * Domain: Member
