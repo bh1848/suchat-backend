@@ -71,7 +71,7 @@ public class MemberService {
     public void signUpMember(MemberTemp memberTemp) {
         Member member = Member.builder()
                 .account(memberTemp.getAccount())
-                .password(passwordEncoder.encode(memberTemp.getPassword()))
+                .password(memberTemp.getPassword())
                 .email(memberTemp.getEmail())
                 .build();
 
@@ -115,11 +115,6 @@ public class MemberService {
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
-
-//        //로그인 할 때 이메일 인증 유무 확인
-//        if (!member.isEmailVerified()) {
-//            throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
-//        }
 
         //refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
         jwtService.createRefreshToken(member);

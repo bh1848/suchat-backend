@@ -1,8 +1,7 @@
 package com.USWRandomChat.backend.member.domain;
 
-import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
-import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.global.security.domain.Authority;
+import com.USWRandomChat.backend.profile.domain.Profile;
 import lombok.*;
 
 import javax.persistence.*;
