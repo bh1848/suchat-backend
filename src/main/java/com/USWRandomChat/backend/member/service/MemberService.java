@@ -7,11 +7,13 @@ import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.domain.MemberTemp;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
+import com.USWRandomChat.backend.member.repository.MemberTempRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import com.USWRandomChat.backend.global.security.domain.Authority;
@@ -39,6 +41,7 @@ public class MemberService {
     private static final int NICKNAME_CHANGE_LIMIT_DAYS = 30;
 
     private final MemberRepository memberRepository;
+    private final MemberTempRepository memberTempRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final JwtService jwtService;
@@ -46,50 +49,60 @@ public class MemberService {
     private final EmailTokenRepository emailTokenRepository;
     private final JwtRepository jwtRepository;
 
-    //회원가입
-    public Member signUp(SignUpRequest request) {
-        if (request.getEmail() == null) {
-            throw new AccountException(ExceptionType.Email_Not_Provided);
-        } else if (request.getAccount() == null) {
-            throw new AccountException(ExceptionType.Account_Not_Provided);
-        } else if (request.getNickname() == null) {
-            throw new AccountException(ExceptionType.Nickname_Not_Provided);
-        }
-
-        // Member 객체 생성
-        Member member = Member.builder()
+    //임시 회원가입
+    public MemberTemp signUpMemberTemp(SignUpRequest request) {
+        MemberTemp tempMember = MemberTemp.builder()
                 .account(request.getAccount())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
+                .nickname(request.getNickname())
+                .nicknameChangeDate(LocalDateTime.now())
+                .build();
+
+        memberTempRepository.save(tempMember);
+        log.info("임시 회원가입 완료: {}", tempMember.getAccount());
+        //이메일 인증
+        MemberTemp tempMemberEmail = memberTempRepository.findByEmail(tempMember.getEmail());
+
+        return tempMemberEmail;
+    }
+
+    //인증 후 회원가입
+    public void signUpMember(MemberTemp memberTemp) {
+        Member member = Member.builder()
+                .account(memberTemp.getAccount())
+                .password(memberTemp.getPassword())
+                .email(memberTemp.getEmail())
                 .build();
 
         // Profile 객체 생성 및 저장
         Profile profile = Profile.builder()
                 .member(member)
-                .nickname(request.getNickname())
-                .nicknameChangeDate(LocalDateTime.now())
+                .nickname(memberTemp.getNickname())
+                .nicknameChangeDate(memberTemp.getNicknameChangeDate())
                 .build();
 
         // 권한 설정 및 Member 저장
         member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));
         memberRepository.save(member);
         profileRepository.save(profile);
+        log.info("회원가입 완료: {}", member.getAccount());
 
-        // 저장된 Member 조회
-        Member savedMemberEmail = memberRepository.findByEmail(member.getEmail());
-
-        return savedMemberEmail;
+        //임시 회원 테이블 삭제
+        log.info("임시 회원 삭제 완료: {}", member.getAccount());
+        memberTempRepository.delete(memberTemp);
     }
 
     //회원가입 할 때 이메일 인증 유무 확인
+    @Transactional(readOnly = true)
     public Boolean signUpFinish(String uuid) {
 
         Optional<EmailToken> findEmailToken = emailTokenRepository.findByUuid(uuid);
         EmailToken emailToken = findEmailToken.orElseThrow(() -> new AccountException(ExceptionType.Email_Token_Not_Found));
 
-        Member member = emailToken.getMember();
+        MemberTemp memberTemp = emailToken.getMemberTemp();
 
-        if (!member.isEmailVerified()) {
+        if (!memberTemp.isEmailVerified()) {
             throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
         return true;
@@ -103,12 +116,6 @@ public class MemberService {
 
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
-        }
-
-
-        //로그인 할 때 이메일 인증 유무 확인
-        if (!member.isEmailVerified()) {
-            throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
         }
 
         //refreshToken 생성은 Member 엔티티에 설정하지 않고, JwtService에서 처리
@@ -132,12 +139,6 @@ public class MemberService {
         Member member = memberRepository.findByAccount(account)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
-        //이메일 토큰 삭제
-        EmailToken emailToken = emailTokenRepository.findByMember(member);
-        if (emailToken != null) {
-            emailTokenRepository.delete(emailToken);
-        }
-
         //저장된 Refresh Token을 찾아 삭제
         Optional<Token> refreshToken = jwtRepository.findById(member.getId());
         refreshToken.ifPresent(jwtRepository::delete);
@@ -148,6 +149,7 @@ public class MemberService {
     }
 
     //전체 조회
+    @Transactional(readOnly = true)
     public List<Member> findAll() {
         return memberRepository.findAll();
     }
@@ -165,6 +167,7 @@ public class MemberService {
     }
 
     //아이디 중복 확인
+    @Transactional(readOnly = true)
     public void validateDuplicateAccount(MemberDTO memberDTO) {
         Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
         if (byAccount.isPresent()) {
@@ -173,6 +176,7 @@ public class MemberService {
 }
 
     //이메일 중복 확인
+    @Transactional(readOnly = true)
     public void checkDuplicateEmail(MemberDTO memberDTO) {
         Member member = memberRepository.findByEmail(memberDTO.getEmail());
 
@@ -182,6 +186,7 @@ public class MemberService {
     }
 
     //회원가입 시의 닉네임 중복 확인
+    @Transactional(readOnly = true)
     public void checkDuplicateNicknameSignUp(MemberDTO memberDTO) {
         profileRepository.findByNickname(memberDTO.getNickname())
                 .ifPresent(profile -> {
@@ -190,6 +195,7 @@ public class MemberService {
     }
 
     //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
+    @Transactional(readOnly = true)
     public void checkDuplicateNickname(String accessToken, MemberDTO memberDTO) {
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {
@@ -223,8 +229,4 @@ public class MemberService {
                 });
     }
 
-    //해당 토큰 유저 삭제
-    public void deleteFromId(Long id) {
-        memberRepository.deleteById(id);
-    }
 }

@@ -4,6 +4,7 @@ import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
 import com.USWRandomChat.backend.member.service.MemberService;
 import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
+import com.USWRandomChat.backend.member.service.MemberTempService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,12 +19,17 @@ import java.util.List;
 @Slf4j
 public class EmailAuthSchedulerService {
 
-    private final MemberService memberService;
-    private final EmailTokenRepository emailTokenRepository;
+    //이메일 토큰 만료 5분
+    //토큰 만료, 30분 후 임시회원 삭제
 
-    @Transactional(readOnly = true)
+    // 이메일 토큰 만료 시간
+    private static final long EMAIL_TOKEN_AFTER_EXPIRATION_TIME_VALUE = 30L;
+
+    private final EmailTokenRepository emailTokenRepository;
+    private final MemberTempService memberTempService;
+
     public List<EmailToken> findExpiredFalse(LocalDateTime localDateTime) {
-        return emailTokenRepository.findByExpirationDateBeforeAndExpiredIsFalse(localDateTime.minusMinutes(30));
+        return emailTokenRepository.findByExpirationDateBeforeAndExpiredIsFalse(localDateTime.minusMinutes(EMAIL_TOKEN_AFTER_EXPIRATION_TIME_VALUE));
     }
 
     //유령회원 지우기
@@ -34,8 +40,8 @@ public class EmailAuthSchedulerService {
         List<EmailToken> emailTokens = findExpiredFalse(LocalDateTime.now());
 
         for (EmailToken emailToken : emailTokens) {
-            Long account = emailToken.getMember().getId();
-            memberService.deleteFromId(account);
+            Long account = emailToken.getMemberTemp().getId();
+            memberTempService.deleteFromId(account);
 
         }
         log.info("{} - 이메일 인증을 수행하지 않은 유저 검증 종료", LocalDateTime.now());

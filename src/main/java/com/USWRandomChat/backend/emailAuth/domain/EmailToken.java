@@ -1,6 +1,7 @@
 package com.USWRandomChat.backend.emailAuth.domain;
 
 import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.domain.MemberTemp;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -29,24 +30,24 @@ public class EmailToken {
 
     //토큰과 연관된 회원 id
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id",referencedColumnName = "id")
-    private Member member;
+    @JoinColumn(name = "member_temp_id")
+    private MemberTemp memberTemp;
 
     // 이메일 인증 토큰 생성
-    public static EmailToken createEmailToken(Member member) {
+    public static EmailToken createEmailToken(MemberTemp memberTemp) {
         EmailToken emailToken = EmailToken.builder()
                 .expirationDate(LocalDateTime.now().plusMinutes(EMAIL_TOKEN_EXPIRATION_TIME_VALUE))
                 .expired(false)
-                .member(member)
+                .memberTemp(memberTemp)
                 .build();
         return emailToken;
     }
 
     //필드 갱신
-    public void updateExpiredToken(LocalDateTime expirationDate, boolean expired, Member member) {
+    public void updateExpiredToken(LocalDateTime expirationDate, boolean expired, MemberTemp memberTemp) {
         this.expirationDate = expirationDate;
         this.expired = expired;
-        this.member = member;
+        this.memberTemp = memberTemp;
     }
 
     // 토큰 만료
@@ -56,6 +57,6 @@ public class EmailToken {
 
     //uuid 회원의 Id
     public Long getId() {
-        return member.getId();
+        return memberTemp.getId();
     }
 }

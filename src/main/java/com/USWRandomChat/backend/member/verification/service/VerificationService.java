@@ -42,10 +42,10 @@ public class VerificationService {
         Member member = memberRepository.findByAccountAndEmail(account, email)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
         
-        //회원가입 시에 이메일 인증했는지 확인
-        if(!member.isEmailVerified()){
-            throw  new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
-        }
+//        //회원가입 시에 이메일 인증했는지 확인
+//        if(!member.isEmailVerified()){
+//            throw  new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
+//        }
 
         //인증번호 및 UUID 생성
         String verificationCode = generateRandomCode();
