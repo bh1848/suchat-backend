@@ -1,8 +1,7 @@
 package com.USWRandomChat.backend.member.domain;
 
-import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
-import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.global.security.domain.Authority;
+import com.USWRandomChat.backend.profile.domain.Profile;
 import lombok.*;
 
 import javax.persistence.*;
@@ -29,13 +28,13 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-    private boolean isEmailVerified;
+//    private boolean isEmailVerified;
 
     @Column(unique = true, nullable = false)
     private String email;
 
-    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private EmailToken emailToken;
+//    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//    private EmailToken emailToken;
 
     @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Profile profile;
@@ -50,8 +49,8 @@ public class Member {
     }
 
 
-    public void setVerified() {
-        this.isEmailVerified = true;
-    }
+//    public void setVerified() {
+//        this.isEmailVerified = true;
+//    }
 
 }

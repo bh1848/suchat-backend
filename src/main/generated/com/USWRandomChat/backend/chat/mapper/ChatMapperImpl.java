@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-02-26T21:30:49+0900",
-    comments = "version: 1.5.3.Final, compiler: javac, environment: Java 11.0.22 (Azul Systems, Inc.)"
+    date = "2024-03-08T13:38:17+0900",
+    comments = "version: 1.5.3.Final, compiler: javac, environment: Java 17.0.10 (Amazon.com Inc.)"
 )
 @Component
 public class ChatMapperImpl implements ChatMapper {
