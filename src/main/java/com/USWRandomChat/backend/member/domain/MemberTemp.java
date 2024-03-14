@@ -37,6 +37,7 @@ public class MemberTemp {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String nickname;
 
     private LocalDateTime nicknameChangeDate;
