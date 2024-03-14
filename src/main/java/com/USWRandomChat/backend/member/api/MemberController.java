@@ -95,11 +95,11 @@ public class MemberController {
         return responseService.getListResponse(memberService.findAll());
     }
 
-  //account 중복 체크
-    @PostMapping("/check-duplicate-id-signUp")
-    public ResponseEntity<String> idCheck(@RequestBody MemberDTO request) {
-        memberService.validateDuplicateAccount(request);
-        return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
+    //계정 중복 체크
+    @PostMapping("/check-duplicate-account")
+    public ResponseEntity<String> checkDuplicateAccount(@RequestBody MemberDTO request) {
+        memberService.checkDuplicateAccount(request);
+        return new ResponseEntity<>("사용 가능한 계정입니다.", HttpStatus.OK);
     }
 
     //이메일 중복 확인
@@ -115,7 +115,7 @@ public class MemberController {
 
     //회원가입 시의 닉네임 확인
     @PostMapping("/check-duplicate-nickname-signUp")
-    public ResponseEntity<String> signUp(@RequestBody MemberDTO memberDTO) {
+    public ResponseEntity<String> checkDuplicateNicknameSignUp(@RequestBody MemberDTO memberDTO) {
         memberService.checkDuplicateNicknameSignUp(memberDTO);
         return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.CREATED);
     }

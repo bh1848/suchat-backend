@@ -34,7 +34,7 @@ public enum ExceptionType {
      * Domain: Member
      */
     USER_NOT_EXISTS("USR-MEM-201", "사용자가 존재하지 않습니다.", BAD_REQUEST),
-    ID_OVERLAP("USR-MEM-202", "아이디가 중복됩니다.", INTERNAL_SERVER_ERROR),
+    ACCOUNT_OVERLAP("USR-MEM-202", "계정이 중복됩니다.", INTERNAL_SERVER_ERROR),
     EMAIL_OVERLAP("USR-MEM-203", "이메일이 중복됩니다.", INTERNAL_SERVER_ERROR),
     PASSWORD_ERROR("USR-MEM-204", "비밀번호를 확인해주세요", BAD_REQUEST),
     LOGIN_REQUIRED("USR-MEM-205", "로그인이 필요합니다.", FORBIDDEN),
