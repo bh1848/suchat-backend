@@ -37,7 +37,7 @@ public enum ExceptionType {
     ACCOUNT_OVERLAP("USR-MEM-202", "계정이 중복됩니다.", INTERNAL_SERVER_ERROR),
     EMAIL_OVERLAP("USR-MEM-203", "이메일이 중복됩니다.", INTERNAL_SERVER_ERROR),
     PASSWORD_ERROR("USR-MEM-204", "비밀번호를 확인해주세요", BAD_REQUEST),
-    LOGIN_REQUIRED("USR-MEM-205", "로그인이 필요합니다.", FORBIDDEN),
+    SIGN_IN_REQUIRED("USR-MEM-205", "로그인이 필요합니다.", FORBIDDEN),
     BAD_CREDENTIALS("USR-MEM-206", "잘못된 계정 정보입니다.", FORBIDDEN),
     Email_Not_Provided("USR-MEM-207", "이메일이 입력되지 않았습니다.", BAD_REQUEST),
     Account_Not_Provided("USR-MEM-208", "아이디가 입력되지 않았습니다.", BAD_REQUEST),
