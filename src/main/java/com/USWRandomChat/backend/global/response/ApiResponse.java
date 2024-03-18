@@ -11,7 +11,6 @@ public class ApiResponse {
 
     public ApiResponse(String message) {
         this.message = message;
-        this.data = null; // 데이터가 없는 경우
     }
 
     public ApiResponse(String message, Object data) {

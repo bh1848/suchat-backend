@@ -29,6 +29,7 @@ public enum ExceptionType {
     EMAIL_NOT_VERIFIED("EMAILTOKEN002", "이메일 인증되지 않은 회원입니다.", FORBIDDEN),
     Email_Token_Not_Found("EMAILTOKEN003", "해당 토큰이 존재하지 않습니다.", BAD_REQUEST),
     EMAILTOKEN_AND_MEMBERTEMP_Not_Found("EMAILTOKEN004", "해당 토큰과 일치하는 회원이 존재하지 않습니다.", BAD_REQUEST),
+    EMAIL_RECERTIFICATION("EMAILTOKEN005","이메일 재인증을 해주세요.",BAD_REQUEST),
 
     /**
      * Domain: Member
@@ -76,6 +77,8 @@ public enum ExceptionType {
     ROOM_ID_UPDATE_ERROR("CHT-301", "RoomId 업데이트 실패", BAD_REQUEST),
     MEMBER_COUNT_ERROR("CHT-302","인원 확인이 실패했습니다.",BAD_REQUEST),
     MESSAGE_DELETE_ERROR("CHT-303","메세지가 삭제되지 않았습니다.",BAD_REQUEST),
+    CHAT_ERROR("CHT-304", "채팅방 오류입니다.", BAD_REQUEST),
+    NOT_ENOUGH_MEMBER("CHT-305", "매칭할 회원 수가 부족합니다.", BAD_REQUEST),
 
     /**
      * Domain:ConfirmationToken

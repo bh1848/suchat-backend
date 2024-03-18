@@ -9,6 +9,7 @@ import com.USWRandomChat.backend.member.verification.dto.SendVerificationCodeRes
 import com.USWRandomChat.backend.member.verification.dto.UpdatePasswordRequest;
 import com.USWRandomChat.backend.member.verification.service.VerificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,13 +22,13 @@ public class VerificationController {
 
     //인증번호 생성 및 전송 요청 처리
     @PostMapping("/send-code")
-    public ResponseEntity<SendVerificationCodeResponse> sendVerificationCode(@RequestBody SendVerificationCodeRequest request) {
+    public ResponseEntity<ApiResponse> sendVerificationCode(@RequestBody SendVerificationCodeRequest request) {
         try {
             String uuid = String.valueOf(verificationService.sendVerificationCode(request.getAccount(), request.getEmail()));
             SendVerificationCodeResponse response = new SendVerificationCodeResponse(uuid);
-            return ResponseEntity.ok(response); // JSON 형태로 UUID 포함하여 반환
+            return ResponseEntity.ok(new ApiResponse("인증번호가 전송되었습니다.", response));
         } catch (Exception e) {
-            throw new CodeException(ExceptionType.UUID_NOT_FOUND);
+            return ResponseEntity.internalServerError().body(new ApiResponse("인증번호 전송 중 오류가 발생했습니다."));
         }
     }
 
@@ -36,9 +37,9 @@ public class VerificationController {
     public ResponseEntity<ApiResponse> verifyCode(@RequestParam String uuid, @RequestParam String verificationCode) {
         boolean isVerified = verificationService.verifyCode(uuid, verificationCode);
         if (isVerified) {
-            return ResponseEntity.ok(new ApiResponse("인증번호 확인 성공"));
+            return ResponseEntity.ok(new ApiResponse("인증번호가 확인됐습니다."));
         } else {
-            throw new CodeException(ExceptionType.CODE_ERROR);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("인증번호가 맞지 않습니다."));
         }
     }
 
@@ -47,9 +48,9 @@ public class VerificationController {
     public ResponseEntity<ApiResponse> updatePassword(@RequestParam String uuid, @RequestBody UpdatePasswordRequest request) {
         try {
             verificationService.updatePassword(uuid, request.getNewPassword(), request.getConfirmNewPassword());
-            return ResponseEntity.ok(new ApiResponse("비밀번호 변경 성공"));
+            return ResponseEntity.ok(new ApiResponse("비밀번호가 변경됐습니다."));
         } catch (Exception e) {
-            throw new AccountException(ExceptionType.PASSWORD_ERROR);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("비밀번호 변경에 실패했습니다."));
         }
     }
 }

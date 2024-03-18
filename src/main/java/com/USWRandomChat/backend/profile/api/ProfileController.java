@@ -25,9 +25,9 @@ public class ProfileController {
     public ResponseEntity<ApiResponse> getProfile(@RequestHeader("Authorization") String accessToken, @RequestParam String targetAccount) {
         try {
             ProfileResponse profileResponse = profileService.getProfile(accessToken, targetAccount);
-            return ResponseEntity.ok(new ApiResponse("프로필 조회 성공", profileResponse));
+            return ResponseEntity.ok(new ApiResponse("프로필 조회 성공했습니다.", profileResponse));
         } catch (ProfileException e) {
-            throw new ProfileException(ExceptionType.PROFILE_GET_FAIL);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("프로필 조회 실패했습니다."));
         }
     }
 
@@ -38,7 +38,8 @@ public class ProfileController {
             ProfileResponse updatedProfile = profileService.updateProfile(accessToken, profileRequest);
             return ResponseEntity.ok(new ApiResponse("프로필 업데이트 성공", updatedProfile));
         } catch (ProfileException e) {
-            throw new ProfileException(ExceptionType.PROFILE_UPDATE_FAIL);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("프로필 업데이트 실패했습니다."));
+
         }
     }
 }
