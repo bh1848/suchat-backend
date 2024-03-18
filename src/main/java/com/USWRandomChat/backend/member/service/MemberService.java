@@ -154,18 +154,6 @@ public class MemberService {
         return memberRepository.findAll();
     }
 
-//    //id 조회ㅇ
-//    public Member findById(Long id) {
-//        Optional<Member> byId = memberRepository.findById(id);
-//        if (byId.isPresent()) {
-//            //조회 성공
-//            return byId.get();
-//        } else {
-//            //조회 실패
-//            return byId.orElse(null);
-//        }
-//    }
-
     //계정 중복 확인
     @Transactional(readOnly = true)
     public void checkDuplicateAccount(MemberDTO memberDTO) {
