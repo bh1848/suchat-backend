@@ -13,4 +13,5 @@ public class SignUpRequest {
     private String password;
     private String email;
     private String nickname;
+    private Boolean isEmailVerified = false;
 }

@@ -57,6 +57,7 @@ public class MemberService {
                 .email(request.getEmail())
                 .nickname(request.getNickname())
                 .nicknameChangeDate(LocalDateTime.now())
+                .isEmailVerified(request.getIsEmailVerified())
                 .build();
 
         memberTempRepository.save(tempMember);
