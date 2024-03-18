@@ -1,6 +1,6 @@
 package com.USWRandomChat.backend.global;
 
-import com.USWRandomChat.backend.global.exception.ErrorResponse;
+import com.USWRandomChat.backend.global.response.ErrorResponse;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.BaseException;
 import lombok.extern.slf4j.Slf4j;

@@ -3,7 +3,7 @@ package com.USWRandomChat.backend.member.api;
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
-import com.USWRandomChat.backend.global.exception.ApiResponse;
+import com.USWRandomChat.backend.global.response.ApiResponse;
 import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.global.security.jwt.dto.TokenResponse;
 import com.USWRandomChat.backend.member.domain.Member;
@@ -70,10 +70,10 @@ public class MemberController {
 
     //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급
     @PostMapping("/auto-sign-in")
-    public ResponseEntity<TokenResponse> refresh(@RequestHeader("Authorization") String accessToken) {
+    public ResponseEntity<ApiResponse> refresh(@RequestHeader("Authorization") String accessToken) {
         try {
             TokenResponse tokenResponse = jwtService.refreshAccessToken(accessToken);
-            return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
+            return ResponseEntity.ok(new ApiResponse("자동 로그인 성공", tokenResponse));
         } catch (Exception e) {
             throw new AccountException(ExceptionType.SIGN_IN_REQUIRED);
         }

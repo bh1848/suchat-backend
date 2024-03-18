@@ -52,6 +52,8 @@ public enum ExceptionType {
     NICKNAME_ERROR("USR-PFL-202", "닉네임을 확인해주세요.",BAD_REQUEST),
     NICKNAME_OVERLAP("USR-PFL-203", "닉네임이 중복됩니다.", INTERNAL_SERVER_ERROR),
     NICKNAME_EXPIRATION_TIME("USR-PFL-204", "닉네임 변경 후 30일이 지나야 변경이 가능합니다.", BAD_REQUEST),
+    PROFILE_GET_FAIL("USR-PFL-205", "프로필 조회에 실패했습니다.", BAD_REQUEST),
+    PROFILE_UPDATE_FAIL("USR-PFL-206", "프로필 업데이트에 실패했습니다.",BAD_REQUEST),
 
     /**
      * Domain : Token

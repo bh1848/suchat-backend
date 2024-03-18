@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.global.exception;
+package com.USWRandomChat.backend.global.response;
 
 import lombok.Builder;
 import lombok.Data;

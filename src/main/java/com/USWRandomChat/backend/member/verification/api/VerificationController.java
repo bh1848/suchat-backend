@@ -1,6 +1,6 @@
 package com.USWRandomChat.backend.member.verification.api;
 
-import com.USWRandomChat.backend.global.exception.ApiResponse;
+import com.USWRandomChat.backend.global.response.ApiResponse;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.CodeException;
