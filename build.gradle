@@ -61,9 +61,6 @@ dependencies {
 	//redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-	//embedded redis
-	implementation group: 'it.ozimov', name: 'embedded-redis', version: '0.7.2'
-
 	//stomp
 	implementation 'org.webjars:sockjs-client:1.5.1'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'

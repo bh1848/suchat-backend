@@ -46,8 +46,4 @@ public class MemberTemp {
 
     @OneToOne(mappedBy = "memberTemp", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private EmailToken emailToken;
-
-    public void setVerified() {
-        this.isEmailVerified = true;
-    }
 }
