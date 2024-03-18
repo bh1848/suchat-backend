@@ -57,6 +57,8 @@ public class MemberService {
                 .email(request.getEmail())
                 .nickname(request.getNickname())
                 .nicknameChangeDate(LocalDateTime.now())
+                //회원가입 정보 주입으로 인증여부 받음
+                .isEmailVerified(request.getIsEmailVerified())
                 .build();
 
         memberTempRepository.save(tempMember);
