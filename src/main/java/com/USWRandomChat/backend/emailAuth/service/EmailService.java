@@ -117,11 +117,6 @@ public class EmailService {
         return emailToken.orElseThrow(() -> new AccountException(ExceptionType.EMAILTOKEN_IS_EXPIRED));
     }
 
-    //이메일 인증완료시 데이터베이스에서 삭제
-    public void deleteEmailTokenByUuid(String uuid) {
-        emailTokenRepository.deleteByUuid(uuid);
-    }
-
     //uuid와 연결된 memberTemp 조회
     public MemberTemp findByUuid(String uuid) {
         return emailTokenRepository.findByUuid(uuid)

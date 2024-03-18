@@ -28,13 +28,8 @@ public class Member {
     @Column(nullable = false)
     private String password;
 
-//    private boolean isEmailVerified;
-
     @Column(unique = true, nullable = false)
     private String email;
-
-//    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//    private EmailToken emailToken;
 
     @OneToOne(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Profile profile;
@@ -47,10 +42,4 @@ public class Member {
         this.roles = role;
         role.forEach(o -> o.setMember(this));
     }
-
-
-//    public void setVerified() {
-//        this.isEmailVerified = true;
-//    }
-
 }
