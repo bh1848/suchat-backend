@@ -1,7 +1,10 @@
 package com.USWRandomChat.backend.member.api;
 
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
-import com.USWRandomChat.backend.global.exception.errortype.MailException;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.ApiResponse;
+import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
 import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
@@ -30,6 +33,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 public class MemberController {
 
+    private static final long NICKNAME_CHANGE_LIMIT_DAYS = 30;
     private final MemberService memberService;
     private final ResponseService responseService;
     private final EmailService emailService;
@@ -71,16 +75,24 @@ public class MemberController {
 
     //로그아웃
     @PostMapping("/sign-out")
-    public ResponseEntity<String> signOut(@RequestHeader("Authorization") String accessToken) throws Exception {
-        jwtService.signOut(accessToken);
-        return ResponseEntity.ok("로그아웃 성공");
+    public ResponseEntity<ApiResponse> signOut(@RequestHeader("Authorization") String accessToken) throws Exception {
+        try {
+            jwtService.signOut(accessToken);
+            return ResponseEntity.ok(new ApiResponse("로그아웃 되었습니다."));
+        } catch (AccountException e) {
+            throw new AccountException(ExceptionType.SIGN_OUT_FAIL);
+        }
     }
 
     //회원 탈퇴
     @DeleteMapping("/withdraw")
-    public ResponseEntity<String> withdraw(@RequestHeader("Authorization") String accessToken) {
-        memberService.withdraw(accessToken);
-        return new ResponseEntity<>("회원 탈퇴 성공", HttpStatus.OK);
+    public ResponseEntity<ApiResponse> withdraw(@RequestHeader("Authorization") String accessToken) {
+        try {
+            memberService.withdraw(accessToken);
+            return ResponseEntity.ok(new ApiResponse("회원 탈퇴가 완료됐습니다."));
+        } catch (AccountException e) {
+            throw new AccountException(ExceptionType.WITH_DRAW_FAIL);
+        }
     }
 
     //이메일 재인증
@@ -97,35 +109,57 @@ public class MemberController {
 
     //계정 중복 체크
     @PostMapping("/check-duplicate-account")
-    public ResponseEntity<String> checkDuplicateAccount(@RequestBody MemberDTO request) {
-        memberService.checkDuplicateAccount(request);
-        return new ResponseEntity<>("사용 가능한 계정입니다.", HttpStatus.OK);
+    public ResponseEntity<ApiResponse> checkDuplicateAccount(@RequestBody MemberDTO request) {
+        try {
+            memberService.checkDuplicateAccount(request);
+            return ResponseEntity.ok(new ApiResponse("사용 가능한 계정입니다."));
+        } catch (AccountException e) {
+            throw new AccountException(ExceptionType.ACCOUNT_OVERLAP);
+        }
     }
 
     //이메일 중복 확인
     @PostMapping("/check-duplicate-email")
-    public ResponseEntity<String> checkDuplicateEmail(@RequestBody MemberDTO memberDTO) {
+    public ResponseEntity<ApiResponse> checkDuplicateEmail(@RequestBody MemberDTO memberDTO) {
         try {
             memberService.checkDuplicateEmail(memberDTO);
-            return new ResponseEntity<>("사용 가능한 이메일입니다.", HttpStatus.OK);
-        } catch (MailException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+            return ResponseEntity.ok(new ApiResponse("사용 가능한 이메일입니다."));
+        } catch (AccountException e) {
+            throw new AccountException(ExceptionType.EMAIL_OVERLAP);
         }
     }
 
     //회원가입 시의 닉네임 확인
     @PostMapping("/check-duplicate-nickname-signUp")
-    public ResponseEntity<String> checkDuplicateNicknameSignUp(@RequestBody MemberDTO memberDTO) {
-        memberService.checkDuplicateNicknameSignUp(memberDTO);
-        return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse> checkDuplicateNicknameSignUp(@RequestBody MemberDTO memberDTO) {
+        try {
+            memberService.checkDuplicateNicknameSignUp(memberDTO);
+            return ResponseEntity.ok(new ApiResponse("사용 가능한 닉네임입니다."));
+        } catch (AccountException e) {
+            throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);
+        }
     }
 
-    //이미 가입된 사용자의 닉네임 중복 확인
-    @PostMapping("/check-duplicate-nickname")
-    public ResponseEntity<String> checkDuplicateNickname(@RequestParam String accessToken, @RequestBody MemberDTO memberDTO) {
-        memberService.checkDuplicateNickname(accessToken, memberDTO);
-        return new ResponseEntity<>("사용 가능한 닉네임입니다.", HttpStatus.OK);
-    }
+//    //이미 가입된 사용자의 닉네임 중복 확인
+//    @PostMapping("/check-duplicate-nickname")
+//    public ResponseEntity<ApiResponse> checkDuplicateNickname(@RequestHeader("Authorization") String accessToken, @RequestBody MemberDTO memberDTO) {
+//        try {
+//            memberService.checkDuplicateNickname(accessToken, memberDTO);
+//            return ResponseEntity.ok(new ApiResponse(true, "사용 가능한 닉네임입니다."));
+//        } catch (AccountException e) {
+//            if (e.getType() == ExceptionType.NICKNAME_EXPIRATION_TIME) { // ExceptionType 열거형을 사용하여 비교
+//                // 닉네임 변경 가능 날짜 계산
+//                LocalDateTime canChangeAfter = LocalDateTime.now().plusDays(NICKNAME_CHANGE_LIMIT_DAYS); // NICKNAME_CHANGE_LIMIT_DAYS 상수 사용
+//                return ResponseEntity
+//                        .status(HttpStatus.CONFLICT)
+//                        .body(new ApiResponse(false, "닉네임을 변경한 지 30일이 지나지 않았습니다.", Map.of("canChangeAfter", canChangeAfter)));
+//            } else {
+//                return ResponseEntity
+//                        .status(HttpStatus.CONFLICT)
+//                        .body(new ApiResponse(false, "이미 사용 중인 닉네임입니다."));
+//            }
+//        }
+//    }
 
     //Id 찾기 로직: 이메일 인증된 회원만
     @PostMapping(value = "/find-Id")

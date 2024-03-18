@@ -42,6 +42,8 @@ public enum ExceptionType {
     Email_Not_Provided("USR-MEM-207", "이메일이 입력되지 않았습니다.", BAD_REQUEST),
     Account_Not_Provided("USR-MEM-208", "아이디가 입력되지 않았습니다.", BAD_REQUEST),
     Nickname_Not_Provided("USR-MEM-209", "닉네임이 입력되지 않았습니다.", BAD_REQUEST),
+    WITH_DRAW_FAIL("USR-MEM-210","회원 탈퇴에 실패했습니다.",BAD_REQUEST),
+    SIGN_OUT_FAIL("USR-MEM-211", "로그아웃에 실패했습니다", BAD_REQUEST),
 
     /**
      * Domain : Profile
