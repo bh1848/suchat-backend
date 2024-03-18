@@ -1,9 +1,6 @@
 package com.USWRandomChat.backend.profile.api;
 
-import com.USWRandomChat.backend.global.exception.ExceptionType;
-import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
-import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.global.response.ApiResponse;
 import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import com.USWRandomChat.backend.profile.dto.ProfileResponse;
