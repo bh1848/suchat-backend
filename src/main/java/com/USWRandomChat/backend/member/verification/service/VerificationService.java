@@ -5,6 +5,7 @@ import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.CodeException;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
+import com.USWRandomChat.backend.member.verification.dto.SendVerificationCodeResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
@@ -36,28 +37,23 @@ public class VerificationService {
     private final PasswordEncoder passwordEncoder;
 
     //인증번호 생성 및 전송
-    public String sendVerificationCode(String account, String email) {
-
-        //사용자 계정과 이메일이 일치하는지 확인
-        Member member = memberRepository.findByAccountAndEmail(account, email)
+    public SendVerificationCodeResponse sendVerificationCode(String account, String email) {
+        // 사용자 계정과 이메일이 일치하는지 확인
+        memberRepository.findByAccountAndEmail(account, email)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
-        
-//        //회원가입 시에 이메일 인증했는지 확인
-//        if(!member.isEmailVerified()){
-//            throw  new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
-//        }
 
-        //인증번호 및 UUID 생성
+        // 인증번호 및 UUID 생성
         String verificationCode = generateRandomCode();
         String uuid = UUID.randomUUID().toString();
 
-        //Redis에 인증번호와 사용자 계정 정보 저장
+        // Redis에 인증번호와 사용자 계정 정보 저장
         saveVerificationCode(uuid, verificationCode, account);
 
-        //이메일 전송
+        // 이메일 전송
         sendEmail(email + "@suwon.ac.kr", "인증번호", "인증번호는 " + verificationCode + "입니다.");
 
-        return uuid; //클라이언트에게 UUID 반환
+        // 클라이언트에게 UUID 반환
+        return new SendVerificationCodeResponse(uuid);
     }
 
     //인증번호 확인

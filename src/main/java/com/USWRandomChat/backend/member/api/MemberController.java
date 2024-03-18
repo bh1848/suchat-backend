@@ -74,7 +74,7 @@ public class MemberController {
         try {
             TokenResponse tokenResponse = jwtService.refreshAccessToken(accessToken);
             return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
-        } catch (AccountException e) {
+        } catch (Exception e) {
             throw new AccountException(ExceptionType.SIGN_IN_REQUIRED);
         }
     }
@@ -85,7 +85,7 @@ public class MemberController {
         try {
             jwtService.signOut(accessToken);
             return ResponseEntity.ok(new ApiResponse("로그아웃 되었습니다."));
-        } catch (AccountException e) {
+        } catch (Exception e) {
             throw new AccountException(ExceptionType.SIGN_OUT_FAIL);
         }
     }
@@ -96,14 +96,14 @@ public class MemberController {
         try {
             memberService.withdraw(accessToken);
             return ResponseEntity.ok(new ApiResponse("회원 탈퇴가 완료됐습니다."));
-        } catch (AccountException e) {
+        } catch (Exception e) {
             throw new AccountException(ExceptionType.WITH_DRAW_FAIL);
         }
     }
 
     //이메일 재인증
     @PostMapping("/reconfirm-email")
-    public ResponseEntity<String> reconfirmEmail(@Valid @RequestParam String uuid) throws MessagingException {
+    public ResponseEntity<?> reconfirmEmail(@Valid @RequestParam String uuid) throws MessagingException {
         return new ResponseEntity<>(emailService.recreateEmailToken(uuid), HttpStatus.OK);
     }
 
@@ -119,7 +119,7 @@ public class MemberController {
         try {
             memberService.checkDuplicateAccount(request);
             return ResponseEntity.ok(new ApiResponse("사용 가능한 계정입니다."));
-        } catch (AccountException e) {
+        } catch (Exception e) {
             throw new AccountException(ExceptionType.ACCOUNT_OVERLAP);
         }
     }
@@ -130,7 +130,7 @@ public class MemberController {
         try {
             memberService.checkDuplicateEmail(memberDTO);
             return ResponseEntity.ok(new ApiResponse("사용 가능한 이메일입니다."));
-        } catch (AccountException e) {
+        } catch (Exception e) {
             throw new AccountException(ExceptionType.EMAIL_OVERLAP);
         }
     }
@@ -141,7 +141,7 @@ public class MemberController {
         try {
             memberService.checkDuplicateNicknameSignUp(memberDTO);
             return ResponseEntity.ok(new ApiResponse("사용 가능한 닉네임입니다."));
-        } catch (AccountException e) {
+        } catch (Exception e) {
             throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);
         }
     }

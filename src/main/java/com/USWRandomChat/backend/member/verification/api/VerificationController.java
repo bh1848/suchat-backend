@@ -1,6 +1,11 @@
 package com.USWRandomChat.backend.member.verification.api;
 
+import com.USWRandomChat.backend.global.exception.ApiResponse;
+import com.USWRandomChat.backend.global.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.CodeException;
 import com.USWRandomChat.backend.member.verification.dto.SendVerificationCodeRequest;
+import com.USWRandomChat.backend.member.verification.dto.SendVerificationCodeResponse;
 import com.USWRandomChat.backend.member.verification.dto.UpdatePasswordRequest;
 import com.USWRandomChat.backend.member.verification.service.VerificationService;
 import lombok.RequiredArgsConstructor;
@@ -16,35 +21,35 @@ public class VerificationController {
 
     //인증번호 생성 및 전송 요청 처리
     @PostMapping("/send-code")
-    public ResponseEntity<String> sendVerificationCode(@RequestBody SendVerificationCodeRequest request) {
+    public ResponseEntity<SendVerificationCodeResponse> sendVerificationCode(@RequestBody SendVerificationCodeRequest request) {
         try {
-            String uuid = verificationService.sendVerificationCode(request.getAccount(), request.getEmail());
-            return ResponseEntity.ok().body("인증번호가 전송되었습니다. UUID: " + uuid);
+            String uuid = String.valueOf(verificationService.sendVerificationCode(request.getAccount(), request.getEmail()));
+            SendVerificationCodeResponse response = new SendVerificationCodeResponse(uuid);
+            return ResponseEntity.ok(response); // JSON 형태로 UUID 포함하여 반환
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("인증번호 전송 실패: " + e.getMessage());
+            throw new CodeException(ExceptionType.UUID_NOT_FOUND);
         }
     }
 
     //인증번호 확인 요청 처리
     @PostMapping("/verify-code")
-    public ResponseEntity<String> verifyCode(@RequestParam String uuid, String verificationCode) {
-        try {
-            boolean isVerified = verificationService.verifyCode(uuid, verificationCode);
-            return isVerified ? ResponseEntity.ok().body("인증번호 확인 성공")
-                    : ResponseEntity.badRequest().body("인증번호 확인 실패");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("인증번호 확인 에러: " + e.getMessage());
+    public ResponseEntity<ApiResponse> verifyCode(@RequestParam String uuid, @RequestParam String verificationCode) {
+        boolean isVerified = verificationService.verifyCode(uuid, verificationCode);
+        if (isVerified) {
+            return ResponseEntity.ok(new ApiResponse("인증번호 확인 성공"));
+        } else {
+            throw new CodeException(ExceptionType.CODE_ERROR);
         }
     }
 
     //비밀번호 변경 요청 처리
     @PatchMapping("/update-password")
-    public ResponseEntity<String> updatePassword(@RequestParam String uuid ,@RequestBody UpdatePasswordRequest request) {
+    public ResponseEntity<ApiResponse> updatePassword(@RequestParam String uuid, @RequestBody UpdatePasswordRequest request) {
         try {
             verificationService.updatePassword(uuid, request.getNewPassword(), request.getConfirmNewPassword());
-            return ResponseEntity.ok().body("비밀번호 변경 성공");
+            return ResponseEntity.ok(new ApiResponse("비밀번호 변경 성공"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("비밀번호 변경 실패: " + e.getMessage());
+            throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
     }
 }
