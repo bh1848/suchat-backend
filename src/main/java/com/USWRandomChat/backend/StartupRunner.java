@@ -12,6 +12,7 @@ public class StartupRunner implements CommandLineRunner {
 
     private final EmailAuthSchedulerService schedulerService;
     private final MemberService memberService;
+
     public StartupRunner(EmailAuthSchedulerService schedulerService, MemberService memberService) {
         this.schedulerService = schedulerService;
         this.memberService = memberService;
@@ -21,7 +22,7 @@ public class StartupRunner implements CommandLineRunner {
     public void run(String... args) {
         schedulerService.removeMember();
 
-        //임시 회원가입 정보 넣어둠
+        //회원가입 정보 주입
         SignUpRequest initialMemberRequest = new SignUpRequest();
         initialMemberRequest.setAccount("account");
         initialMemberRequest.setPassword("password");
@@ -30,10 +31,9 @@ public class StartupRunner implements CommandLineRunner {
         initialMemberRequest.setIsEmailVerified(true);
 
         MemberTemp initialMemberTemp = memberService.signUpMemberTemp(initialMemberRequest);
-
         memberService.signUpMember(initialMemberTemp);
 
-        //두번 쨰 임시 회원가입 정보 넣어둠
+        //두번 쨰 회원가입 정보 주입
         SignUpRequest secondinitialMemberRequest = new SignUpRequest();
         secondinitialMemberRequest.setAccount("admin");
         secondinitialMemberRequest.setPassword("1234");
@@ -42,7 +42,6 @@ public class StartupRunner implements CommandLineRunner {
         secondinitialMemberRequest.setIsEmailVerified(true);
 
         MemberTemp secondinitialMemberTemp = memberService.signUpMemberTemp(secondinitialMemberRequest);
-
         memberService.signUpMember(secondinitialMemberTemp);
     }
 }
