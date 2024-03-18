@@ -37,7 +37,7 @@ public class VerificationService {
     private final PasswordEncoder passwordEncoder;
 
     //인증번호 생성 및 전송
-    public SendVerificationCodeResponse sendVerificationCode(String account, String email) {
+    public String sendVerificationCode(String account, String email) {
         // 사용자 계정과 이메일이 일치하는지 확인
         memberRepository.findByAccountAndEmail(account, email)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
@@ -53,7 +53,7 @@ public class VerificationService {
         sendEmail(email + "@suwon.ac.kr", "인증번호", "인증번호는 " + verificationCode + "입니다.");
 
         // 클라이언트에게 UUID 반환
-        return new SendVerificationCodeResponse(uuid);
+        return uuid;
     }
 
     //인증번호 확인

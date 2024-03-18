@@ -1,9 +1,6 @@
 package com.USWRandomChat.backend.member.verification.api;
 
 import com.USWRandomChat.backend.global.response.ApiResponse;
-import com.USWRandomChat.backend.global.exception.ExceptionType;
-import com.USWRandomChat.backend.global.exception.errortype.AccountException;
-import com.USWRandomChat.backend.global.exception.errortype.CodeException;
 import com.USWRandomChat.backend.member.verification.dto.SendVerificationCodeRequest;
 import com.USWRandomChat.backend.member.verification.dto.SendVerificationCodeResponse;
 import com.USWRandomChat.backend.member.verification.dto.UpdatePasswordRequest;

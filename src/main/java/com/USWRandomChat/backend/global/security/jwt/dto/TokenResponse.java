@@ -8,11 +8,8 @@ import lombok.Setter;
 public class TokenResponse {
     // Getter와 Setter
     private String accessToken;
-    private String refreshToken;
 
-    public TokenResponse(String accessToken, String refreshToken) {
+    public TokenResponse(String accessToken) {
         this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
     }
-
 }

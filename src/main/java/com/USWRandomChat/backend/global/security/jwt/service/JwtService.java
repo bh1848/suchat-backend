@@ -44,38 +44,33 @@ public class JwtService {
     }
 
     //자동로그인
-    public TokenResponse refreshAccessToken(String accessToken) throws AccountException, TokenException {
-        // 엑세스 토큰의 유효성 검사
-        if (!jwtProvider.validateAccessToken(accessToken)) {
-            // 엑세스 토큰이 만료되었다면, 리프레시 토큰으로 계정 정보를 추출합니다.
-            String account = jwtProvider.getAccount(accessToken);
-
-            // 해당 account의 회원 정보를 조회합니다.
-            Member member = memberRepository.findByAccount(account)
-                    .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
-
-            // 해당 account의 리프레시 토큰 정보를 조회합니다.
-            Token refreshToken = jwtRepository.findByAccount(account)
-                    .orElseThrow(() -> new TokenException(ExceptionType.INVALID_REFRESH_TOKEN));
-
-            // 리프레시 토큰의 만료 시간을 검증합니다.
-            if (refreshToken.getExpiration() <= System.currentTimeMillis()) {
-                throw new TokenException(ExceptionType.REFRESH_TOKEN_EXPIRED);
-            }
-
-            // 유효한 리프레시 토큰에 대해 새 엑세스 토큰을 발급합니다.
-            String newAccessToken = jwtProvider.createAccessToken(account, member.getRoles());
-
-            // 새 엑세스 토큰과 기존 리프레시 토큰을 반환합니다.
-            return new TokenResponse(newAccessToken, refreshToken.getRefreshToken());
-        } else {
-            // 엑세스 토큰이 여전히 유효한 경우, 기존 토큰을 그대로 반환합니다.
-            return new TokenResponse(accessToken, null);
+    public String refreshAccessToken(String accessToken) throws AccountException, TokenException {
+        //엑세스 토큰의 유효성 검사
+        if (jwtProvider.validateAccessToken(accessToken)) {
+            return accessToken; //유효한 토큰이면 재사용
         }
+
+        String account = jwtProvider.getAccount(accessToken); //유효하지 않으면 계정 정보 추출
+
+        //account로 회원 조회
+        Member member = memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+
+        //해당 account의 리프레시 토큰 조회
+        Token refreshToken = jwtRepository.findByAccount(account)
+                .orElseThrow(() -> new TokenException(ExceptionType.REFRESH_TOKEN_EXPIRED));
+
+        //리프레시 토큰 검증
+        if (refreshToken.getExpiration() <= System.currentTimeMillis()) {
+            throw new TokenException(ExceptionType.INVALID_REFRESH_TOKEN);
+        }
+
+        //새 엑세스 토큰 발급
+        return jwtProvider.createAccessToken(account, member.getRoles());
     }
 
     //로그아웃
-    public void signOut(String accessToken) throws Exception {
+    public void signOut(String accessToken) throws TokenException {
 
         //엑세스 토큰의 유효성 검사
         if (!jwtProvider.validateAccessToken(accessToken)) {

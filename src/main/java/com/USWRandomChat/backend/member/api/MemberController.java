@@ -3,6 +3,7 @@ package com.USWRandomChat.backend.member.api;
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.global.response.ApiResponse;
 import com.USWRandomChat.backend.global.response.ListResponse;
 import com.USWRandomChat.backend.global.response.ResponseService;
@@ -68,18 +69,19 @@ public class MemberController {
 
     //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급
     @PostMapping("/auto-sign-in")
-    public ResponseEntity<ApiResponse> refresh(@RequestHeader("Authorization") String accessToken) {
+    public ResponseEntity<ApiResponse> autoSignIn(@RequestHeader("Authorization") String accessToken){
         try {
-            TokenResponse tokenResponse = jwtService.refreshAccessToken(accessToken);
-            return ResponseEntity.ok(new ApiResponse("로그인 되었습니다.", tokenResponse));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("로그인에 실패했습니다."));
+            String newAccessToken = jwtService.refreshAccessToken(accessToken);
+            TokenResponse response = new TokenResponse(newAccessToken);
+            return ResponseEntity.ok(new ApiResponse("자동로그인이 성공했습니다.", response));
+        } catch (Exception  e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("자동로그인에 실패했습니다."));
         }
     }
 
     //로그아웃
     @PostMapping("/sign-out")
-    public ResponseEntity<ApiResponse> signOut(@RequestHeader("Authorization") String accessToken) throws Exception {
+    public ResponseEntity<ApiResponse> signOut(@RequestHeader("Authorization") String accessToken){
         try {
             jwtService.signOut(accessToken);
             return ResponseEntity.ok(new ApiResponse("로그아웃 되었습니다."));
@@ -145,7 +147,7 @@ public class MemberController {
             memberService.checkDuplicateNicknameSignUp(memberDTO);
             return ResponseEntity.ok(new ApiResponse("사용 가능한 닉네임입니다."));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("이미 닉네임입니다."));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("이미 사용하고 있는 닉네임입니다."));
         }
     }
 
@@ -161,7 +163,7 @@ public class MemberController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse("닉네임을 변경한 지 30일이 지나지 않았습니다."));
             } else {
                 // 닉네임 중복 예외 처리
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse( "이미 사용 중인 닉네임입니다."));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse( "이미 사용하고 있는 닉네임입니다."));
             }
         } catch (Exception e) {
             // 기타 예외 처리

@@ -36,7 +36,7 @@ public class RoomController {
             if (chatRoomId == null) {
                 throw new ChatException(ExceptionType.NOT_ENOUGH_MEMBER);
             } else {
-                return ResponseEntity.ok(new ApiResponse("매칭애 성공했습니다.", chatRoomId));
+                return ResponseEntity.ok(new ApiResponse("매칭에 성공했습니다.", chatRoomId));
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("매칭에 실패했습니다."));
