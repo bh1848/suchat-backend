@@ -125,7 +125,7 @@ public class MemberService {
         log.info("memberId: {}, pw: {} - 로그인 완료", request.getAccount(), request.getPassword());
 
         //SignInResponse 생성 시 refreshToken을 전달
-        return new SignInResponse(member, jwtProvider, jwtService);
+        return new SignInResponse(member, jwtProvider);
     }
 
     //회원 탈퇴

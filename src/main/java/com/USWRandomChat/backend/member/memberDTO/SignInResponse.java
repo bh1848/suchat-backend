@@ -17,11 +17,9 @@ public class SignInResponse {
     private String account;
     //비밀번호는 보안상 제외
     private String accessToken;
-    private String refreshToken;
 
-    public SignInResponse(Member member, JwtProvider jwtProvider, JwtService jwtService) {
+    public SignInResponse(Member member, JwtProvider jwtProvider) {
         this.account = member.getAccount();
         this.accessToken = jwtProvider.createAccessToken(member.getAccount(), member.getRoles());
-        this.refreshToken = jwtService.createRefreshToken(member);
     }
 }

@@ -63,8 +63,13 @@ public class MemberController {
 
     //로그인
     @PostMapping(value = "/sign-in")
-    public ResponseEntity<SignInResponse> signIn(@RequestBody SignInRequest request) {
-        return new ResponseEntity<>(memberService.signIn(request), HttpStatus.OK);
+    public ResponseEntity<ApiResponse> signIn(@RequestBody SignInRequest request) {
+        try {
+            SignInResponse response = memberService.signIn(request);
+            return ResponseEntity.ok(new ApiResponse("로그인에 성공했습니다.", response));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("로그인에 실패했습니다."));
+        }
     }
 
     //자동 로그인 로직: 엑세스 토큰, 리프레시 토큰 재발급
