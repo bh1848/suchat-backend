@@ -24,6 +24,7 @@ spring:
     host: localhost
     port: 6379
     #password: 'redis6379'
+    password: ""
 #  profiles:
 #    active: local
 
