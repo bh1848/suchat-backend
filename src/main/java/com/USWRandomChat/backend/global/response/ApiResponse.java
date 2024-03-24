@@ -1,10 +1,12 @@
 package com.USWRandomChat.backend.global.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL) //null 값이 있는 필드는 JSON에서 제외
 public class ApiResponse {
     private String message;
     private Object data;

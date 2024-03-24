@@ -42,9 +42,9 @@ public class MemberController {
 
     //임시 회원가입
     @PostMapping(value = "/sign-up")
-    public ResponseEntity<SignUpResponse> signUp(@RequestBody SignUpRequest request) throws MessagingException {
+    public ResponseEntity<ApiResponse> signUp(@RequestBody SignUpRequest request) throws MessagingException {
         MemberTemp findTempMember = memberService.signUpMemberTemp(request);
-        return new ResponseEntity<>(new SignUpResponse(emailService.createEmailToken(findTempMember))
+        return new ResponseEntity<>(new ApiResponse(emailService.createEmailToken(findTempMember))
                 , HttpStatus.OK);
     }
 
@@ -180,12 +180,5 @@ public class MemberController {
     @PostMapping(value = "/find-Id")
     public ResponseEntity<Boolean> findId(@RequestParam String email) throws MessagingException {
         return new ResponseEntity<>(findIdService.findById(email), HttpStatus.OK);
-    }
-
-    @Data
-    @AllArgsConstructor
-    static class SignUpResponse {
-
-        private String uuid;
     }
 }
