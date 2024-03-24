@@ -33,50 +33,7 @@ public class MemberController {
     private final JwtService jwtService;
     private final FindIdService findIdService;
 
-    //임시 회원가입
-    @PostMapping(value = "/sign-up")
-    public ResponseEntity<ApiResponse> signUp(@RequestBody SignUpRequest request) throws MessagingException {
-        MemberTemp findTempMember = memberService.signUpMemberTemp(request);
-        return new ResponseEntity<>(new ApiResponse(emailService.createEmailToken(findTempMember))
-                , HttpStatus.OK);
-    }
 
-    //이메일 인증 확인 후 회원가입
-    @GetMapping("/confirm-email")
-    public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {
-        MemberTemp memberTemp = emailService.findByUuid(uuid);
-        memberService.signUpMember(memberTemp);
-        return new ResponseEntity<>(true, HttpStatus.OK);
-    }
-
-    @GetMapping(value = "/sign-up-finish")
-    public ResponseEntity<Boolean> signUpFinish(@RequestParam String uuid) {
-        return new ResponseEntity<>(memberService.signUpFinish(uuid), HttpStatus.OK);
-    }
-
-    //로그인
-    @PostMapping("/sign-in")
-    public ResponseEntity<ApiResponse> signIn(@RequestBody SignInRequest request, HttpServletResponse response) {
-        try {
-            TokenDto tokenDto = memberService.signIn(request, response);
-            ApiResponse apiResponse = new ApiResponse("로그인 되었습니다.", tokenDto);
-            return ResponseEntity.ok(apiResponse);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("다시 로그인 해주세요."));
-        }
-    }
-
-    //자동 로그인
-    @PostMapping("/auto-sign-in")
-    public ResponseEntity<ApiResponse> autoSignIn(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            TokenDto tokenDto = jwtService.refreshToken(request, response);
-            ApiResponse apiResponse = new ApiResponse("자동로그인 되었습니다.", tokenDto);
-            return ResponseEntity.ok(apiResponse);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("다시 로그인 해주세요."));
-        }
-    }
 
 //    //로그아웃
 //    @PostMapping("/sign-out")

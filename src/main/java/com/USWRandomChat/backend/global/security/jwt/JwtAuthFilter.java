@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -20,11 +21,12 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 로그인 요청의 경우 토큰 검증을 수행하지 않음
-        if ("/member/sign-in".equals(request.getRequestURI()) && "POST".equalsIgnoreCase(request.getMethod())) {
+        // AntPathMatcher를 사용해 토큰 검증을 수행하지 않는 API 패턴 확인
+        if (pathMatcher.match("/auth/**", request.getRequestURI()) && "POST".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }

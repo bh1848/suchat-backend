@@ -31,18 +31,18 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class JwtProvider {
 
-    private final JpaUserDetailsService userDetailsService;
-    private final RedisTemplate<String, String> redisTemplate;
-
-    @Value("${jwt.secret.key}")
-    private String secretKeyString;
-    private Key secretKey;
-
     public static final String COOKIE_NAME = "refreshToken";
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
+    // Magic Number 대신 상수 사용
+    private static final int BEARER_TOKEN_PREFIX_LENGTH = BEARER_PREFIX.length();
     private static final long ACCESS_TOKEN_EXPIRATION_TIME = 3600000L; //1시간
     private static final long REFRESH_TOKEN_EXPIRATION_TIME = 1209600000L; //2주
+    private final JpaUserDetailsService userDetailsService;
+    private final RedisTemplate<String, String> redisTemplate;
+    @Value("${jwt.secret.key}")
+    private String secretKeyString;
+    private Key secretKey;
 
     @PostConstruct
     protected void init() {
@@ -109,18 +109,22 @@ public class JwtProvider {
     public String resolveAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(7);
+            return bearerToken.substring(BEARER_TOKEN_PREFIX_LENGTH);
         }
         return null;
     }
 
-    //엑세스 토큰 해석
-    public boolean validateAccessToken(String accessToken) throws TokenException {
-        // 엑세스 토큰이 null이거나 공백인 경우에 대한 검증 추가
-        if (accessToken == null || accessToken.trim().isEmpty()) {
-            log.error("엑세스 토큰이 비어 있습니다.");
-            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
+    //토큰 검증 공통 로직
+    private void validateTokenNotEmpty(String token, ExceptionType exceptionType) throws TokenException {
+        if (token == null || token.trim().isEmpty()) {
+            log.error("{}가 비어 있습니다.", exceptionType == ExceptionType.ACCESS_TOKEN_REQUIRED ? "엑세스 토큰" : "리프레시 토큰");
+            throw new TokenException(exceptionType);
         }
+    }
+
+    //엑세스 토큰 유효성 검사
+    public boolean validateAccessToken(String accessToken) throws TokenException {
+        validateTokenNotEmpty(accessToken, ExceptionType.INVALID_ACCESS_TOKEN);
 
         try {
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
@@ -133,12 +137,7 @@ public class JwtProvider {
 
     //리프레시 토큰 유효성 검사
     public boolean validateRefreshToken(String refreshToken) throws TokenException {
-        //리프레시 토큰이 null이거나 공백인 경우 검증
-        if (refreshToken == null || refreshToken.trim().isEmpty()) {
-            log.error("리프레시 토큰이 null이거나 비어 있습니다.");
-            throw new TokenException(ExceptionType.INVALID_REFRESH_TOKEN);
-        }
-
+        validateTokenNotEmpty(refreshToken, ExceptionType.INVALID_REFRESH_TOKEN);
         return Boolean.TRUE.equals(redisTemplate.hasKey("RT:" + refreshToken));
     }
 

@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.member.verification.dto;
+package com.USWRandomChat.backend.auth.dto;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.member.verification.domain;
+package com.USWRandomChat.backend.auth.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
