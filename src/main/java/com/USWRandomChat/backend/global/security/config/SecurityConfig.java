@@ -31,10 +31,10 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
-
+    private final CustomAuthEntryPoint customAuthEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
     @Bean
     public JwtAuthFilter jwtAuthFilter() {
-        // JwtService를 JwtAuthenticationFilter에 주입
         return new JwtAuthFilter(jwtProvider);
     }
 
@@ -54,16 +54,8 @@ public class SecurityConfig {
                 .and()
                 .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling()
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write("권한이 없는 사용자입니다.");
-                })
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write("인증되지 않은 사용자입니다.");
-                });
+                .accessDeniedHandler(customAccessDeniedHandler)
+                .authenticationEntryPoint(customAuthEntryPoint);
 
         return http.build();
     }

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -24,19 +25,35 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // AntPathMatcher를 사용해 토큰 검증을 수행하지 않는 API 패턴 확인
-        if (pathMatcher.match("/auth/**", request.getRequestURI()) && "POST".equalsIgnoreCase(request.getMethod())) {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        if (isSkippedPath(request)) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        // 기존 토큰 검증 로직
-        String accessToken = jwtProvider.resolveAccessToken(request);
-        if (jwtProvider.validateAccessToken(accessToken)) {
-            Authentication auth = jwtProvider.getAuthentication(accessToken);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+        String accessToken = resolveAccessToken(request);
+        if (accessToken != null && jwtProvider.validateAccessToken(accessToken)) {
+            Authentication authentication = jwtProvider.getAuthentication(accessToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else {
+            log.warn("엑세스 토큰 검증 오류");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
         filterChain.doFilter(request, response);
+    }
+
+    //토큰 필요 없는 api
+    private boolean isSkippedPath(HttpServletRequest request) {
+        return pathMatcher.match("/auth/**", request.getRequestURI());
+    }
+    
+    //엑세스 토큰 해석
+    private String resolveAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(JwtProvider.AUTHORIZATION_HEADER);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(JwtProvider.BEARER_PREFIX)) {
+            return bearerToken.substring(JwtProvider.BEARER_PREFIX.length());
+        }
+        return null;
     }
 }

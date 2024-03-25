@@ -24,7 +24,7 @@ public class RepositoryExceptionAspect {
     @AfterThrowing(
             pointcut = "execution(* com.USWRandomChat.backend.member.repository.*.*(..)) || " +
                        "execution(* com.USWRandomChat.backend.profile.repository.*.*(..)) || " +
-                       "execution(* com.USWRandomChat.backend.emailAuth.repository.*.*(..)) || " +
+                       "execution(* com.USWRandomChat.backend.email.repository.*.*(..)) || " +
                        "execution(* com.USWRandomChat.backend.chat.repository.*.*(..))",
             throwing = "ex"
     )

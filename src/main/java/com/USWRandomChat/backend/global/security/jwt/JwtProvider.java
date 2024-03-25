@@ -26,30 +26,28 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
-@Slf4j
 public class JwtProvider {
-
-    public static final String COOKIE_NAME = "refreshToken";
-    public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String BEARER_PREFIX = "Bearer ";
-    // Magic Number 대신 상수 사용
-    private static final int BEARER_TOKEN_PREFIX_LENGTH = BEARER_PREFIX.length();
-    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 3600000L; //1시간
-    private static final long REFRESH_TOKEN_EXPIRATION_TIME = 1209600000L; //2주
     private final JpaUserDetailsService userDetailsService;
     private final RedisTemplate<String, String> redisTemplate;
+
     @Value("${jwt.secret.key}")
     private String secretKeyString;
     private Key secretKey;
+    public static final String COOKIE_NAME = "refreshToken";
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String BEARER_PREFIX = "Bearer ";
+    public static final String REFRESH_TOKEN_PREFIX = "RT:";
+    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 3600000L; //1시간
+    private static final long REFRESH_TOKEN_EXPIRATION_TIME = 1209600000L; //2주
 
     @PostConstruct
     protected void init() {
         this.secretKey = Keys.hmacShaKeyFor(secretKeyString.getBytes(StandardCharsets.UTF_8));
     }
 
-    //엑세스 토큰 발급
     public String createAccessToken(String username, List<String> roles) {
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("roles", roles);
@@ -62,7 +60,6 @@ public class JwtProvider {
                 .compact();
     }
 
-    //리프레시 토큰 발급
     public String createRefreshToken() {
         Date now = new Date();
         return Jwts.builder()
@@ -72,46 +69,28 @@ public class JwtProvider {
                 .compact();
     }
 
-    //리프레시 토큰을 쿠키에 추가하고 Redis에 저장하는 로직
+    //엑세스 토큰을 헤더에 삽입
+    public void addAccessTokenToHeader(HttpServletResponse response, String accessToken) {
+        response.addHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken);
+    }
+
+    //리프레시 토큰을 쿠키에 추가하고 Redis에 저장
     public void addCookieAndSaveTokenInRedis(HttpServletResponse response, String refreshToken, String account) {
         Cookie cookie = createCookie(refreshToken); //쿠키 유효시간 설정
         response.addCookie(cookie);
         redisTemplate.opsForValue().set("RT:" + refreshToken, account, REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
     }
-
-
-    //엑세스 토큰을 HTTP 응답 헤더에 추가하는 로직
-    public void addAccessTokenToHeader(HttpServletResponse response, String accessToken) {
-        response.addHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken);
-    }
-
+    
     //권한 확인
-    @Transactional(readOnly = true) //LAZY 에러 해결하기 위해 필요
+    @Transactional(readOnly = true)
     public Authentication getAuthentication(String accessToken) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getAccount(accessToken));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(getAccount(accessToken));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
-
-    //계정 추출
-    public String getAccount(String accessToken) throws TokenException {
-        try {
-            return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken).getBody().getSubject();
-        } catch (ExpiredJwtException e) {
-            log.error("엑세스 토큰 만료", e);
-            throw new TokenException(ExceptionType.ACCESS_TOKEN_REQUIRED);
-        } catch (Exception e) {
-            log.error("엑세스 토큰 오류", e);
-            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
-        }
-    }
-
-    //헤더 해석
-    public String resolveAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(BEARER_TOKEN_PREFIX_LENGTH);
-        }
-        return null;
+    
+    //계정 확인
+    public String getAccount(String accessToken) {
+        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken).getBody().getSubject();
     }
 
     //토큰 검증 공통 로직
@@ -125,7 +104,6 @@ public class JwtProvider {
     //엑세스 토큰 유효성 검사
     public boolean validateAccessToken(String accessToken) throws TokenException {
         validateTokenNotEmpty(accessToken, ExceptionType.INVALID_ACCESS_TOKEN);
-
         try {
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
             return !claims.getBody().getExpiration().before(new Date());
@@ -138,7 +116,7 @@ public class JwtProvider {
     //리프레시 토큰 유효성 검사
     public boolean validateRefreshToken(String refreshToken) throws TokenException {
         validateTokenNotEmpty(refreshToken, ExceptionType.INVALID_REFRESH_TOKEN);
-        return Boolean.TRUE.equals(redisTemplate.hasKey("RT:" + refreshToken));
+        return Boolean.TRUE.equals(redisTemplate.hasKey(REFRESH_TOKEN_PREFIX + refreshToken));
     }
 
     //요청 쿠키에서 리프레시 토큰 추출

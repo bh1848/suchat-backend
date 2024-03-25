@@ -1,9 +1,8 @@
 package com.USWRandomChat.backend.global.redis;
 
-import com.USWRandomChat.backend.chat.service.RedisSubscriber;
+import com.USWRandomChat.backend.chat.secure.service.RedisSubscriber;
 import org.springframework.beans.factory.annotation.Value;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;

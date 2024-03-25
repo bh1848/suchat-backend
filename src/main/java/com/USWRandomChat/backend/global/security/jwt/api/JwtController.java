@@ -25,7 +25,7 @@ public class JwtController {
     @PostMapping("/renew-token")
     public ResponseEntity<ApiResponse> renewToken(HttpServletRequest request, HttpServletResponse response) {
         try {
-            TokenDto tokenDto = jwtService.refreshToken(request, response);
+            TokenDto tokenDto = jwtService.renewToken(request, response);
             ApiResponse apiResponse = new ApiResponse("자동로그인 되었습니다.", tokenDto);
             return ResponseEntity.ok(apiResponse);
         } catch (Exception e) {
