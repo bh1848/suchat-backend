@@ -5,9 +5,8 @@ import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
-import com.USWRandomChat.backend.global.security.jwt.domain.Token;
 import com.USWRandomChat.backend.global.security.jwt.repository.JwtRepository;
-import com.USWRandomChat.backend.global.security.jwt.service.JwtService;
+import com.USWRandomChat.backend.global.security.jwt.service.AuthenticationService;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.dto.MemberDTO;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
@@ -16,6 +15,8 @@ import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,66 +37,38 @@ public class MemberSecureService {
     private final JwtProvider jwtProvider;
     private final ProfileRepository profileRepository;
     private final JwtRepository jwtRepository;
+    private final AuthenticationService authenticationService;
+
     //로그아웃
-    public void signOut(HttpServletRequest request, HttpServletResponse response) {
+    public void signOut(HttpServletRequest request, HttpServletResponse response) throws TokenException{
         String refreshToken = jwtProvider.resolveRefreshToken(request);
         if (refreshToken != null && !refreshToken.isBlank()) {
             redisTemplate.delete(JwtProvider.REFRESH_TOKEN_PREFIX + refreshToken);
             jwtProvider.deleteCookie(response);
         } else {
-            log.warn("Attempt to sign out without a refresh token.");
+            log.warn("리프레시 토큰이 없습니다.");
+            throw new TokenException(ExceptionType.REFRESH_TOKEN_EXPIRED);
         }
     }
 
     //회원 탈퇴
-    public void withdraw(String accessToken) {
-        //엑세스 토큰의 유효성 검사
-        if (!jwtProvider.validateAccessToken(accessToken)) {
-            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
-        }
-
-        //토큰이 유효한 경우, 계정 정보를 추출
-        String account = jwtProvider.getAccount(accessToken);
+    public void withdraw(HttpServletRequest request) {
+        UserDetails userDetails = authenticationService.getUserDetails(request);
+        String account = userDetails.getUsername();
 
         Member member = memberRepository.findByAccount(account)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
-        //저장된 Refresh Token을 찾아 삭제
-        Optional<Token> refreshToken = jwtRepository.findById(member.getId());
-        refreshToken.ifPresent(jwtRepository::delete);
-
-        //회원 삭제
+        jwtRepository.deleteById(member.getAccount());
         memberRepository.deleteById(member.getId());
-        log.info("회원 탈퇴 완료: memberId={}", account);
-    }
-
-    //전체 조회
-    @Transactional(readOnly = true)
-    public List<Member> findAll() {
-        return memberRepository.findAll();
-    }
-
-
-
-    //회원가입 시의 닉네임 중복 확인
-    @Transactional(readOnly = true)
-    public void checkDuplicateNicknameSignUp(MemberDTO memberDTO) {
-        profileRepository.findByNickname(memberDTO.getNickname())
-                .ifPresent(profile -> {
-                    throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);
-                });
+        log.info("회원 탈퇴 완료: account={}", account);
     }
 
     //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
     @Transactional(readOnly = true)
-    public void checkDuplicateNickname(String accessToken, MemberDTO memberDTO) {
-        //엑세스 토큰의 유효성 검사
-        if (!jwtProvider.validateAccessToken(accessToken)) {
-            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
-        }
-
-        //토큰이 유효한 경우, 계정 정보를 추출
-        String account = jwtProvider.getAccount(accessToken);
+    public void checkDuplicateNickname(HttpServletRequest request, MemberDTO memberDTO) {
+        UserDetails userDetails = authenticationService.getUserDetails(request);
+        String account = userDetails.getUsername();
 
         Member member = memberRepository.findByAccount(account)
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));

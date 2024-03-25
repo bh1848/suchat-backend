@@ -1,11 +1,9 @@
 package com.USWRandomChat.backend.global.security.jwt.domain;
 
-import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.member.repository.MemberRepository;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 
@@ -22,17 +20,23 @@ public class Token {
 
     private String account;
 
+    @Setter
     private String refreshToken;
 
+    @Setter
     @TimeToLive(unit = TimeUnit.SECONDS)
     private long expiration;
 
-    public void setExpiration(long expiration) {
+    private Token(String account, String refreshToken, long expiration) {
+        this.account = account;
+        this.refreshToken = refreshToken;
         this.expiration = expiration;
     }
 
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+    // 정적 팩토리 메소드
+    public static Token createToken(String account, String refreshToken, long expirationInSeconds) {
+        return new Token(account, refreshToken, expirationInSeconds);
     }
+
 }
 

@@ -1,8 +1,11 @@
 package com.USWRandomChat.backend.member.open.api;
 
-import com.USWRandomChat.backend.email.open.service.EmailService;
+import com.USWRandomChat.backend.email.service.EmailService;
 import com.USWRandomChat.backend.global.response.ApiResponse;
+import com.USWRandomChat.backend.global.response.ListResponse;
+import com.USWRandomChat.backend.global.response.ResponseService;
 import com.USWRandomChat.backend.global.security.jwt.dto.TokenDto;
+import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
 import com.USWRandomChat.backend.member.dto.MemberDTO;
 import com.USWRandomChat.backend.member.dto.SignInRequest;
@@ -26,6 +29,7 @@ public class MemberOpenController {
 
     private final EmailService emailService;
     private final MemberOpenService memberOpenService;
+    private final ResponseService responseService;
 
     //member_table에 들어가기 전 임시 데이터 넣기
     @PostMapping(value = "/sign-up")
@@ -52,13 +56,8 @@ public class MemberOpenController {
     //로그인
     @PostMapping("/sign-in")
     public ResponseEntity<ApiResponse> signIn(@RequestBody SignInRequest request, HttpServletResponse response) {
-        try {
-            TokenDto tokenDto = memberOpenService.signIn(request, response);
-            ApiResponse apiResponse = new ApiResponse("로그인 되었습니다.", tokenDto);
-            return ResponseEntity.ok(apiResponse);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("다시 로그인 해주세요."));
-        }
+        TokenDto tokenDto = memberOpenService.signIn(request, response);
+        return ResponseEntity.ok(new ApiResponse("로그인 되었습니다.", tokenDto));
     }
 
     //이메일 재인증
@@ -72,7 +71,7 @@ public class MemberOpenController {
         }
     }
 
-    //계정 중복 체크
+    //회원가입 시의 계정 중복 체크
     @PostMapping("/check-duplicate-account")
     public ResponseEntity<ApiResponse> checkDuplicateAccount(@RequestBody MemberDTO request) {
         try {
@@ -83,7 +82,7 @@ public class MemberOpenController {
         }
     }
 
-    //이메일 중복 확인
+    //회원가입 시의 이메일 중복 확인
     @PostMapping("/check-duplicate-email")
     public ResponseEntity<ApiResponse> checkDuplicateEmail(@RequestBody MemberDTO memberDTO) {
         try {
@@ -92,5 +91,22 @@ public class MemberOpenController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("이미 사용하고 있는 이메일입니다."));
         }
+    }
+
+    //회원가입 시의 닉네임 확인
+    @PostMapping("/check-duplicate-nickname-signUp")
+    public ResponseEntity<ApiResponse> checkDuplicateNicknameSignUp(@RequestBody MemberDTO memberDTO) {
+        try {
+            memberOpenService.checkDuplicateNicknameSignUp(memberDTO);
+            return ResponseEntity.ok(new ApiResponse("사용 가능한 닉네임입니다."));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("이미 사용하고 있는 닉네임입니다."));
+        }
+    }
+
+    //전체 조회(테스트 용도)
+    @GetMapping("/members")
+    public ListResponse<Member> findAll() {
+        return responseService.getListResponse(memberOpenService.findAll());
     }
 }

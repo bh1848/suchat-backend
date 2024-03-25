@@ -4,6 +4,7 @@ import com.USWRandomChat.backend.email.domain.EmailToken;
 import com.USWRandomChat.backend.email.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
+import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.global.security.domain.Authority;
 import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
 import com.USWRandomChat.backend.global.security.jwt.dto.TokenDto;
@@ -132,7 +133,7 @@ public class MemberOpenService {
         return new TokenDto(accessToken, refreshToken);
     }
 
-    //계정 중복 확인
+    //회원 가입 시의 계정 중복 확인
     @Transactional(readOnly = true)
     public void checkDuplicateAccount(MemberDTO memberDTO) {
         Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
@@ -141,7 +142,7 @@ public class MemberOpenService {
         }
     }
 
-    //이메일 중복 확인
+    //회원가입 시의 이메일 중복 확인
     @Transactional(readOnly = true)
     public void checkDuplicateEmail(MemberDTO memberDTO) {
         Member member = memberRepository.findByEmail(memberDTO.getEmail());
@@ -149,5 +150,20 @@ public class MemberOpenService {
         if (member != null) {
             throw new AccountException(ExceptionType.EMAIL_OVERLAP);
         }
+    }
+
+    //회원가입 시의 닉네임 중복 확인
+    @Transactional(readOnly = true)
+    public void checkDuplicateNicknameSignUp(MemberDTO memberDTO) {
+        profileRepository.findByNickname(memberDTO.getNickname())
+                .ifPresent(profile -> {
+                    throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);
+                });
+    }
+
+    //전체 조회(테스트 용도)
+    @Transactional(readOnly = true)
+    public List<Member> findAll() {
+        return memberRepository.findAll();
     }
 }

@@ -1,4 +1,4 @@
-package com.USWRandomChat.backend.email.open.service;
+package com.USWRandomChat.backend.email.service;
 
 import com.USWRandomChat.backend.email.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.email.domain.EmailToken;

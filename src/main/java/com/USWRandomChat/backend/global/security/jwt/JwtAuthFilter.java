@@ -31,7 +31,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        String accessToken = resolveAccessToken(request);
+        String accessToken = jwtProvider.resolveAccessToken(request);
         if (accessToken != null && jwtProvider.validateAccessToken(accessToken)) {
             Authentication authentication = jwtProvider.getAuthentication(accessToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -43,17 +43,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    //토큰 필요 없는 api
+    //검증 필요 없는 API
     private boolean isSkippedPath(HttpServletRequest request) {
-        return pathMatcher.match("/auth/**", request.getRequestURI());
-    }
-    
-    //엑세스 토큰 해석
-    private String resolveAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(JwtProvider.AUTHORIZATION_HEADER);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(JwtProvider.BEARER_PREFIX)) {
-            return bearerToken.substring(JwtProvider.BEARER_PREFIX.length());
+        // 검증하지 않을 경로 패턴들
+        String[] skipPaths = {
+                "/member/open/**"
+        };
+
+        for (String path : skipPaths) {
+            if (pathMatcher.match(path, request.getRequestURI())) {
+                return true;
+            }
         }
-        return null;
+        return false;
     }
 }

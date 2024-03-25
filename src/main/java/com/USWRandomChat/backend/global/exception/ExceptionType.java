@@ -45,6 +45,7 @@ public enum ExceptionType {
     Nickname_Not_Provided("USR-MEM-209", "닉네임이 입력되지 않았습니다.", BAD_REQUEST),
     WITH_DRAW_FAIL("USR-MEM-210","회원 탈퇴에 실패했습니다.",BAD_REQUEST),
     SIGN_OUT_FAIL("USR-MEM-211", "로그아웃에 실패했습니다", BAD_REQUEST),
+    USER_NOT_AUTHENTICATION("USR-MEM-212", "인증이 필요합니다.", BAD_REQUEST),
 
     /**
      * Domain : Profile

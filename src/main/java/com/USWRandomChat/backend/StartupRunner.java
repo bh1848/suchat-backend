@@ -1,6 +1,6 @@
 package com.USWRandomChat.backend;
 
-import com.USWRandomChat.backend.email.open.service.EmailAuthSchedulerService;
+import com.USWRandomChat.backend.email.service.EmailAuthSchedulerService;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
 import com.USWRandomChat.backend.member.dto.SignUpRequest;
 import com.USWRandomChat.backend.member.open.service.MemberOpenService;
