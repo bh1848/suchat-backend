@@ -11,23 +11,30 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/profile")
+@RequestMapping("/profile/secure")
 @RequiredArgsConstructor
 public class ProfileSecureController {
 
     private final ProfileSecureService profileSecureService;
 
-    //프로필 조회
-    @GetMapping("/get-profile")
-    public ResponseEntity<ApiResponse> getProfile(HttpServletRequest request, @RequestParam String targetAccount) {
-        ProfileResponse profileResponse = profileSecureService.getProfile(request, targetAccount);
-        return ResponseEntity.ok(new ApiResponse("프로필 조회 성공했습니다.", profileResponse));
+    //자신의 프로필 조회
+    @GetMapping("/get-my-profile")
+    public ResponseEntity<ApiResponse> getMyProfile(HttpServletRequest request) {
+        ProfileResponse profileResponse = profileSecureService.getMyProfile(request);
+        return ResponseEntity.ok(new ApiResponse("프로필 조회 성공.", profileResponse));
     }
 
-    //프로필 업데이트
-    @PatchMapping("/update-profile")
-    public ResponseEntity<ApiResponse> updateProfile(HttpServletRequest request, @RequestBody ProfileRequest profileRequest) {
-        ProfileResponse updatedProfile = profileSecureService.updateProfile(request, profileRequest);
-        return ResponseEntity.ok(new ApiResponse("프로필 업데이트 성공", updatedProfile));
+    //다른 사용자의 프로필 조회
+    @GetMapping("/get-other-profile")
+    public ResponseEntity<ApiResponse> getOtherProfile(HttpServletRequest request, @RequestParam String targetAccount) {
+        ProfileResponse profileResponse = profileSecureService.getOtherProfile(request, targetAccount);
+        return ResponseEntity.ok(new ApiResponse("프로필 조회 성공.", profileResponse));
+    }
+
+    //자신의 프로필 업데이트
+    @PatchMapping("/update-my-profile")
+    public ResponseEntity<ApiResponse> updateMyProfile(HttpServletRequest request, @RequestBody ProfileRequest profileRequest) {
+        ProfileResponse updatedProfile = profileSecureService.updateMyProfile(request, profileRequest);
+        return ResponseEntity.ok(new ApiResponse("프로필 업데이트 성공.", updatedProfile));
     }
 }

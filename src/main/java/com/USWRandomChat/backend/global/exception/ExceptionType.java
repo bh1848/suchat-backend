@@ -57,6 +57,7 @@ public enum ExceptionType {
     PROFILE_GET_FAIL("USR-PFL-205", "프로필 조회에 실패했습니다.", BAD_REQUEST),
     PROFILE_UPDATE_FAIL("USR-PFL-206", "프로필 업데이트에 실패했습니다.",BAD_REQUEST),
 
+
     /**
      * Domain : Token
      */
@@ -89,9 +90,8 @@ public enum ExceptionType {
     /**
      * 공통
      */
-    SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR), //500
+    SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR);
 
-    ;
 
     private final String code;
     private final String message;

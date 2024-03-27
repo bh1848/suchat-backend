@@ -1,10 +1,7 @@
 package com.USWRandomChat.backend.profile.domain;
 
 import com.USWRandomChat.backend.member.domain.Member;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,34 +22,19 @@ public class Profile {
     @JoinColumn(name = "member_id",referencedColumnName = "id")
     private Member member;
 
+    @Setter
     @Column(nullable = false)
     private String nickname;
 
+    @Setter
     private LocalDateTime nicknameChangeDate;
 
+    @Setter
     private String mbti;
 
+    @Setter
     private String intro;
 
+    @Setter
     private String roomId;
-
-    public void setNickname(String nickname){
-        this.nickname = nickname;
-    }
-
-    public void setNicknameChangeDate(LocalDateTime nicknameChangeDate){
-        this.nicknameChangeDate = nicknameChangeDate;
-    }
-
-    public void setMbti(String mbti){
-        this.mbti = mbti;
-    }
-
-    public void setIntro(String intro){
-        this.intro = intro;
-    }
-
-    public void setRoomId(String roomId){
-        this.roomId = roomId;
-    }
 }

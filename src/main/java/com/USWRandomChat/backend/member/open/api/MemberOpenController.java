@@ -7,11 +7,10 @@ import com.USWRandomChat.backend.global.response.ResponseService;
 import com.USWRandomChat.backend.global.security.jwt.dto.TokenDto;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
-import com.USWRandomChat.backend.member.dto.MemberDto;
-import com.USWRandomChat.backend.member.dto.SignInRequest;
-import com.USWRandomChat.backend.member.dto.SignUpRequest;
+import com.USWRandomChat.backend.member.dto.*;
 import com.USWRandomChat.backend.member.open.service.FindIdService;
 import com.USWRandomChat.backend.member.open.service.MemberOpenService;
+import com.USWRandomChat.backend.member.open.service.PasswordUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -101,5 +100,32 @@ public class MemberOpenController {
     @PostMapping(value = "/find-Id")
     public ResponseEntity<Boolean> findId(@RequestParam String email) {
         return new ResponseEntity<>(findIdService.findById(email), HttpStatus.OK);
+    }
+    private final PasswordUpdateService passwordUpdateService;
+
+    //인증번호 생성 및 전송 요청 처리
+    @PostMapping("/send-code")
+    public ResponseEntity<ApiResponse> sendVerificationCode(@RequestBody SendVerificationCodeRequest request) {
+        String uuid = String.valueOf(passwordUpdateService.sendVerificationCode(request.getAccount(), request.getEmail()));
+        SendVerificationCodeResponse response = new SendVerificationCodeResponse(uuid);
+        return ResponseEntity.ok(new ApiResponse("인증번호가 전송되었습니다.", response));
+    }
+
+    //인증번호 확인 요청 처리
+    @PostMapping("/verify-code")
+    public ResponseEntity<ApiResponse> verifyCode(@RequestParam String uuid, @RequestParam String verificationCode) {
+        boolean isVerified = passwordUpdateService.verifyCode(uuid, verificationCode);
+        if (isVerified) {
+            return ResponseEntity.ok(new ApiResponse("인증번호가 확인됐습니다."));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("인증번호가 맞지 않습니다."));
+        }
+    }
+
+    //비밀번호 변경 요청 처리
+    @PatchMapping("/update-password")
+    public ResponseEntity<ApiResponse> updatePassword(@RequestParam String uuid, @RequestBody UpdatePasswordRequest request) {
+        passwordUpdateService.updatePassword(uuid, request.getNewPassword(), request.getConfirmNewPassword());
+        return ResponseEntity.ok(new ApiResponse("비밀번호가 변경됐습니다."));
     }
 }
