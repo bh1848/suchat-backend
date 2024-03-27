@@ -23,7 +23,7 @@ import javax.validation.Valid;
 
 @Slf4j
 @RestController
-@RequestMapping("/member/open")
+@RequestMapping("/open/member")
 @RequiredArgsConstructor
 public class MemberOpenController {
 

@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
 @RestController
-@RequestMapping("/jwt/secure")
+@RequestMapping("/secure/jwt")
 @RequiredArgsConstructor
 public class JwtController {
 

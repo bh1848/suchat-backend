@@ -1,6 +1,7 @@
 package com.USWRandomChat.backend.profile.secure.api;
 
 import com.USWRandomChat.backend.global.response.ApiResponse;
+import com.USWRandomChat.backend.member.dto.MemberDto;
 import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import com.USWRandomChat.backend.profile.dto.ProfileResponse;
 import com.USWRandomChat.backend.profile.secure.service.ProfileSecureService;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/profile/secure")
+@RequestMapping("/secure/profile")
 @RequiredArgsConstructor
 public class ProfileSecureController {
 
@@ -36,5 +37,12 @@ public class ProfileSecureController {
     public ResponseEntity<ApiResponse> updateMyProfile(HttpServletRequest request, @RequestBody ProfileRequest profileRequest) {
         ProfileResponse updatedProfile = profileSecureService.updateMyProfile(request, profileRequest);
         return ResponseEntity.ok(new ApiResponse("프로필 업데이트 성공.", updatedProfile));
+    }
+
+    //이미 가입된 사용자의 닉네임 중복 확인
+    @PostMapping("/check-duplicate-nickname")
+    public ResponseEntity<ApiResponse> checkDuplicateNickname(HttpServletRequest request, @RequestBody MemberDto memberDTO) {
+        profileSecureService.checkDuplicateNickname(request, memberDTO);
+        return ResponseEntity.ok(new ApiResponse("사용 가능한 닉네임입니다."));
     }
 }

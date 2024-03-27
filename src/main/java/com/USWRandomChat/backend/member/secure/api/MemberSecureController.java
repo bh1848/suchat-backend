@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
 @RestController
-@RequestMapping("/member/secure")
+@RequestMapping("/secure/member")
 @RequiredArgsConstructor
 public class MemberSecureController {
 
@@ -31,12 +31,5 @@ public class MemberSecureController {
     public ResponseEntity<ApiResponse> withdraw(HttpServletRequest request) {
         memberSecureService.withdraw(request);
         return ResponseEntity.ok(new ApiResponse("회원 탈퇴가 완료됐습니다."));
-    }
-
-    //이미 가입된 사용자의 닉네임 중복 확인
-    @PostMapping("/check-nickname")
-    public ResponseEntity<ApiResponse> checkDuplicateNickname(HttpServletRequest request, @RequestBody MemberDto memberDTO) {
-        memberSecureService.checkDuplicateNickname(request, memberDTO);
-        return ResponseEntity.ok(new ApiResponse("사용 가능한 닉네임입니다."));
     }
 }

@@ -30,7 +30,7 @@ public class EmailService {
     //서버주소
     private static final String BASE_URL = "http://localhost:8080";
     //이메일 인증 경로
-    private static final String CONFIRM_EMAIL_PATH = "/member/confirm-email";
+    private static final String CONFIRM_EMAIL_PATH = "/open/member/confirm-email";
 
     // 이메일 토큰 만료 시간
     private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 5L;

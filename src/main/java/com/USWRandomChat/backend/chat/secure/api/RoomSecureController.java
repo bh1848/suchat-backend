@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/match/secure")
+@RequestMapping("/secure/match")
 @Slf4j
 public class RoomSecureController {
 

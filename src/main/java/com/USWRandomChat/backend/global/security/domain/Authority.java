@@ -2,10 +2,7 @@ package com.USWRandomChat.backend.global.security.domain;
 
 import com.USWRandomChat.backend.member.domain.Member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -23,12 +20,10 @@ public class Authority {
 
     private String name;
 
+    @Setter
     @JoinColumn(name = "member")
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private Member member;
 
-    public void setMember(Member member) {
-        this.member = member;
-    }
 }

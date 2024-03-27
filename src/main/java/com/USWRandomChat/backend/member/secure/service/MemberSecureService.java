@@ -29,11 +29,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberSecureService {
-    private static final int NICKNAME_CHANGE_LIMIT_DAYS = 30;
+
     private final RedisTemplate<String, String> redisTemplate;
     private final MemberRepository memberRepository;
     private final JwtProvider jwtProvider;
-    private final ProfileRepository profileRepository;
     private final JwtRepository jwtRepository;
     private final AuthenticationService authenticationService;
 
@@ -55,31 +54,5 @@ public class MemberSecureService {
         jwtRepository.deleteById(member.getAccount());
         memberRepository.deleteById(member.getId());
         log.info("회원 탈퇴 완료: account={}", member.getAccount());
-    }
-
-    //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
-    @Transactional(readOnly = true)
-    public void checkDuplicateNickname(HttpServletRequest request, MemberDto memberDTO) {
-        Member member = authenticationService.getAuthenticatedMember(request);
-
-        Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
-                new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime lastChangeTime = Optional.ofNullable(profile.getNicknameChangeDate())
-                .orElse(LocalDateTime.MIN);
-
-        //30일 이내에 변경한 경우 예외 발생
-        if (ChronoUnit.DAYS.between(lastChangeTime, now) < NICKNAME_CHANGE_LIMIT_DAYS) {
-            throw new AccountException(ExceptionType.NICKNAME_EXPIRATION_TIME);
-        }
-
-        //닉네임 중복 확인 (현재 사용자의 닉네임 제외)
-        profileRepository.findByNickname(memberDTO.getNickname())
-                .ifPresent(existingProfile -> {
-                    if (!existingProfile.getMember().getId().equals(member.getId())) {
-                        throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);
-                    }
-                });
     }
 }
