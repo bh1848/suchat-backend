@@ -10,7 +10,7 @@ import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
 import com.USWRandomChat.backend.global.security.jwt.dto.TokenDto;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
-import com.USWRandomChat.backend.member.dto.MemberDTO;
+import com.USWRandomChat.backend.member.dto.MemberDto;
 import com.USWRandomChat.backend.member.dto.SignInRequest;
 import com.USWRandomChat.backend.member.dto.SignUpRequest;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
@@ -135,7 +135,7 @@ public class MemberOpenService {
 
     //회원 가입 시의 계정 중복 확인
     @Transactional(readOnly = true)
-    public void checkDuplicateAccount(MemberDTO memberDTO) {
+    public void checkDuplicateAccount(MemberDto memberDTO) {
         Optional<Member> byAccount = memberRepository.findByAccount(memberDTO.getAccount());
         if (byAccount.isPresent()) {
             throw new AccountException(ExceptionType.ACCOUNT_OVERLAP);
@@ -144,7 +144,7 @@ public class MemberOpenService {
 
     //회원가입 시의 이메일 중복 확인
     @Transactional(readOnly = true)
-    public void checkDuplicateEmail(MemberDTO memberDTO) {
+    public void checkDuplicateEmail(MemberDto memberDTO) {
         Member member = memberRepository.findByEmail(memberDTO.getEmail());
 
         if (member != null) {
@@ -154,7 +154,7 @@ public class MemberOpenService {
 
     //회원가입 시의 닉네임 중복 확인
     @Transactional(readOnly = true)
-    public void checkDuplicateNicknameSignUp(MemberDTO memberDTO) {
+    public void checkDuplicateNicknameSignUp(MemberDto memberDTO) {
         profileRepository.findByNickname(memberDTO.getNickname())
                 .ifPresent(profile -> {
                     throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);

@@ -2,8 +2,6 @@ package com.USWRandomChat.backend.global.security.jwt;
 
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.TokenException;
-import com.USWRandomChat.backend.global.security.jwt.domain.Token;
-import com.USWRandomChat.backend.global.security.jwt.repository.JwtRepository;
 import com.USWRandomChat.backend.global.security.jwt.service.JpaUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

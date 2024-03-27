@@ -2,10 +2,9 @@ package com.USWRandomChat.backend.global.security.jwt.service;
 
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
-import com.USWRandomChat.backend.global.exception.errortype.TokenException;
-import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.member.domain.Member;
+import com.USWRandomChat.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,35 +12,27 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * 엑세스 토큰에서 회원 정보를 가져오는 클래스
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-    private final JwtProvider jwtProvider;
-    private final JpaUserDetailsService userDetailsService;
 
-    /**
-     * 요청으로부터 액세스 토큰을 추출하고 검증한 후,
-     * 해당 사용자의 Authentication 객체를 반환합니다.
-     *
-     **/
-    public Authentication authenticate(HttpServletRequest request) {
-        String accessToken = jwtProvider.resolveAccessToken(request);
-        if (accessToken == null || !jwtProvider.validateAccessToken(accessToken)) {
-            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
-        }
+    private final MemberRepository memberRepository;
 
-        String username = jwtProvider.getAccount(accessToken);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        return authentication;
-    }
-    public UserDetails getUserDetails(HttpServletRequest request) {
-        Authentication authentication = authenticate(request);
-        if (!(authentication.getPrincipal() instanceof UserDetails)) {
+    public Member getAuthenticatedMember(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        //인증여부 확인
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
             throw new AccountException(ExceptionType.USER_NOT_AUTHENTICATION);
         }
-        return (UserDetails) authentication.getPrincipal();
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String account = userDetails.getUsername();
+        
+        //사용자 정보 조회
+        return memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
     }
 }

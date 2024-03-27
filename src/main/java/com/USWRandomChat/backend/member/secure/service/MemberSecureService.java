@@ -8,15 +8,13 @@ import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
 import com.USWRandomChat.backend.global.security.jwt.repository.JwtRepository;
 import com.USWRandomChat.backend.global.security.jwt.service.AuthenticationService;
 import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.member.dto.MemberDTO;
+import com.USWRandomChat.backend.member.dto.MemberDto;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,25 +51,16 @@ public class MemberSecureService {
 
     //회원 탈퇴
     public void withdraw(HttpServletRequest request) {
-        UserDetails userDetails = authenticationService.getUserDetails(request);
-        String account = userDetails.getUsername();
-
-        Member member = memberRepository.findByAccount(account)
-                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
-
+        Member member = authenticationService.getAuthenticatedMember(request);
         jwtRepository.deleteById(member.getAccount());
         memberRepository.deleteById(member.getId());
-        log.info("회원 탈퇴 완료: account={}", account);
+        log.info("회원 탈퇴 완료: account={}", member.getAccount());
     }
 
     //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
     @Transactional(readOnly = true)
-    public void checkDuplicateNickname(HttpServletRequest request, MemberDTO memberDTO) {
-        UserDetails userDetails = authenticationService.getUserDetails(request);
-        String account = userDetails.getUsername();
-
-        Member member = memberRepository.findByAccount(account)
-                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+    public void checkDuplicateNickname(HttpServletRequest request, MemberDto memberDTO) {
+        Member member = authenticationService.getAuthenticatedMember(request);
 
         Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
                 new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));

@@ -7,9 +7,10 @@ import com.USWRandomChat.backend.global.response.ResponseService;
 import com.USWRandomChat.backend.global.security.jwt.dto.TokenDto;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
-import com.USWRandomChat.backend.member.dto.MemberDTO;
+import com.USWRandomChat.backend.member.dto.MemberDto;
 import com.USWRandomChat.backend.member.dto.SignInRequest;
 import com.USWRandomChat.backend.member.dto.SignUpRequest;
+import com.USWRandomChat.backend.member.open.service.FindIdService;
 import com.USWRandomChat.backend.member.open.service.MemberOpenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class MemberOpenController {
     private final EmailService emailService;
     private final MemberOpenService memberOpenService;
     private final ResponseService responseService;
+    private final FindIdService findIdService;
 
     //member_table에 들어가기 전 임시 데이터 넣기
     @PostMapping(value = "/sign-up")
@@ -62,51 +64,42 @@ public class MemberOpenController {
 
     //이메일 재인증
     @PostMapping("/reconfirm-email")
-    public ResponseEntity<ApiResponse> reconfirmEmail(@Valid @RequestParam String uuid) {
-        try{
-            emailService.recreateEmailToken(uuid);
-            return ResponseEntity.ok(new ApiResponse("이메일 재인증을 해주세요", uuid));
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("이메일 재인증에 실패했습니다."));
-        }
+    public ResponseEntity<ApiResponse> reconfirmEmail(@Valid @RequestParam String uuid) throws MessagingException {
+        emailService.recreateEmailToken(uuid);
+        return ResponseEntity.ok(new ApiResponse("이메일 재인증을 해주세요", uuid));
     }
 
     //회원가입 시의 계정 중복 체크
     @PostMapping("/check-duplicate-account")
-    public ResponseEntity<ApiResponse> checkDuplicateAccount(@RequestBody MemberDTO request) {
-        try {
-            memberOpenService.checkDuplicateAccount(request);
-            return ResponseEntity.ok(new ApiResponse("사용 가능한 계정입니다."));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("이미 사용하고 있는 계정입니다."));
-        }
+    public ResponseEntity<ApiResponse> checkDuplicateAccount(@RequestBody MemberDto request) {
+        memberOpenService.checkDuplicateAccount(request);
+        return ResponseEntity.ok(new ApiResponse("사용 가능한 계정입니다."));
     }
 
     //회원가입 시의 이메일 중복 확인
     @PostMapping("/check-duplicate-email")
-    public ResponseEntity<ApiResponse> checkDuplicateEmail(@RequestBody MemberDTO memberDTO) {
-        try {
-            memberOpenService.checkDuplicateEmail(memberDTO);
-            return ResponseEntity.ok(new ApiResponse("사용 가능한 이메일입니다."));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("이미 사용하고 있는 이메일입니다."));
-        }
+    public ResponseEntity<ApiResponse> checkDuplicateEmail(@RequestBody MemberDto memberDTO) {
+        memberOpenService.checkDuplicateEmail(memberDTO);
+        return ResponseEntity.ok(new ApiResponse("사용 가능한 이메일입니다."));
     }
 
     //회원가입 시의 닉네임 확인
     @PostMapping("/check-duplicate-nickname-signUp")
-    public ResponseEntity<ApiResponse> checkDuplicateNicknameSignUp(@RequestBody MemberDTO memberDTO) {
-        try {
-            memberOpenService.checkDuplicateNicknameSignUp(memberDTO);
-            return ResponseEntity.ok(new ApiResponse("사용 가능한 닉네임입니다."));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("이미 사용하고 있는 닉네임입니다."));
-        }
+    public ResponseEntity<ApiResponse> checkDuplicateNicknameSignUp(@RequestBody MemberDto memberDTO) {
+        memberOpenService.checkDuplicateNicknameSignUp(memberDTO);
+        return ResponseEntity.ok(new ApiResponse("사용 가능한 닉네임입니다."));
+
     }
 
     //전체 조회(테스트 용도)
     @GetMapping("/members")
     public ListResponse<Member> findAll() {
         return responseService.getListResponse(memberOpenService.findAll());
+    }
+
+    //Id 찾기 로직: 이메일 인증된 회원만
+    @PostMapping(value = "/find-Id")
+    public ResponseEntity<Boolean> findId(@RequestParam String email) {
+        return new ResponseEntity<>(findIdService.findById(email), HttpStatus.OK);
     }
 }

@@ -1,5 +1,6 @@
 package com.USWRandomChat.backend.chat.secure.service;
 
+import com.USWRandomChat.backend.chat.domain.Message;
 import com.USWRandomChat.backend.chat.dto.MessageRequest;
 import com.USWRandomChat.backend.chat.repository.MessageRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
@@ -10,22 +11,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.stereotype.Service;
-import com.USWRandomChat.backend.chat.domain.Message;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
-
-
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ChatSecureService {
 
-    private final ChannelTopic channelTopic;
-    private final RedisTemplate redisTemplate;
     private final ProfileRepository profileRepository;
     private final MessageRepository messageRepository;
 

@@ -5,8 +5,7 @@ import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.ChatException;
 import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
-import com.USWRandomChat.backend.global.exception.errortype.TokenException;
-import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
+import com.USWRandomChat.backend.global.security.jwt.service.AuthenticationService;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
@@ -18,6 +17,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +33,7 @@ public class RoomSecureService {
     private final MessageRepository messageRepository;
     private final ProfileRepository profileRepository;
     private final MemberRepository memberRepository;
-    private final JwtProvider jwtProvider;
+    private final AuthenticationService authenticationService;
     private final String randomQueue = "MatchQueue";
     private final RedisTemplate<String, String> matchRedisTemplate;
     private ZSetOperations<String, String> matchQueue;
@@ -55,32 +55,16 @@ public class RoomSecureService {
     }
 
     //매칭 큐 참가
-    public void addToMatchingQueue(String accessToken) {
-        //엑세스 토큰의 유효성 검사
-        if (!jwtProvider.validateAccessToken(accessToken)) {
-            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
-        }
-
-        //토큰이 유효한 경우, 계정 정보를 추출
-        String account = jwtProvider.getAccount(accessToken);
-
-        Member member = memberRepository.findByAccount(account)
-                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+    public void addToMatchingQueue(HttpServletRequest request) {
+        Member member = authenticationService.getAuthenticatedMember(request);
         matchQueue.add(randomQueue, member.getAccount(), System.currentTimeMillis());
     }
 
     //매칭 큐 취소
-    public void removeCancelParticipants(String accessToken) {
-        //엑세스 토큰의 유효성 검사
-        if (!jwtProvider.validateAccessToken(accessToken)) {
-            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
-        }
-
-        //토큰이 유효한 경우, 계정 정보를 추출
-        String account = jwtProvider.getAccount(accessToken);
-
-        matchQueue.remove(randomQueue, account);
-        log.info("매칭 취소 회원: {} 그리고 큐에서 지웠습니다.", account);
+    public void removeCancelParticipants(HttpServletRequest request) {
+        Member member = authenticationService.getAuthenticatedMember(request);
+        matchQueue.remove(randomQueue, member.getAccount());
+        log.info("매칭 취소 회원: {} 그리고 큐에서 지웠습니다.", member.getAccount());
     }
 
     //매칭 알고리즘
@@ -108,6 +92,7 @@ public class RoomSecureService {
     public void removeExpiredParticipants() {
         long currentTime = System.currentTimeMillis();
         Set<String> expiredParticipants = matchQueue.rangeByScore(randomQueue, 0, currentTime - MAX_MATCHING_TIME);
+        assert expiredParticipants != null;
         expiredParticipants.forEach(expiredParticipant -> matchQueue.remove(randomQueue, expiredParticipant));
         log.info("매칭 시간이 2분 초과하여 매칭 취소된 회원: {}", expiredParticipants);
     }
@@ -137,9 +122,9 @@ public class RoomSecureService {
     }
 
     //특정 사용자의 roomId를 'none'으로 초기화
-    public void exitRoomId(String accessToken, String exitRoomId) {
+    public void exitRoomId(HttpServletRequest request, String exitRoomId) {
         try {
-            Member member = validateAccessTokenAndGetMember(accessToken);
+            Member member = authenticationService.getAuthenticatedMember(request);
             updateProfileRoomIdToNone(member, exitRoomId);
         } catch (AccountException | ChatException e) {
             log.error(e.getMessage());
@@ -148,18 +133,6 @@ public class RoomSecureService {
             log.error("Room ID {} 업데이트 중 예외 발생: {}", exitRoomId, e.getMessage());
             throw new ChatException(ExceptionType.ROOM_ID_UPDATE_ERROR);
         }
-    }
-
-    //액세스 토큰을 검증하고, 해당하는 Member 객체를 반환
-    private Member validateAccessTokenAndGetMember(String accessToken) {
-        //엑세스 토큰의 유효성 검증
-        if (!jwtProvider.validateAccessToken(accessToken)) {
-            throw new TokenException(ExceptionType.INVALID_ACCESS_TOKEN);
-        }
-
-        String account = jwtProvider.getAccount(accessToken);
-        return memberRepository.findByAccount(account)
-                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
     }
 
     //특정 Member의 roomId를 'none'으로 업데이트
