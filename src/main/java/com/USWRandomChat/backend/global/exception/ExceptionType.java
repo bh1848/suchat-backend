@@ -31,6 +31,7 @@ public enum ExceptionType {
     EMAILTOKEN_AND_MEMBERTEMP_Not_Found("EMAILTOKEN004", "해당 토큰과 일치하는 회원이 존재하지 않습니다.", BAD_REQUEST),
     EMAIL_RECERTIFICATION("EMAILTOKEN005","이메일 재인증을 해주세요.",BAD_REQUEST),
 
+
     /**
      * Domain: Member
      */

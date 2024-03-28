@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -30,11 +27,12 @@ import java.util.UUID;
 @Slf4j
 public class RoomSecureService {
     private static final long MAX_MATCHING_TIME = 120000; //2분을 밀리초로 표현한 상수
+    private static final String MATCH_QUEUE = "MatchQueue"; //매칭 큐의 Redis key
+
     private final MessageRepository messageRepository;
     private final ProfileRepository profileRepository;
     private final MemberRepository memberRepository;
     private final AuthenticationService authenticationService;
-    private final String randomQueue = "MatchQueue";
     private final RedisTemplate<String, String> matchRedisTemplate;
     private ZSetOperations<String, String> matchQueue;
 
@@ -42,72 +40,74 @@ public class RoomSecureService {
     public void init() {
         matchQueue = matchRedisTemplate.opsForZSet();
     }
-
-    //해당 roomId의 모든 메시지를 삭제
+    
+    //메세지 삭제
     public void deleteRoomIdMessage(String roomId) {
-        try {
-            messageRepository.deleteByRoomId(roomId);
-            log.info("Room ID {}에 대한 메시지가 성공적으로 삭제되었습니다.", roomId);
-        } catch (Exception e) {
-            log.error("Room ID {} 메시지 삭제 중 오류 발생: {}", roomId, e.getMessage());
-            throw new ChatException(ExceptionType.MESSAGE_DELETE_ERROR);
-        }
+        executeWithChatExceptionHandling(() -> messageRepository.deleteByRoomId(roomId),
+                String.format("Room ID %s에 대한 메시지가 성공적으로 삭제되었습니다.", roomId),
+                String.format("Room ID %s 메시지 삭제 중 오류 발생", roomId));
     }
-
+    
     //매칭 큐 참가
     public void addToMatchingQueue(HttpServletRequest request) {
         Member member = authenticationService.getAuthenticatedMember(request);
-        matchQueue.add(randomQueue, member.getAccount(), System.currentTimeMillis());
+        matchQueue.add(MATCH_QUEUE, member.getAccount(), System.currentTimeMillis());
     }
 
-    //매칭 큐 취소
+    //매칭 취소
     public void removeCancelParticipants(HttpServletRequest request) {
         Member member = authenticationService.getAuthenticatedMember(request);
-        matchQueue.remove(randomQueue, member.getAccount());
+        matchQueue.remove(MATCH_QUEUE, member.getAccount());
         log.info("매칭 취소 회원: {} 그리고 큐에서 지웠습니다.", member.getAccount());
     }
-
+    
     //매칭 알고리즘
     public String performMatching() {
-        if (matchQueue.size(randomQueue) < 2) {
+        if (matchQueue.size(MATCH_QUEUE) < 2) {
             log.info("매칭할 회원 수가 부족합니다.");
             return null;
         }
 
-        String participant1 = matchQueue.range(randomQueue, 0, 0).iterator().next();
-        String participant2 = matchQueue.range(randomQueue, 1, 1).iterator().next();
-
+        String participant1 = Objects.requireNonNull(matchQueue.range(MATCH_QUEUE, 0, 0)).iterator().next();
+        String participant2 = Objects.requireNonNull(matchQueue.range(MATCH_QUEUE, 1, 1)).iterator().next();
         String chatRoomId = UUID.randomUUID().toString();
 
         updateMemberRoomId(participant1, chatRoomId);
         updateMemberRoomId(participant2, chatRoomId);
 
-        matchQueue.remove(randomQueue, participant1, participant2);
+        matchQueue.remove(MATCH_QUEUE, participant1, participant2);
         log.info("매칭된 회원들을 {} 방에 매칭하였습니다.", chatRoomId);
 
-        return chatRoomId; //매칭된 채팅방 ID 반환
+        return chatRoomId;
     }
-
-    //시간 초과한 회원의 매칭 취소
+    
+    //매칭 시간 초과된 회원 취소
     public void removeExpiredParticipants() {
         long currentTime = System.currentTimeMillis();
-        Set<String> expiredParticipants = matchQueue.rangeByScore(randomQueue, 0, currentTime - MAX_MATCHING_TIME);
+        Set<String> expiredParticipants = matchQueue.rangeByScore(MATCH_QUEUE, 0, currentTime - MAX_MATCHING_TIME);
         assert expiredParticipants != null;
-        expiredParticipants.forEach(expiredParticipant -> matchQueue.remove(randomQueue, expiredParticipant));
+        expiredParticipants.forEach(expiredParticipant -> matchQueue.remove(MATCH_QUEUE, expiredParticipant));
         log.info("매칭 시간이 2분 초과하여 매칭 취소된 회원: {}", expiredParticipants);
     }
-
-    //각 회원의 roomId를 업데이트하는 메서드
+    
+    //룸 Id 업데이트
     private void updateMemberRoomId(String account, String roomId) {
-        Member member = memberRepository.findByAccount(account)
-                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
-
-        Profile profile = profileRepository.findByMember(member)
-                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
+        Member member = findMemberByAccount(account);
+        Profile profile = findProfileByMember(member);
 
         profile.setRoomId(roomId);
         profileRepository.save(profile);
         log.info("{}의 roomId를 {}로 업데이트하였습니다.", account, roomId);
+    }
+
+    private Member findMemberByAccount(String account) {
+        return memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+    }
+
+    private Profile findProfileByMember(Member member) {
+        return profileRepository.findByMember(member)
+                .orElseThrow(() -> new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
     }
 
     //방에 남아 있는 인원 수를 확인
@@ -146,6 +146,17 @@ public class RoomSecureService {
             log.info("계정 {}의 Room ID가 'none'으로 성공적으로 설정되었습니다.", member.getAccount());
         } else {
             throw new ProfileException(ExceptionType.PROFILE_NOT_EXISTS);
+        }
+    }
+
+    //예외 처리
+    private void executeWithChatExceptionHandling(Runnable task, String successLogMessage, String errorLogMessage) {
+        try {
+            task.run();
+            log.info(successLogMessage);
+        } catch (Exception e) {
+            log.error("{}: {}", errorLogMessage, e.getMessage());
+            throw new ChatException(ExceptionType.MESSAGE_DELETE_ERROR);
         }
     }
 }

@@ -28,6 +28,9 @@ public class RoomSecureController {
         roomSecureService.addToMatchingQueue(request);
         roomSecureService.removeExpiredParticipants();
         String chatRoomId = roomSecureService.performMatching();
+        if (chatRoomId == null) {
+            return ResponseEntity.ok(new ApiResponse("현재 매칭할 사용자가 부족합니다.", null));
+        }
         return ResponseEntity.ok(new ApiResponse("매칭에 성공했습니다.", chatRoomId));
     }
 
@@ -37,12 +40,13 @@ public class RoomSecureController {
         return ResponseEntity.ok(new ApiResponse("매칭 취소가 성공적으로 이루어졌습니다."));
     }
 
-    @PatchMapping(value = "/out/{room-id}")
-    public ResponseEntity<ApiResponse> exitRoom(HttpServletRequest request, @PathVariable("room-id") String roomId) {
+    @PatchMapping(value = "/out/{roomId}")
+    public ResponseEntity<ApiResponse> exitRoom(HttpServletRequest request, @PathVariable("roomId") String roomId) {
         PubMessage exitMessage = new PubMessage(roomId, "system", "채팅이 종료됐습니다.", LocalDateTime.now());
         redisTemplate.convertAndSend(channelTopic.getTopic(), exitMessage);
         roomSecureService.exitRoomId(request, roomId);
         if (roomSecureService.countRemainingMembers(roomId) == 0) {
+            log.info("Room {} is empty, deleting messages", roomId);
             roomSecureService.deleteRoomIdMessage(roomId);
         }
         return ResponseEntity.ok(new ApiResponse("채팅이 종료됐습니다."));

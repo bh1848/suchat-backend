@@ -106,15 +106,6 @@ public class EmailService {
         return mimeMessage;
     }
 
-//    //유효한 토큰 가져오기
-//    public EmailToken findByUuidAndExpirationDateAfterAndExpired(String uuid) {
-//        Optional<EmailToken> emailToken = emailTokenRepository
-//                .findByUuidAndExpirationDateAfterAndExpired(uuid, LocalDateTime.now(), false);
-//
-//        // 토큰이 없다면 예외 발생
-//        return emailToken.orElseThrow(() -> new AccountException(ExceptionType.EMAILTOKEN_IS_EXPIRED));
-//    }
-
     //uuid와 연결된 memberTemp 조회
     public MemberTemp findByUuid(String uuid) {
         return emailTokenRepository.findByUuid(uuid)

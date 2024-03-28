@@ -58,7 +58,7 @@ public class PasswordUpdateService {
     }
 
     //인증번호 확인
-    public boolean verifyCode(String uuid, String verificationCode) {
+    public void verifyCode(String uuid, String verificationCode) {
         //Redis에서 인증번호 조회
         String key = buildRedisKey(REDIS_KEY_PREFIX_VERIFICATION, uuid);
         String storedCode = Optional.ofNullable(verificationRedisTemplate.opsForValue().get(key))
@@ -68,7 +68,6 @@ public class PasswordUpdateService {
         if (verificationCode.equals(storedCode)) {
             verificationRedisTemplate.delete(key); //일치할 경우 Redis에서 인증번호 삭제
             saveVerificationStatus(uuid); //인증 상태를 "verified"로 저장
-            return true;
         } else {
             throw new CodeException(ExceptionType.CODE_ERROR);
         }

@@ -44,54 +44,55 @@ public class MemberOpenService {
 
     //임시 회원가입
     public MemberTemp signUpMemberTemp(SignUpRequest request) {
+        //회원가입 정보 주입
         MemberTemp tempMember = MemberTemp.builder()
                 .account(request.getAccount())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail())
                 .nickname(request.getNickname())
                 .nicknameChangeDate(LocalDateTime.now())
-                //회원가입 정보 주입으로 인증여부 받음
                 .isEmailVerified(request.getIsEmailVerified())
                 .build();
 
+        //임시 회원 데이터 저장
         memberTempRepository.save(tempMember);
         log.info("임시 회원가입 완료: {}", tempMember.getAccount());
-        //이메일 인증
-        MemberTemp tempMemberEmail = memberTempRepository.findByEmail(tempMember.getEmail());
 
-        return tempMemberEmail;
+        //저장된 임시 회원 객체 반환
+        return tempMember;
     }
 
     //인증 후 회원가입
+    @Transactional //전체 메서드를 하나의 트랜잭션으로 관리
     public void signUpMember(MemberTemp memberTemp) {
+        //회원 정보 주입
         Member member = Member.builder()
                 .account(memberTemp.getAccount())
                 .password(memberTemp.getPassword())
                 .email(memberTemp.getEmail())
                 .build();
 
-        // Profile 객체 생성 및 저장
+        //Profile 객체 생성 및 저장
         Profile profile = Profile.builder()
                 .member(member)
                 .nickname(memberTemp.getNickname())
                 .nicknameChangeDate(memberTemp.getNicknameChangeDate())
                 .build();
 
-        // 권한 설정 및 Member 저장
+        //권한 설정 및 Member 저장
         member.setRoles(Collections.singletonList(Authority.builder().name("ROLE_USER").build()));
         memberRepository.save(member);
         profileRepository.save(profile);
         log.info("회원가입 완료: {}", member.getAccount());
 
-        //임시 회원 테이블 삭제
-        log.info("임시 회원 삭제 완료: {}", member.getAccount());
+        //임시 회원 데이터 삭제
         memberTempRepository.delete(memberTemp);
+        log.info("임시 회원 삭제 완료: {}", member.getAccount());
     }
 
     //회원가입 할 때 이메일 인증 유무 확인
     @Transactional(readOnly = true)
     public Boolean signUpFinish(String uuid) {
-
         Optional<EmailToken> findEmailToken = emailTokenRepository.findByUuid(uuid);
         EmailToken emailToken = findEmailToken.orElseThrow(() -> new AccountException(ExceptionType.Email_Token_Not_Found));
 
@@ -105,28 +106,28 @@ public class MemberOpenService {
 
     //로그인
     public TokenDto signIn(SignInRequest request, HttpServletResponse response) throws AccountException {
-        // 계정으로 멤버 조회
+        //계정으로 멤버 조회
         Member member = memberRepository.findByAccount(request.getAccount())
                 .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
 
-        // 비밀번호 일치 여부 검사
+        //비밀번호 일치 여부 검사
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
 
-        // 멤버의 권한 정보 추출
+        //멤버의 권한 정보 추출
         List<String> roleNames = member.getRoles().stream()
                 .map(Authority::getName)
                 .collect(Collectors.toList());
 
-        // 엑세스 토큰과 리프레시 토큰 생성
+        //엑세스 토큰과 리프레시 토큰 생성
         String accessToken = jwtProvider.createAccessToken(member.getAccount(), roleNames);
         String refreshToken = jwtProvider.createRefreshToken();
 
-        // 엑세스 토큰을 HTTP 응답 헤더에 추가
+        //엑세스 토큰을 HTTP 응답 헤더에 추가
         jwtProvider.addAccessTokenToHeader(response, accessToken);
 
-        // 리프레시 토큰을 쿠키에 추가하고 Redis에 저장
+        //리프레시 토큰을 쿠키에 추가하고 Redis에 저장
         jwtProvider.addCookieAndSaveTokenInRedis(response, refreshToken, member.getAccount());
 
         log.info("로그인 성공: {}", member.getAccount());
