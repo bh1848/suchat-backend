@@ -35,7 +35,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             Authentication authentication = jwtProvider.getAuthentication(accessToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } else {
-            log.warn("엑세스 토큰 검증 오류");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
