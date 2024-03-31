@@ -35,7 +35,7 @@ public class MemberOpenController {
     private final PasswordUpdateService passwordUpdateService;
 
     //member_table에 들어가기 전 임시 데이터 넣기
-    @PostMapping(value = "/sign-up")
+    @PostMapping("/sign-up")
     public ResponseEntity<ApiResponse> signUp(@RequestBody SignUpRequest request) throws MessagingException {
         MemberTemp findTempMember = memberOpenService.signUpMemberTemp(request);
         return new ResponseEntity<>(new ApiResponse(emailService.createEmailToken(findTempMember))
@@ -51,7 +51,7 @@ public class MemberOpenController {
     }
 
     //회원가입 완료
-    @GetMapping(value = "/sign-up-finish")
+    @GetMapping("/sign-up-finish")
     public ResponseEntity<Boolean> signUpFinish(@RequestParam String uuid) {
         return new ResponseEntity<>(memberOpenService.signUpFinish(uuid), HttpStatus.OK);
     }
@@ -111,7 +111,7 @@ public class MemberOpenController {
         // HttpHeaders 객체 생성 및 UUID를 헤더에 추가
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-User-ID", uuid);
-        ApiResponse response = new ApiResponse("인증번호가 전송되었습니다.");
+        ApiResponse response = new ApiResponse("인증번호가 전송되었습니다.", uuid);
         return new ResponseEntity<>(response, headers, HttpStatus.OK);
     }
 
