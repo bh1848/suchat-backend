@@ -23,6 +23,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
@@ -59,7 +60,6 @@ public class EmailService {
     }
 
     // 이메일 인증 토큰 업데이트
-    @Transactional
     public EmailToken updateEmailToken(String uuid) {
 
         //uuid로 토큰 찾기

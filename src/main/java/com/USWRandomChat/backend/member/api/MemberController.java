@@ -3,7 +3,6 @@ package com.USWRandomChat.backend.member.api;
 import com.USWRandomChat.backend.emailAuth.service.EmailService;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
-import com.USWRandomChat.backend.global.exception.errortype.TokenException;
 import com.USWRandomChat.backend.global.response.ApiResponse;
 import com.USWRandomChat.backend.global.response.ListResponse;
 import com.USWRandomChat.backend.global.response.ResponseService;
@@ -15,10 +14,8 @@ import com.USWRandomChat.backend.member.memberDTO.MemberDTO;
 import com.USWRandomChat.backend.member.memberDTO.SignInRequest;
 import com.USWRandomChat.backend.member.memberDTO.SignInResponse;
 import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
-import com.USWRandomChat.backend.member.service.FindIdService;
+import com.USWRandomChat.backend.member.service.FindAccountService;
 import com.USWRandomChat.backend.member.service.MemberService;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -38,7 +35,7 @@ public class MemberController {
     private final ResponseService responseService;
     private final EmailService emailService;
     private final JwtService jwtService;
-    private final FindIdService findIdService;
+    private final FindAccountService findAccountService;
 
     //임시 회원가입
     @PostMapping(value = "/sign-up")
@@ -176,9 +173,9 @@ public class MemberController {
         }
     }
 
-    //Id 찾기 로직: 이메일 인증된 회원만
-    @PostMapping(value = "/find-Id")
-    public ResponseEntity<Boolean> findId(@RequestParam String email) throws MessagingException {
-        return new ResponseEntity<>(findIdService.findById(email), HttpStatus.OK);
+    //Account 찾기 로직: 이메일 인증된 회원만
+    @PostMapping(value = "/find-Account")
+    public ResponseEntity<Boolean> findAccount(@RequestParam String email) throws MessagingException {
+        return new ResponseEntity<>(findAccountService.findByAccount(email), HttpStatus.OK);
     }
 }
