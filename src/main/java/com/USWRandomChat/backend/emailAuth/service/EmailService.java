@@ -1,5 +1,6 @@
 package com.USWRandomChat.backend.emailAuth.service;
 
+import com.USWRandomChat.backend.emailAuth.config.EmailConfig;
 import com.USWRandomChat.backend.emailAuth.domain.EmailToken;
 import com.USWRandomChat.backend.emailAuth.repository.EmailTokenRepository;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
@@ -26,12 +27,11 @@ import java.util.Optional;
 @Transactional
 public class EmailService {
 
+    private final EmailConfig emailConfig;
     private final JavaMailSender javaMailSender;
     private final EmailTokenRepository emailTokenRepository;
     private final MemberTempRepository memberTempRepository;
 
-    //서버주소
-    private static final String BASE_URL = "http://localhost:8080";
     //이메일 인증 경로
     private static final String CONFIRM_EMAIL_PATH = "/member/confirm-email";
 
@@ -103,7 +103,7 @@ public class EmailService {
         helper.setFrom("nkdy50315031@gmail.com");
 
         String emailContent
-                = "<a href='" + BASE_URL + CONFIRM_EMAIL_PATH + "?uuid=" + emailToken.getUuid() + "'>이메일 확인</a>";
+                = "<a href='" + emailConfig.getBaseUrl() + CONFIRM_EMAIL_PATH + "?uuid=" + emailToken.getUuid() + "'>이메일 확인</a>";
         helper.setText(emailContent, true);
         return mimeMessage;
     }

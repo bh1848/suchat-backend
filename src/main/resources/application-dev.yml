@@ -5,6 +5,11 @@ logging:
       USWRandomChat:
         backend: debug
 
+#email url
+email:
+  config:
+    baseUrl: "http://localhost:8080"
+
 spring:
   config:
     activate:
