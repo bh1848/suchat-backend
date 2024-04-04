@@ -41,8 +41,8 @@ public class ProfileSecureController {
 
     //이미 가입된 사용자의 닉네임 중복 확인
     @PostMapping("/check-duplicate-nickname")
-    public ResponseEntity<ApiResponse> checkDuplicateNickname(HttpServletRequest request, @RequestBody MemberDto memberDTO) {
-        profileSecureService.checkDuplicateNickname(request, memberDTO);
+    public ResponseEntity<ApiResponse> checkDuplicateNickname(HttpServletRequest request, @RequestBody String nickname) {
+        profileSecureService.checkDuplicateNickname(request, nickname);
         return ResponseEntity.ok(new ApiResponse("사용 가능한 닉네임입니다."));
     }
 }

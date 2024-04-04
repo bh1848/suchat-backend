@@ -5,7 +5,6 @@ import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
 import com.USWRandomChat.backend.global.security.jwt.service.AuthenticationService;
 import com.USWRandomChat.backend.member.domain.Member;
-import com.USWRandomChat.backend.member.dto.MemberDto;
 import com.USWRandomChat.backend.member.repository.MemberRepository;
 import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.dto.ProfileRequest;
@@ -23,7 +22,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ProfileSecureService {
-    private static final int NICKNAME_CHANGE_LIMIT_DAYS = 30;
+    private static final int NICKNAME_CHANGE_LIMIT_MINUTES = 1; //1분으로 지정(테스트 용도)
     private final MemberRepository memberRepository;
     private final ProfileRepository profileRepository;
     private final AuthenticationService authenticationService;
@@ -47,50 +46,60 @@ public class ProfileSecureService {
     //자신의 프로필 업데이트
     public ProfileResponse updateMyProfile(HttpServletRequest request, ProfileRequest profileRequest) {
         Member member = authenticationService.getAuthenticatedMember(request);
-        Profile profile = updateProfileDetails(member, profileRequest);
-        return new ProfileResponse(profile);
-    }
-
-    //프로필 업데이트 검증 로직
-    private Profile updateProfileDetails(Member member, ProfileRequest profileRequest) {
         Profile profile = getProfileById(member.getId());
 
-        boolean isNicknameChanged = !profile.getNickname().equals(profileRequest.getNickname());
-        if (isNicknameChanged) {
+        //닉네임 변경 로직 검증 및 실행
+        if (!profile.getNickname().equals(profileRequest.getNickname())) {
+            checkNicknameChangeAllowed(profile);
+            checkDuplicateNicknameExceptSelf(profileRequest.getNickname(), member.getId());
             profile.setNickname(profileRequest.getNickname());
             profile.setNicknameChangeDate(LocalDateTime.now());
         }
 
-        if (isNicknameChanged || !profile.getMbti().equals(profileRequest.getMbti()) || !profile.getIntro().equals(profileRequest.getIntro())) {
-            profile.setMbti(profileRequest.getMbti());
-            profile.setIntro(profileRequest.getIntro());
-            profileRepository.save(profile);
-        }
+        //MBTI와 소개 변경
+        profile.setMbti(profileRequest.getMbti());
+        profile.setIntro(profileRequest.getIntro());
+        profileRepository.save(profile);
 
-        return profile;
+        return new ProfileResponse(profile);
     }
 
     //이미 가입된 사용자의 닉네임 중복 확인, 닉네임 30일 제한 확인
     @Transactional(readOnly = true)
-    public void checkDuplicateNickname(HttpServletRequest request, MemberDto memberDTO) {
+    public void checkDuplicateNickname(HttpServletRequest request, String nickname) {
         Member member = authenticationService.getAuthenticatedMember(request);
-
         Profile profile = profileRepository.findById(member.getId()).orElseThrow(() ->
                 new ProfileException(ExceptionType.PROFILE_NOT_EXISTS));
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime lastChangeTime = Optional.ofNullable(profile.getNicknameChangeDate())
-                .orElse(LocalDateTime.MIN);
-
-        //30일 이내에 변경한 경우 예외 발생
-        if (ChronoUnit.DAYS.between(lastChangeTime, now) < NICKNAME_CHANGE_LIMIT_DAYS) {
-            throw new AccountException(ExceptionType.NICKNAME_EXPIRATION_TIME);
-        }
-
-        //닉네임 중복 확인 (현재 사용자의 닉네임 제외)
-        profileRepository.findByNickname(memberDTO.getNickname())
+        //닉네임 중복 검사 (현재 사용자의 닉네임 제외)
+        profileRepository.findByNickname(nickname)
                 .ifPresent(existingProfile -> {
                     if (!existingProfile.getMember().getId().equals(member.getId())) {
+                        throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);
+                    }
+                });
+
+        //닉네임 변경이 요청된 경우에만 30분 변경 제한 검사 실행
+        if (!profile.getNickname().equals(nickname)) {
+            checkNicknameChangeAllowed(profile);
+        }
+    }
+
+    //닉네임 변경 가능 여부 확인
+    private void checkNicknameChangeAllowed(Profile profile) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime lastChangeTime = Optional.ofNullable(profile.getNicknameChangeDate()).orElse(LocalDateTime.MIN);
+
+        if (ChronoUnit.MINUTES.between(lastChangeTime, now) < NICKNAME_CHANGE_LIMIT_MINUTES) {
+            throw new AccountException(ExceptionType.NICKNAME_EXPIRATION_TIME);
+        }
+    }
+
+    //현재 사용자를 제외한 닉네임 중복 확인
+    private void checkDuplicateNicknameExceptSelf(String nickname, Long memberId) {
+        profileRepository.findByNickname(nickname)
+                .ifPresent(existingProfile -> {
+                    if (!existingProfile.getMember().getId().equals(memberId)) {
                         throw new ProfileException(ExceptionType.NICKNAME_OVERLAP);
                     }
                 });
