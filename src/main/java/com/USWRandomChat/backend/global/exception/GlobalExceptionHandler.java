@@ -6,8 +6,13 @@ import com.USWRandomChat.backend.global.exception.errortype.BaseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -15,7 +20,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(value = {Exception.class})
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         HttpStatus status = INTERNAL_SERVER_ERROR;
         String code = "NO_CATCH_ERROR";
@@ -35,7 +40,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, status);
     }
 
-    @ExceptionHandler(value = {BaseException.class})
+    @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {
         String className = e.getClass().getName();
         ExceptionType exceptionType = e.getExceptionType();
@@ -52,5 +57,17 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, exceptionType.getStatus());
     }
+    
+    //NotBlank 예외 처리
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
 
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
 }
