@@ -14,22 +14,21 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-import static com.USWRandomChat.backend.global.exception.ExceptionType.EMAIL_NOT_AUTHED;
 import static com.USWRandomChat.backend.global.exception.ExceptionType.SEND_MAIL_FAILED;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class FindIdService {
+public class FindAccountService {
 
     private final MemberRepository memberRepository;
     private final JavaMailSender javaMailSender;
-    public boolean findById(String email) throws MailException {
 
-        Member findmember = memberRepository.findByEmail(email);
+    public boolean findByAccount(String email) throws MessagingException {
+        Member findMember = memberRepository.findByEmail(email);
 
         // 이메일에 해당하는 회원이 없을 때 예외 발생
-        if (findmember == null){
+        if (findMember == null){
             throw new AccountException(ExceptionType.USER_NOT_EXISTS);
         }
 
@@ -37,9 +36,10 @@ public class FindIdService {
             //MimeMessage  생성
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false);
-            helper.setTo(findmember.getEmail() + "@suwon.ac.kr"); // 수신자 이메일 설정
+            helper.setTo(findMember.getEmail() + "@suwon.ac.kr"); // 수신자 이메일 설정
             helper.setSubject("수원대학교 SWCHAT의 아이디 찾기 위한 메일입니다."); // 이메일 제목
-            helper.setText("회원님의 아이디는 " + findmember.getAccount() + " 입니다."); // 이메일 내용 설정
+            helper.setText("회원님의 아이디는 " + findMember.getAccount() + " 입니다."); // 이메일 내용 설정
+            helper.setFrom("nkdy50315031@gmail.com");
 
             javaMailSender.send(mimeMessage);
             return true;

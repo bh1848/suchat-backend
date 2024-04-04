@@ -8,7 +8,7 @@ import com.USWRandomChat.backend.global.security.jwt.dto.TokenDto;
 import com.USWRandomChat.backend.member.domain.Member;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
 import com.USWRandomChat.backend.member.dto.*;
-import com.USWRandomChat.backend.member.open.service.FindIdService;
+import com.USWRandomChat.backend.member.open.service.FindAccountService;
 import com.USWRandomChat.backend.member.open.service.MemberOpenService;
 import com.USWRandomChat.backend.member.open.service.PasswordUpdateService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class MemberOpenController {
     private final EmailService emailService;
     private final MemberOpenService memberOpenService;
     private final ResponseService responseService;
-    private final FindIdService findIdService;
+    private final FindAccountService findAccountService;
     private final PasswordUpdateService passwordUpdateService;
 
     //이메일 인증 전 임시 데이터 넣기
@@ -97,12 +97,11 @@ public class MemberOpenController {
         return responseService.getListResponse(memberOpenService.findAll());
     }
 
-    //Id 찾기 로직: 이메일 인증된 회원만
-    @PostMapping(value = "/find-Id")
-    public ResponseEntity<Boolean> findId(@RequestParam String email) {
-        return new ResponseEntity<>(findIdService.findById(email), HttpStatus.OK);
+    //Account 찾기 로직: 이메일 인증된 회원만
+    @PostMapping(value = "/find-Account")
+    public ResponseEntity<Boolean> findAccount(@RequestParam String email) throws MessagingException {
+        return new ResponseEntity<>(findAccountService.findByAccount(email), HttpStatus.OK);
     }
-
 
     //인증번호 생성 및 전송 요청 처리
     @PostMapping("/send-code")

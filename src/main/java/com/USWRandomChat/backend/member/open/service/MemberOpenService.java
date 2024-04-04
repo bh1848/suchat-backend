@@ -58,8 +58,8 @@ public class MemberOpenService {
         memberTempRepository.save(tempMember);
         log.info("임시 회원가입 완료: {}", tempMember.getAccount());
 
-        //저장된 임시 회원 객체 반환
-        return tempMember;
+        //이메일 인증
+        return memberTempRepository.findByEmail(tempMember.getEmail());
     }
 
     //인증 후 회원가입
