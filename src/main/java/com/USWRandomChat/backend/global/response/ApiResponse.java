@@ -15,8 +15,9 @@ public class ApiResponse {
         this.message = message;
     }
 
+    //데이터를 포함하는 경우
     public ApiResponse(String message, Object data) {
         this.message = message;
-        this.data = data; // 데이터를 포함하는 경우
+        this.data = data;
     }
 }

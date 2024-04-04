@@ -31,6 +31,7 @@ public enum ExceptionType {
     EMAILTOKEN_AND_MEMBERTEMP_Not_Found("EMAILTOKEN004", "해당 토큰과 일치하는 회원이 존재하지 않습니다.", BAD_REQUEST),
     EMAIL_RECERTIFICATION("EMAILTOKEN005","이메일 재인증을 해주세요.",BAD_REQUEST),
 
+
     /**
      * Domain: Member
      */
@@ -45,6 +46,7 @@ public enum ExceptionType {
     Nickname_Not_Provided("USR-MEM-209", "닉네임이 입력되지 않았습니다.", BAD_REQUEST),
     WITH_DRAW_FAIL("USR-MEM-210","회원 탈퇴에 실패했습니다.",BAD_REQUEST),
     SIGN_OUT_FAIL("USR-MEM-211", "로그아웃에 실패했습니다", BAD_REQUEST),
+    USER_NOT_AUTHENTICATION("USR-MEM-212", "인증이 필요합니다.", BAD_REQUEST),
 
     /**
      * Domain : Profile
@@ -55,6 +57,7 @@ public enum ExceptionType {
     NICKNAME_EXPIRATION_TIME("USR-PFL-204", "닉네임 변경 후 30일이 지나야 변경이 가능합니다.", BAD_REQUEST),
     PROFILE_GET_FAIL("USR-PFL-205", "프로필 조회에 실패했습니다.", BAD_REQUEST),
     PROFILE_UPDATE_FAIL("USR-PFL-206", "프로필 업데이트에 실패했습니다.",BAD_REQUEST),
+
 
     /**
      * Domain : Token
@@ -88,9 +91,8 @@ public enum ExceptionType {
     /**
      * 공통
      */
-    SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR), //500
+    SEND_MAIL_FAILED("EML-501", "메일 전송에 실패했습니다.", INTERNAL_SERVER_ERROR);
 
-    ;
 
     private final String code;
     private final String message;

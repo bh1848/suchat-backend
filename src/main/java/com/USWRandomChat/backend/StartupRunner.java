@@ -1,22 +1,19 @@
 package com.USWRandomChat.backend;
 
-import com.USWRandomChat.backend.emailAuth.service.EmailAuthSchedulerService;
+import com.USWRandomChat.backend.email.service.EmailAuthSchedulerService;
 import com.USWRandomChat.backend.member.domain.MemberTemp;
-import com.USWRandomChat.backend.member.memberDTO.SignUpRequest;
-import com.USWRandomChat.backend.member.service.MemberService;
+import com.USWRandomChat.backend.member.dto.SignUpRequest;
+import com.USWRandomChat.backend.member.open.service.MemberOpenService;
+import lombok.AllArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class StartupRunner implements CommandLineRunner {
 
     private final EmailAuthSchedulerService schedulerService;
-    private final MemberService memberService;
-
-    public StartupRunner(EmailAuthSchedulerService schedulerService, MemberService memberService) {
-        this.schedulerService = schedulerService;
-        this.memberService = memberService;
-    }
+    private final MemberOpenService memberOpenService;
 
     @Override
     public void run(String... args) {
@@ -30,8 +27,8 @@ public class StartupRunner implements CommandLineRunner {
         initialMemberRequest.setNickname("nickname");
         initialMemberRequest.setIsEmailVerified(true);
 
-        MemberTemp initialMemberTemp = memberService.signUpMemberTemp(initialMemberRequest);
-        memberService.signUpMember(initialMemberTemp);
+        MemberTemp initialMemberTemp = memberOpenService.signUpMemberTemp(initialMemberRequest);
+        memberOpenService.signUpMember(initialMemberTemp);
 
         //두번 쨰 회원가입 정보 주입
         SignUpRequest secondinitialMemberRequest = new SignUpRequest();
@@ -41,7 +38,7 @@ public class StartupRunner implements CommandLineRunner {
         secondinitialMemberRequest.setNickname("nick");
         secondinitialMemberRequest.setIsEmailVerified(true);
 
-        MemberTemp secondinitialMemberTemp = memberService.signUpMemberTemp(secondinitialMemberRequest);
-        memberService.signUpMember(secondinitialMemberTemp);
+        MemberTemp secondinitialMemberTemp = memberOpenService.signUpMemberTemp(secondinitialMemberRequest);
+        memberOpenService.signUpMember(secondinitialMemberTemp);
     }
 }
