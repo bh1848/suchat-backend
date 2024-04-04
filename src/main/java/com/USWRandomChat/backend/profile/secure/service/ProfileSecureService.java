@@ -22,7 +22,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ProfileSecureService {
-    private static final int NICKNAME_CHANGE_LIMIT_MINUTES = 1; //1분으로 지정(테스트 용도)
+    private static final int NICKNAME_CHANGE_LIMIT_MINUTES = 720; //30일로 지정
     private final MemberRepository memberRepository;
     private final ProfileRepository profileRepository;
     private final AuthenticationService authenticationService;

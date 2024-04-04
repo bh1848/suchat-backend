@@ -4,6 +4,7 @@ import com.USWRandomChat.backend.email.domain.EmailToken;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,21 +28,23 @@ public class MemberTemp {
         email
         nickname
     */
-    @Column(nullable = false, updatable = false, unique = true)
+    @Column(name="ACCOUNT", updatable = false, unique = true)
     private String account;
 
     @Setter
-    @Column(nullable = false)
+    @Column(name="PASSWORD")
     private String password;
 
-    @Column(unique = true, nullable = false)
+    @Column(name="EMAIL", unique = true)
     private String email;
-
-    @Column(nullable = false)
+    
+    @Column(name="NICKNAME")
     private String nickname;
 
+    @Column(name="NICKNAMECHANGEDATE")
     private LocalDateTime nicknameChangeDate;
 
+    @Column(name="ISEMAILVERIFIED")
     private boolean isEmailVerified;
 
     @OneToOne(mappedBy = "memberTemp", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

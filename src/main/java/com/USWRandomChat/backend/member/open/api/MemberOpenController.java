@@ -34,12 +34,12 @@ public class MemberOpenController {
     private final FindIdService findIdService;
     private final PasswordUpdateService passwordUpdateService;
 
-    //member_table에 들어가기 전 임시 데이터 넣기
+    //이메일 인증 전 임시 데이터 넣기
     @PostMapping("/sign-up")
-    public ResponseEntity<ApiResponse> signUp(@RequestBody SignUpRequest request) throws MessagingException {
+    public ResponseEntity<ApiResponse> signUp(@Valid @RequestBody SignUpRequest request) throws MessagingException {
         MemberTemp findTempMember = memberOpenService.signUpMemberTemp(request);
-        return new ResponseEntity<>(new ApiResponse(emailService.createEmailToken(findTempMember))
-                , HttpStatus.OK);
+        ApiResponse response = new ApiResponse(emailService.createEmailToken(findTempMember));
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     //이메일 인증 확인 후 회원가입
