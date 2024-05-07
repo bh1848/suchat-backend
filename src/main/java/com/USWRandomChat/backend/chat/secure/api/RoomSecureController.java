@@ -5,13 +5,16 @@ import com.USWRandomChat.backend.chat.secure.service.RoomSecureService;
 import com.USWRandomChat.backend.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,18 +26,33 @@ public class RoomSecureController {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ChannelTopic channelTopic;
 
+    // Stomp를 사용하여 WebSocket 메시지 보내기
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+
     @PostMapping("/in")
     public ResponseEntity<ApiResponse> randomMatch(HttpServletRequest request) {
         roomSecureService.addToMatchingQueue(request);
-        roomSecureService.removeExpiredParticipants();
-        String chatRoomId = roomSecureService.performMatching();
-        if (chatRoomId == null) {
-            return ResponseEntity.ok(new ApiResponse("현재 매칭할 사용자가 부족합니다.", null));
-        }
-        return ResponseEntity.ok(new ApiResponse("매칭에 성공했습니다.", chatRoomId));
+
+        AtomicReference<String> chatRoomId = new AtomicReference<>();
+
+        roomSecureService.performMatchingAsync().thenAccept(result -> {
+            chatRoomId.set(result);
+
+            if (result == null) {
+                log.info("매칭에 실패했습니다");
+                ResponseEntity.ok(new ApiResponse("매칭에 실패했습니다.", null));
+            } else {
+                log.info("매칭에 성공했습니다");
+                ResponseEntity.ok(new ApiResponse("매칭에 성공했습니다.", chatRoomId));
+            }
+        });
+
+        return ResponseEntity.ok(new ApiResponse("성공적으로 매칭 요청되었습니다.", null));
     }
 
-    @DeleteMapping("/cancel")
+        @DeleteMapping("/cancel")
     public ResponseEntity<ApiResponse> cancelMatch(HttpServletRequest request) {
         roomSecureService.removeCancelParticipants(request);
         return ResponseEntity.ok(new ApiResponse("매칭 취소가 성공적으로 이루어졌습니다."));

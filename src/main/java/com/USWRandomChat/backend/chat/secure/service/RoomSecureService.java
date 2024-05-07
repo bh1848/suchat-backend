@@ -12,14 +12,21 @@ import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Transactional
@@ -36,6 +43,10 @@ public class RoomSecureService {
     private final RedisTemplate<String, String> matchRedisTemplate;
     private ZSetOperations<String, String> matchQueue;
 
+    // Stomp를 사용하여 WebSocket 메시지 보내기
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     @PostConstruct
     public void init() {
         matchQueue = matchRedisTemplate.opsForZSet();
@@ -47,8 +58,43 @@ public class RoomSecureService {
                 String.format("Room ID %s에 대한 메시지가 성공적으로 삭제되었습니다.", roomId),
                 String.format("Room ID %s 메시지 삭제 중 오류 발생", roomId));
     }
-    
-    //매칭 큐 참가
+
+    // 비동기 매칭
+    @Async
+    public CompletableFuture<String> performMatchingAsync() {
+        CompletableFuture<String> future = new CompletableFuture<>();
+
+        CompletableFuture.delayedExecutor(2, TimeUnit.MINUTES).execute(() -> {
+            removeExpiredParticipants(); //  매칭 만료 회원 삭제
+            future.complete(null);
+        });
+
+        // 매칭 큐에 다른 사용자가 들어왔는지 확인하고, 다른 사용자가 매칭 요청을 보낸 경우 매칭 성공을 반환합니다.
+        if (matchQueue.size(MATCH_QUEUE) > 1) {
+            String participant1 = Objects.requireNonNull(matchQueue.range(MATCH_QUEUE, 0, 0)).iterator().next();
+            String participant2 = Objects.requireNonNull(matchQueue.range(MATCH_QUEUE, 1, 1)).iterator().next();
+            String chatRoomId = UUID.randomUUID().toString();
+
+            updateMemberRoomId(participant1, chatRoomId);
+            updateMemberRoomId(participant2, chatRoomId);
+
+            // stomp로 메시지 전송
+            sendMatchingNotification(participant1, chatRoomId);
+            sendMatchingNotification(participant2, chatRoomId);
+
+            log.info("[매칭 결과] p1: {}\tp2: {}", participant1, participant2);
+
+            matchQueue.remove(MATCH_QUEUE, participant1, participant2);
+            log.info("매칭된 회원들을 {} 방에 매칭하였습니다.", chatRoomId);
+
+            future.complete(chatRoomId);
+        }
+
+        return future;
+    }
+
+
+        //매칭 큐 참가
     public void addToMatchingQueue(HttpServletRequest request) {
         Member member = authenticationService.getAuthenticatedMember(request);
         matchQueue.add(MATCH_QUEUE, member.getAccount(), System.currentTimeMillis());
@@ -60,25 +106,11 @@ public class RoomSecureService {
         matchQueue.remove(MATCH_QUEUE, member.getAccount());
         log.info("매칭 취소 회원: {} 그리고 큐에서 지웠습니다.", member.getAccount());
     }
-    
-    //매칭 알고리즘
-    public String performMatching() {
-        if (matchQueue.size(MATCH_QUEUE) < 2) {
-            log.info("매칭할 회원 수가 부족합니다.");
-            return null;
-        }
 
-        String participant1 = Objects.requireNonNull(matchQueue.range(MATCH_QUEUE, 0, 0)).iterator().next();
-        String participant2 = Objects.requireNonNull(matchQueue.range(MATCH_QUEUE, 1, 1)).iterator().next();
-        String chatRoomId = UUID.randomUUID().toString();
-
-        updateMemberRoomId(participant1, chatRoomId);
-        updateMemberRoomId(participant2, chatRoomId);
-
-        matchQueue.remove(MATCH_QUEUE, participant1, participant2);
-        log.info("매칭된 회원들을 {} 방에 매칭하였습니다.", chatRoomId);
-
-        return chatRoomId;
+    // 매칭된 사용자에게 Stomp 메시지 전송
+    private void sendMatchingNotification(String account, String chatRoomId) {
+        messagingTemplate.convertAndSendToUser(account, "/queue/match", "매칭이 완료되었습니다. 채팅방 ID: " + chatRoomId);
+        log.info(account + " 사용자에게 매칭 메시지 전달 성공");
     }
     
     //매칭 시간 초과된 회원 취소
@@ -86,8 +118,11 @@ public class RoomSecureService {
         long currentTime = System.currentTimeMillis();
         Set<String> expiredParticipants = matchQueue.rangeByScore(MATCH_QUEUE, 0, currentTime - MAX_MATCHING_TIME);
         assert expiredParticipants != null;
-        expiredParticipants.forEach(expiredParticipant -> matchQueue.remove(MATCH_QUEUE, expiredParticipant));
-        log.info("매칭 시간이 2분 초과하여 매칭 취소된 회원: {}", expiredParticipants);
+        expiredParticipants.forEach(expiredParticipant -> {
+            matchQueue.remove(MATCH_QUEUE, expiredParticipant);
+            messagingTemplate.convertAndSendToUser(expiredParticipants.toString(), "/queue/match", "매칭 실패");
+            log.info("매칭 시간이 2분 초과하여 매칭 취소된 회원: {}", expiredParticipants);
+        });
     }
     
     //룸 Id 업데이트
