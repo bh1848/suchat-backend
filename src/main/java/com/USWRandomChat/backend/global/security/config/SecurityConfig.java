@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/open/**","/secure/**", "/stomp/**", "/chat/**", "/pub/**", "/sub/**").permitAll()
+                .antMatchers("/open/**","/secure/**", "/stomp/**", "/chat/**", "/pub/**", "/sub/**", "/queue/**").permitAll()
                 .antMatchers("/member/admin/**").hasRole("ADMIN")
                 .antMatchers("/member/user/**").hasRole("USER")
                 .anyRequest().authenticated()
