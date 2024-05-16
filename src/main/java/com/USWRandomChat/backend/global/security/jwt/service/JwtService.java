@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,6 +29,7 @@ public class JwtService {
     private final JwtProvider jwtProvider;
 
     //access, refresh Token 재발급
+    @Transactional(readOnly = true)
     public TokenDto renewToken(HttpServletRequest request, HttpServletResponse response) throws TokenException, AccountException {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
