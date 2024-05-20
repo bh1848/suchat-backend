@@ -108,7 +108,7 @@ public class JwtProvider {
         }
     }
 
-    public void validateRefreshToken(String refreshToken) {
+    public boolean validateRefreshToken(String refreshToken) {
         validateTokenNotEmpty(refreshToken, ExceptionType.INVALID_REFRESH_TOKEN);
         try {
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(refreshToken);
@@ -118,6 +118,7 @@ public class JwtProvider {
         } catch (JwtException e) {
             log.error("리프레시 토큰 오류", e);
         }
+        return false;
     }
 
     public String resolveAccessToken(HttpServletRequest request) {

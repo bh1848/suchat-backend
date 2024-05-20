@@ -26,20 +26,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
             String accessToken = jwtProvider.resolveAccessToken(request);
-            log.debug("Access Token: {}", accessToken);
-            if (jwtProvider.validateAccessToken(accessToken)) {
-                Authentication authentication = jwtProvider.getAuthentication(accessToken);
-                log.debug("Authentication: {}", authentication);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            if (accessToken != null && jwtProvider.validateAccessToken(accessToken)) {
+                Authentication auth = jwtProvider.getAuthentication(accessToken);
+                SecurityContextHolder.getContext().setAuthentication(auth);
             }
-            filterChain.doFilter(request, response);
         } catch (Exception e) {
-            log.error("JWT 필터 에러: ", e);
-            SecurityContextHolder.clearContext();
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            filterChain.doFilter(request, response);
+            log.error("Security context에서 사용자 인증을 설정할 수 없습니다.", e);
         }
+        filterChain.doFilter(request, response);
     }
 }

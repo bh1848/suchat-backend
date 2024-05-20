@@ -27,13 +27,17 @@ public class JwtService {
     private final RedisTemplate<String, String> redisTemplate;
     private final MemberRepository memberRepository;
     private final JwtProvider jwtProvider;
-    
-    //토큰 재발급
+
+    //access, refresh Token 재발급
     @Transactional(readOnly = true)
     public TokenDto renewToken(HttpServletRequest request, HttpServletResponse response) throws RefreshTokenException, AccountException {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
+        //리프레시 토큰 유효성 검사
         jwtProvider.validateRefreshToken(refreshToken);
+        if (!jwtProvider.validateRefreshToken(refreshToken)) {
+            throw new RefreshTokenException(ExceptionType.REFRESH_TOKEN_EXPIRED);
+        }
 
         String account = fetchAccountFromRefreshToken(refreshToken);
         Member member = memberRepository.findByAccount(account)
@@ -41,27 +45,29 @@ public class JwtService {
 
         List<String> roleNames = extractRoleNames(member);
 
+        //엑세스 토큰 생성, 헤더 전송
         String newAccessToken = jwtProvider.createAccessToken(member.getAccount(), roleNames);
         jwtProvider.addAccessTokenToHeader(response, newAccessToken);
 
+        //리프레시 토큰 재갱신
         String newRefreshToken = replaceRefreshToken(response, refreshToken, member.getAccount());
 
         return new TokenDto(newAccessToken, newRefreshToken);
     }
-    
-    //리프레시 토큰 검색
+
+    //레디스에서 함께 저장된 계정 조회
     private String fetchAccountFromRefreshToken(String refreshToken) throws RefreshTokenException {
         return redisTemplate.opsForValue().get(JwtProvider.REFRESH_TOKEN_PREFIX + refreshToken);
     }
-    
-    //역할 확인
+
+    //권한 확인
     private List<String> extractRoleNames(Member member) {
         return member.getRoles().stream()
                 .map(Authority::getName)
                 .collect(Collectors.toList());
     }
-    
-    //리프레시 토큰 재발급
+
+    //리프레시 토큰 재갱신
     private String replaceRefreshToken(HttpServletResponse response, String oldRefreshToken, String account) {
         String newRefreshToken = jwtProvider.createRefreshToken();
         redisTemplate.delete(JwtProvider.REFRESH_TOKEN_PREFIX + oldRefreshToken);
