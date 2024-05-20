@@ -16,14 +16,14 @@ import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
 @RestController
-@RequestMapping("/secure/jwt")
+@RequestMapping("/open/jwt")
 @RequiredArgsConstructor
 public class JwtController {
 
     private final JwtService jwtService;
 
     //토큰 갱신
-    @PostMapping("/reissue-token")
+    @PostMapping("/renew-token")
     public ResponseEntity<ApiResponse> renewToken(HttpServletRequest request, HttpServletResponse response) {
         TokenDto tokenDto = jwtService.renewToken(request, response);
         ApiResponse apiResponse = new ApiResponse("자동로그인 되었습니다.", tokenDto);
