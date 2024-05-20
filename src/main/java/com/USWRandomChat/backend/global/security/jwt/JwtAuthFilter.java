@@ -48,7 +48,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 "/open/**",
                 "/stomp/**",
                 "/pub/**",
-                "/sub/**"
+                "/sub/**",
+                "/queue/match"
         };
 
         for (String path : skipPaths) {
