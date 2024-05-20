@@ -34,7 +34,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .httpBasic().disable()
-                .csrf().disable() //CSRF 보호는 REST API 사용 시 일반적으로 비활성화됩니다. 필요에 따라 활성화를 고려하세요.
+                .csrf().disable() //CSRF 보호는 REST API 사용 시 일반적으로 비활성
                 .cors().configurationSource(corsConfigurationSource()).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
@@ -60,7 +60,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("*"); //실제 운영 환경에서는 구체적인 도메인으로 제한해야 합니다.
+        configuration.addAllowedOrigin("*"); //실제 운영 환경에서는 구체적인 도메인으로 제한
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);

@@ -104,31 +104,39 @@ public class MemberOpenService {
         return true;
     }
 
-    //로그인
+    // 로그인
     public TokenDto signIn(SignInRequest request, HttpServletResponse response) throws AccountException {
-        //계정으로 멤버 조회
-        Member member = memberRepository.findByAccount(request.getAccount())
-                .orElseThrow(() -> new AccountException(ExceptionType.USER_NOT_EXISTS));
+        log.info("로그인 요청: {}", request.getAccount());
 
-        //비밀번호 일치 여부 검사
+        // 계정으로 멤버 조회
+        Member member = memberRepository.findByAccount(request.getAccount())
+                .orElseThrow(() -> {
+                    log.error("존재하지 않는 사용자: {}", request.getAccount());
+                    return new AccountException(ExceptionType.USER_NOT_EXISTS);
+                });
+
+        // 비밀번호 일치 여부 검사
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+            log.error("비밀번호 불일치: {}", request.getAccount());
             throw new AccountException(ExceptionType.PASSWORD_ERROR);
         }
 
-        //멤버의 권한 정보 추출
+        // 멤버의 권한 정보 추출
         List<String> roleNames = member.getRoles().stream()
                 .map(Authority::getName)
                 .collect(Collectors.toList());
 
-        //엑세스 토큰과 리프레시 토큰 생성
+        // 엑세스 토큰과 리프레시 토큰 생성
         String accessToken = jwtProvider.createAccessToken(member.getAccount(), roleNames);
         String refreshToken = jwtProvider.createRefreshToken();
 
-        //엑세스 토큰을 HTTP 응답 헤더에 추가
+        // 엑세스 토큰을 HTTP 응답 헤더에 추가
         jwtProvider.addAccessTokenToHeader(response, accessToken);
+        log.info("엑세스 토큰 생성: {}", accessToken);
 
-        //리프레시 토큰을 쿠키에 추가하고 Redis에 저장
+        // 리프레시 토큰을 쿠키에 추가하고 Redis에 저장
         jwtProvider.addCookieAndSaveTokenInRedis(response, refreshToken, member.getAccount());
+        log.info("리프레시 토큰 생성 및 저장: {}", refreshToken);
 
         log.info("로그인 성공: {}", member.getAccount());
         return new TokenDto(accessToken, refreshToken);

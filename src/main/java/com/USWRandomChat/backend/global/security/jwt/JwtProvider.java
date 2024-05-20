@@ -96,14 +96,12 @@ public class JwtProvider {
         }
     }
 
+    //엑세스 토큰 유효성 검사
     public boolean validateAccessToken(String accessToken) throws AccessTokenException {
         validateTokenNotEmpty(accessToken, ExceptionType.INVALID_ACCESS_TOKEN);
         try {
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(accessToken);
             return !claims.getBody().getExpiration().before(new Date());
-        } catch (ExpiredJwtException e) {
-            log.error("엑세스 토큰이 만료되었습니다.", e);
-            throw new AccessTokenException(ExceptionType.ACCESS_TOKEN_EXPIRED);
         } catch (JwtException e) {
             log.error("엑세스 토큰 오류", e);
             throw new AccessTokenException(ExceptionType.INVALID_ACCESS_TOKEN);
