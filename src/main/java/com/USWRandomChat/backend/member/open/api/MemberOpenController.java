@@ -1,5 +1,6 @@
 package com.USWRandomChat.backend.member.open.api;
 
+import com.USWRandomChat.backend.chat.secure.service.RoomSecureService;
 import com.USWRandomChat.backend.email.service.EmailService;
 import com.USWRandomChat.backend.global.response.ApiResponse;
 import com.USWRandomChat.backend.global.response.ListResponse;
@@ -11,6 +12,8 @@ import com.USWRandomChat.backend.member.dto.*;
 import com.USWRandomChat.backend.member.open.service.FindAccountService;
 import com.USWRandomChat.backend.member.open.service.MemberOpenService;
 import com.USWRandomChat.backend.member.open.service.PasswordUpdateService;
+import com.USWRandomChat.backend.profile.domain.Profile;
+import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -33,6 +37,7 @@ public class MemberOpenController {
     private final ResponseService responseService;
     private final FindAccountService findAccountService;
     private final PasswordUpdateService passwordUpdateService;
+    private final RoomSecureService roomSecureService;
 
     //이메일 인증 전 임시 데이터 넣기
     @PostMapping("/sign-up")
@@ -41,6 +46,26 @@ public class MemberOpenController {
         ApiResponse response = new ApiResponse(emailService.createEmailToken(findTempMember));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PostConstruct
+    public void initializeDummyData() {
+        createAndSignUpMember("account", "password", "suwon", "nickname", true, "1234");
+        createAndSignUpMember("admin", "1234", "suwonsuwon", "nick", true, "1234");
+    }
+
+    private void createAndSignUpMember(String account, String password, String email, String nickname, boolean isEmailVerified, String roomId) {
+        SignUpRequest request = new SignUpRequest();
+        request.setAccount(account);
+        request.setPassword(password);
+        request.setEmail(email);
+        request.setNickname(nickname);
+        request.setIsEmailVerified(isEmailVerified);
+
+        MemberTemp memberTemp = memberOpenService.signUpMemberTemp(request);
+        memberOpenService.signUpMember(memberTemp);
+        roomSecureService.updateMemberRoomId(memberTemp.getAccount(), roomId);
+    }
+
 
     //이메일 인증 확인 후 회원가입
     @GetMapping("/confirm-email")
