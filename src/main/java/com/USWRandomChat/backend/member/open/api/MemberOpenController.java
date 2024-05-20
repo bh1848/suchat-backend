@@ -66,7 +66,6 @@ public class MemberOpenController {
         roomSecureService.updateMemberRoomId(memberTemp.getAccount(), roomId);
     }
 
-
     //이메일 인증 확인 후 회원가입
     @GetMapping("/confirm-email")
     public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {

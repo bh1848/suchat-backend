@@ -21,42 +21,23 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        if (isSkippedPath(request)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        String accessToken = jwtProvider.resolveAccessToken(request);
-        if (accessToken != null && jwtProvider.validateAccessToken(accessToken)) {
-            Authentication authentication = jwtProvider.getAuthentication(accessToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-        filterChain.doFilter(request, response);
-    }
-
-    //검증 필요 없는 API
-    private boolean isSkippedPath(HttpServletRequest request) {
-        // 검증하지 않을 경로 패턴들
-        String[] skipPaths = {
-                "/open/**",
-                "/stomp/**",
-                "/pub/**",
-                "/sub/**",
-                "/queue/match"
-        };
-
-        for (String path : skipPaths) {
-            if (pathMatcher.match(path, request.getRequestURI())) {
-                return true;
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        try {
+            String accessToken = jwtProvider.resolveAccessToken(request);
+            if (accessToken != null && jwtProvider.validateAccessToken(accessToken)) {
+                Authentication authentication = jwtProvider.getAuthentication(accessToken);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            log.error("JWT 필터 에러: ", e);
+            SecurityContextHolder.clearContext();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            filterChain.doFilter(request, response);
         }
-        return false;
     }
 }

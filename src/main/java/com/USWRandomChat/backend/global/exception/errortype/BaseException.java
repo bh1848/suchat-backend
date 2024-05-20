@@ -12,9 +12,4 @@ public class BaseException extends RuntimeException {
         super(exceptionType.getMessage());
         this.exceptionType = exceptionType;
     }
-
-    public BaseException(String message, Throwable cause) {
-        super(message, cause);
-        this.exceptionType = null;
-    }
 }
