@@ -63,9 +63,10 @@ public enum ExceptionType {
      * Domain : Token
      */
     ACCESS_TOKEN_EXPIRED("TOK-AUTH-401", "엑세스 토큰 만료", UNAUTHORIZED),
-    INVALID_ACCESS_TOKEN("TOK-AUTH-402", "잘못된 엑세스 토큰", BAD_REQUEST),
+    INVALID_ACCESS_TOKEN("TOK-AUTH-402", "잘못된 엑세스 토큰", PAYMENT_REQUIRED),
     REFRESH_TOKEN_EXPIRED("TOK-AUTH-403", "리프레시 토큰 만료", FORBIDDEN),
-    INVALID_REFRESH_TOKEN("TOK-AUTH-404", "잘못된 리프레시 토큰", BAD_REQUEST),
+    INVALID_REFRESH_TOKEN("TOK-AUTH-404", "잘못된 리프레시 토큰", NOT_FOUND),
+    TOKEN_EMPTY("TOK-AUTH-405", "토큰이 비어있음", METHOD_NOT_ALLOWED),
 
     /**
      * Domain : VerificationCode

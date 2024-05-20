@@ -26,7 +26,7 @@ public class AuthenticationService {
     public Member getAuthenticatedMember(HttpServletRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
-            log.error("인증되지 않은 사용자 접근 시도");
+            log.error("인증되지 않은 사용자 접근 시도: {}", request.getRemoteAddr());
             throw new AccountException(ExceptionType.USER_NOT_AUTHENTICATION);
         }
 

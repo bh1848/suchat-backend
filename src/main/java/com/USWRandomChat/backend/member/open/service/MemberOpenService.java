@@ -19,6 +19,7 @@ import com.USWRandomChat.backend.profile.domain.Profile;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,7 @@ public class MemberOpenService {
     private final JwtProvider jwtProvider;
     private final ProfileRepository profileRepository;
     private final EmailTokenRepository emailTokenRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
     //임시 회원가입
     public MemberTemp signUpMemberTemp(SignUpRequest request) {
@@ -124,6 +126,9 @@ public class MemberOpenService {
         String accessToken = jwtProvider.createAccessToken(member.getAccount(), roleNames);
         String refreshToken = jwtProvider.createRefreshToken();
 
+        //기존 리프레시 토큰 삭제
+        deleteExistingRefreshToken(member.getAccount(), response);
+
         //엑세스 토큰을 HTTP 응답 헤더에 추가
         jwtProvider.addAccessTokenToHeader(response, accessToken);
 
@@ -132,6 +137,16 @@ public class MemberOpenService {
 
         log.info("로그인 성공: {}", member.getAccount());
         return new TokenDto(accessToken, refreshToken);
+    }
+
+    //기존 리프레시 토큰 삭제 로직
+    private void deleteExistingRefreshToken(String account, HttpServletResponse response) {
+        //기존 리프레시 토큰을 Redis에서 삭제하고 쿠키에서도 삭제
+        String oldRefreshToken = redisTemplate.opsForValue().get(JwtProvider.REFRESH_TOKEN_PREFIX + account);
+        if (oldRefreshToken != null) {
+            redisTemplate.delete(JwtProvider.REFRESH_TOKEN_PREFIX + oldRefreshToken);
+            jwtProvider.deleteCookie(response);  //기존 쿠키 삭제
+        }
     }
 
     //회원 가입 시의 계정 중복 확인

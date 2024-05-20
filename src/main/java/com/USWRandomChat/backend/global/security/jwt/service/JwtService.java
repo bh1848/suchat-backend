@@ -28,9 +28,10 @@ public class JwtService {
     private final MemberRepository memberRepository;
     private final JwtProvider jwtProvider;
 
-    //access, refresh Token 재발급
+    //토큰 재발급
     @Transactional(readOnly = true)
     public TokenDto renewToken(HttpServletRequest request, HttpServletResponse response) throws RefreshTokenException, AccountException {
+        //쿠키에서 리프레시 토큰 추출
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
         //리프레시 토큰 유효성 검사
@@ -49,7 +50,7 @@ public class JwtService {
         String newAccessToken = jwtProvider.createAccessToken(member.getAccount(), roleNames);
         jwtProvider.addAccessTokenToHeader(response, newAccessToken);
 
-        //리프레시 토큰 재갱신
+        //기존 리프레시 토큰 삭제 및 리프레시 토큰 재갱신
         String newRefreshToken = replaceRefreshToken(response, refreshToken, member.getAccount());
 
         return new TokenDto(newAccessToken, newRefreshToken);
@@ -67,10 +68,14 @@ public class JwtService {
                 .collect(Collectors.toList());
     }
 
-    //리프레시 토큰 재갱신
+    //기존 리프레시 토큰 삭제 및 리프레시 토큰 재갱신
     private String replaceRefreshToken(HttpServletResponse response, String oldRefreshToken, String account) {
-        String newRefreshToken = jwtProvider.createRefreshToken();
+        //기존 리프레시 토큰 삭제
         redisTemplate.delete(JwtProvider.REFRESH_TOKEN_PREFIX + oldRefreshToken);
+        jwtProvider.deleteCookie(response);  //기존 쿠키 삭제
+
+        //새로운 리프레시 토큰 생성
+        String newRefreshToken = jwtProvider.createRefreshToken();
         jwtProvider.addCookieAndSaveTokenInRedis(response, newRefreshToken, account);
         return newRefreshToken;
     }
