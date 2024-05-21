@@ -127,7 +127,7 @@ public class MemberOpenService {
         String refreshToken = jwtProvider.createRefreshToken();
 
         //기존 리프레시 토큰 삭제
-        deleteExistingRefreshToken(member.getAccount(), response);
+        deleteExistingRefreshToken(member.getAccount());
 
         //엑세스 토큰을 HTTP 응답 헤더에 추가
         jwtProvider.addAccessTokenToHeader(response, accessToken);
@@ -140,12 +140,11 @@ public class MemberOpenService {
     }
 
     //기존 리프레시 토큰 삭제 로직
-    private void deleteExistingRefreshToken(String account, HttpServletResponse response) {
+    private void deleteExistingRefreshToken(String account) {
         //기존 리프레시 토큰을 Redis에서 삭제하고 쿠키에서도 삭제
         String oldRefreshToken = redisTemplate.opsForValue().get(JwtProvider.REFRESH_TOKEN_PREFIX + account);
         if (oldRefreshToken != null) {
             redisTemplate.delete(JwtProvider.REFRESH_TOKEN_PREFIX + oldRefreshToken);
-            jwtProvider.deleteCookie(response);  //기존 쿠키 삭제
         }
     }
 
