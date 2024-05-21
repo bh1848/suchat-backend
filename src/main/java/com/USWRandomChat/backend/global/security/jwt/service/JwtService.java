@@ -35,7 +35,6 @@ public class JwtService {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
         //리프레시 토큰 유효성 검사
-        jwtProvider.validateRefreshToken(refreshToken);
         if (!jwtProvider.validateRefreshToken(refreshToken)) {
             throw new RefreshTokenException(ExceptionType.REFRESH_TOKEN_EXPIRED);
         }
@@ -58,7 +57,11 @@ public class JwtService {
 
     //레디스에서 함께 저장된 계정 조회
     private String fetchAccountFromRefreshToken(String refreshToken) throws RefreshTokenException {
-        return redisTemplate.opsForValue().get(JwtProvider.REFRESH_TOKEN_PREFIX + refreshToken);
+        String account = redisTemplate.opsForValue().get(JwtProvider.REFRESH_TOKEN_PREFIX + refreshToken);
+        if (account == null) {
+            throw new RefreshTokenException(ExceptionType.INVALID_REFRESH_TOKEN);
+        }
+        return account;
     }
 
     //권한 확인
@@ -72,7 +75,6 @@ public class JwtService {
     private String replaceRefreshToken(HttpServletResponse response, String oldRefreshToken, String account) {
         //기존 리프레시 토큰 삭제
         redisTemplate.delete(JwtProvider.REFRESH_TOKEN_PREFIX + oldRefreshToken);
-        jwtProvider.deleteCookie(response);  //기존 쿠키 삭제
 
         //새로운 리프레시 토큰 생성
         String newRefreshToken = jwtProvider.createRefreshToken();
