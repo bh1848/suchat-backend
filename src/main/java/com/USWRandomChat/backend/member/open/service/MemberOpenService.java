@@ -132,8 +132,8 @@ public class MemberOpenService {
         //엑세스 토큰을 HTTP 응답 헤더에 추가
         jwtProvider.addAccessTokenToHeader(response, accessToken);
 
-        //리프레시 토큰을 쿠키에 추가하고 Redis에 저장
-        jwtProvider.addCookieAndSaveTokenInRedis(response, refreshToken, member.getAccount());
+        //리프레시 토큰을 헤더에 추가하고 Redis에 저장
+        jwtProvider.addRefreshTokenToHeaderAndSaveInRedis(response, refreshToken, member.getAccount());
 
         log.info("로그인 성공: {}", member.getAccount());
         return new TokenDto(accessToken, refreshToken);
