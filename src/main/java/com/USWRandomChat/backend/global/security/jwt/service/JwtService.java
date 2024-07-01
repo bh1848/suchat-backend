@@ -31,7 +31,7 @@ public class JwtService {
     //토큰 재발급
     @Transactional(readOnly = true)
     public TokenDto renewToken(HttpServletRequest request, HttpServletResponse response) throws RefreshTokenException, AccountException {
-        //쿠키에서 리프레시 토큰 추출
+        //헤더에서 리프레시 토큰 추출
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
         //리프레시 토큰 유효성 검사
@@ -78,7 +78,7 @@ public class JwtService {
 
         //새로운 리프레시 토큰 생성
         String newRefreshToken = jwtProvider.createRefreshToken();
-        jwtProvider.addCookieAndSaveTokenInRedis(response, newRefreshToken, account);
+        jwtProvider.addRefreshTokenToHeaderAndSaveInRedis(response, newRefreshToken, account);
         return newRefreshToken;
     }
 }

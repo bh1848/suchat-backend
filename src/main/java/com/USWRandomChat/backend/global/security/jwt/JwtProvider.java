@@ -31,11 +31,11 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Component
 public class JwtProvider {
-    public static final String COOKIE_NAME = "refreshToken";
+    public static final String REFRESH_TOKEN_HEADER = "RefreshToken";
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
     public static final String REFRESH_TOKEN_PREFIX = "RT:";
-    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 3600000L; //1시간
+    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 1800000L; //30분
     private static final long REFRESH_TOKEN_EXPIRATION_TIME = 1209600000L; //2주
     private final JpaUserDetailsService userDetailsService;
     private final RedisTemplate<String, String> redisTemplate;
@@ -77,10 +77,9 @@ public class JwtProvider {
         response.addHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + accessToken);
     }
     
-    //리프레시 토큰 쿠키 및 레디스 저장
-    public void addCookieAndSaveTokenInRedis(HttpServletResponse response, String refreshToken, String account) {
-        Cookie cookie = createCookie(refreshToken);
-        response.addCookie(cookie);
+    //리프레시 토큰 헤더 추가 및 레디스 저장
+    public void addRefreshTokenToHeaderAndSaveInRedis(HttpServletResponse response, String refreshToken, String account) {
+        response.addHeader(REFRESH_TOKEN_HEADER, refreshToken);
         redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + refreshToken, account, REFRESH_TOKEN_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
     }
     
@@ -139,39 +138,8 @@ public class JwtProvider {
         return null;
     }
     
-    //쿠키에서 리프레시 토큰 추출
+    //헤더에서 리프레시 토큰 추출
     public String resolveRefreshToken(HttpServletRequest request) {
-        return getCookieValue(request);
-    }
-    
-    //쿠키 생성
-    private Cookie createCookie(String value) {
-        Cookie cookie = new Cookie(COOKIE_NAME, value);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        int maxAge = (int) (REFRESH_TOKEN_EXPIRATION_TIME / 1000);
-        cookie.setMaxAge(maxAge);
-        return cookie;
-    }
-    
-    //쿠키 삭제
-    public void deleteCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie(COOKIE_NAME, null);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
-    
-    //요청에 쿠키 포함
-    private String getCookieValue(HttpServletRequest request) {
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (COOKIE_NAME.equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
+        return request.getHeader(REFRESH_TOKEN_HEADER);
     }
 }
