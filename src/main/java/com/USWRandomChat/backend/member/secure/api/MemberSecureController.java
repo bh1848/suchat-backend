@@ -28,8 +28,8 @@ public class MemberSecureController {
 
     //회원 탈퇴
     @DeleteMapping("/withdraw")
-    public ResponseEntity<ApiResponse> withdraw(HttpServletRequest request) {
-        memberSecureService.withdraw(request);
+    public ResponseEntity<ApiResponse> withdraw(HttpServletRequest request, HttpServletResponse response) {
+        memberSecureService.withdraw(request, response);
         return ResponseEntity.ok(new ApiResponse("회원 탈퇴가 완료됐습니다."));
     }
 }

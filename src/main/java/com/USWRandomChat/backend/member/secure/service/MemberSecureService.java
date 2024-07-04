@@ -33,16 +33,29 @@ public class MemberSecureService {
         String refreshToken = jwtProvider.resolveRefreshToken(request);
         if (refreshToken != null && !refreshToken.isBlank()) {
             redisTemplate.delete(JwtProvider.REFRESH_TOKEN_PREFIX + refreshToken);
-            jwtProvider.deleteCookie(response);
+            //헤더에서 리프레시 토큰 삭제
+            response.setHeader(JwtProvider.REFRESH_TOKEN_HEADER, null);
+            response.setHeader(JwtProvider.AUTHORIZATION_HEADER, null);
         } else {
             log.warn("리프레시 토큰이 없습니다.");
             throw new RefreshTokenException(ExceptionType.REFRESH_TOKEN_EXPIRED);
         }
     }
 
-    //회원 탈퇴
-    public void withdraw(HttpServletRequest request) {
+    // 회원 탈퇴
+    public void withdraw(HttpServletRequest request, HttpServletResponse response) {
         Member member = authenticationService.getAuthenticatedMember(request);
+        String refreshToken = jwtProvider.resolveRefreshToken(request);
+        String accessToken = jwtProvider.resolveAccessToken(request);
+
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            redisTemplate.delete(JwtProvider.REFRESH_TOKEN_PREFIX + refreshToken);
+        }
+
+        if (accessToken != null && !accessToken.isBlank()) {
+            response.setHeader(JwtProvider.AUTHORIZATION_HEADER, null);
+        }
+
         jwtRepository.deleteById(member.getAccount());
         memberRepository.deleteById(member.getId());
         log.info("회원 탈퇴 완료: account={}", member.getAccount());
