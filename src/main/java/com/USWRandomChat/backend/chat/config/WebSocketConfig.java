@@ -1,14 +1,17 @@
 package com.USWRandomChat.backend.chat.config;
 
+import com.USWRandomChat.backend.global.exception.ExceptionType;
+import com.USWRandomChat.backend.global.exception.errortype.AccessTokenException;
 import com.USWRandomChat.backend.global.security.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
-import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.security.Principal;
@@ -19,7 +22,6 @@ import java.util.Map;
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    private final ChannelInterceptor channelInterceptor;
     private final JwtProvider jwtProvider;
 
     /*
@@ -32,21 +34,26 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      */
 
     @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
+    public void registerStompEndpoints(StompEndpointRegistry registry) throws AccessTokenException {
         registry.addEndpoint("/stomp")
                 .setAllowedOrigins("*")
                 .setHandshakeHandler(new DefaultHandshakeHandler() {
                     @Override
                     protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
-                        //Handshake 요청에서 JWT 토큰을 추출하여 인증된 사용자로 설정
+                        //클라이언트로부터 엑세스 토큰 받음
                         String accessToken = request.getHeaders().getFirst("Authorization");
                         if (accessToken != null && accessToken.startsWith("Bearer ")) {
                             accessToken = accessToken.substring(7);
-                            //JWT 토큰을 검증하고 사용자 정보를 추출
-                            String username = jwtProvider.getAccount(accessToken);
-                            return new UsernamePasswordAuthenticationToken(username, null, List.of());
+                            //엑세스 토큰 검증
+                            if (jwtProvider.validateAccessToken(accessToken)) {
+                                //엑세스 토큰에서 account 추출
+                                String username = jwtProvider.getAccount(accessToken);
+                                //principal 객체에 account 설정
+                                return new UsernamePasswordAuthenticationToken(username, null, List.of());
+                            }
                         }
-                        return null;
+                        //엑세스 토큰이 없거나 유효하지 않으면 null 반환
+                        throw new AccessTokenException(ExceptionType.ACCESS_TOKEN_EXPIRED);
                     }
                 });
     }
@@ -55,10 +62,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/sub", "/queue/match");
         config.setApplicationDestinationPrefixes("/pub");
-    }
-
-    @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(channelInterceptor);
     }
 }
