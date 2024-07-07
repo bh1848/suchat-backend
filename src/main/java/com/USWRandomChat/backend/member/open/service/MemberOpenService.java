@@ -2,6 +2,7 @@ package com.USWRandomChat.backend.member.open.service;
 
 import com.USWRandomChat.backend.email.domain.EmailToken;
 import com.USWRandomChat.backend.email.repository.EmailTokenRepository;
+import com.USWRandomChat.backend.email.service.EmailService;
 import com.USWRandomChat.backend.global.exception.ExceptionType;
 import com.USWRandomChat.backend.global.exception.errortype.AccountException;
 import com.USWRandomChat.backend.global.exception.errortype.ProfileException;
@@ -43,6 +44,7 @@ public class MemberOpenService {
     private final ProfileRepository profileRepository;
     private final EmailTokenRepository emailTokenRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final EmailService emailService;
 
     //임시 회원가입
     public MemberTemp signUpMemberTemp(SignUpRequest request) {
@@ -64,9 +66,10 @@ public class MemberOpenService {
         return memberTempRepository.findByEmail(tempMember.getEmail());
     }
 
-    //인증 후 회원가입
+    // 이메일 인증
     @Transactional //전체 메서드를 하나의 트랜잭션으로 관리
-    public void signUpMember(MemberTemp memberTemp) {
+    public boolean signUpMember(MemberTemp memberTemp) {
+
         //회원 정보 주입
         Member member = Member.builder()
                 .account(memberTemp.getAccount())
@@ -90,19 +93,18 @@ public class MemberOpenService {
         //임시 회원 데이터 삭제
         memberTempRepository.delete(memberTemp);
         log.info("임시 회원 삭제 완료: {}", member.getAccount());
+
+        return true;
     }
 
-    //회원가입 할 때 이메일 인증 유무 확인
-    @Transactional(readOnly = true)
-    public Boolean signUpFinish(String uuid) {
-        Optional<EmailToken> findEmailToken = emailTokenRepository.findByUuid(uuid);
-        EmailToken emailToken = findEmailToken.orElseThrow(() -> new AccountException(ExceptionType.Email_Token_Not_Found));
+    // 이메일 인증 확인 후 회원가입 완료
+    public boolean signUpFinish(String account) {
 
-        MemberTemp memberTemp = emailToken.getMemberTemp();
+        memberRepository.findByAccount(account)
+                .orElseThrow(() -> new AccountException(ExceptionType.EMAIL_NOT_VERIFIED));
 
-        if (!memberTemp.isEmailVerified()) {
-            throw new AccountException(ExceptionType.EMAIL_NOT_VERIFIED);
-        }
+        log.info("이메일 인증된 회원: {}", account);
+
         return true;
     }
 

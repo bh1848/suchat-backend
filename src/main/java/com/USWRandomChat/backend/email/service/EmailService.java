@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +44,7 @@ public class EmailService {
     }
 
     // 이메일 인증 토큰 생성
-    public String createEmailToken(MemberTemp memberTemp) throws MessagingException {
+    public Map<String, Object> createEmailToken(MemberTemp memberTemp) throws MessagingException {
 
         // 이메일 토큰 저장
         EmailToken emailToken = EmailToken.createEmailToken(memberTemp);
@@ -54,7 +56,11 @@ public class EmailService {
         // 이메일 전송
         sendEmail(mimeMessage);
 
-        return emailToken.getUuid();
+        Map<String, Object> response = new HashMap<>();
+        response.put("uuid", emailToken.getUuid());
+        response.put("account", memberTemp.getAccount());
+
+        return response;
     }
 
     // 이메일 인증 토큰 업데이트
