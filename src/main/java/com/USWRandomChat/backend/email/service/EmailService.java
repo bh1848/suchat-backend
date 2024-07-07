@@ -36,7 +36,7 @@ public class EmailService {
     private static final String CONFIRM_EMAIL_PATH = "/open/member/confirm-email";
 
     // 이메일 토큰 만료 시간
-    private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 1L;
+    private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 5L;
 
     @Async
     public void sendEmail(MimeMessage mimeMessage) {
