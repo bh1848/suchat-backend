@@ -25,6 +25,7 @@ import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -43,8 +44,9 @@ public class MemberOpenController {
     @PostMapping("/sign-up")
     public ResponseEntity<ApiResponse> signUp(@Valid @RequestBody SignUpRequest request) throws MessagingException {
         MemberTemp findTempMember = memberOpenService.signUpMemberTemp(request);
-        ApiResponse response = new ApiResponse(emailService.createEmailToken(findTempMember));
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        Map<String, Object> response = emailService.createEmailToken(findTempMember);
+        ApiResponse apiResponse = new ApiResponse("임시 회원 가입이 되었습니다.", response);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
     @PostConstruct
@@ -66,7 +68,7 @@ public class MemberOpenController {
         roomSecureService.updateMemberRoomId(memberTemp.getAccount(), roomId);
     }
 
-    //이메일 인증 확인 후 회원가입
+    //이메일 인증 확인
     @GetMapping("/confirm-email")
     public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {
         MemberTemp memberTemp = emailService.findByUuid(uuid);
@@ -75,9 +77,9 @@ public class MemberOpenController {
     }
 
     //회원가입 완료
-    @GetMapping("/sign-up-finish")
-    public ResponseEntity<Boolean> signUpFinish(@RequestParam String uuid) {
-        return new ResponseEntity<>(memberOpenService.signUpFinish(uuid), HttpStatus.OK);
+    @PostMapping("/sign-up-finish")
+    public ResponseEntity<Boolean> signUpFinish(@RequestBody MemberDto memberDTO) {
+        return new ResponseEntity<>(memberOpenService.signUpFinish(memberDTO.getAccount()), HttpStatus.OK);
     }
 
     //이메일 재인증
