@@ -11,6 +11,7 @@ import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import com.USWRandomChat.backend.profile.dto.ProfileResponse;
 import com.USWRandomChat.backend.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 @Service
+@Slf4j
+@Transactional
 @RequiredArgsConstructor
 public class ProfileSecureService {
     private static final int NICKNAME_CHANGE_LIMIT_MINUTES = 720; //30일로 지정
@@ -43,24 +46,31 @@ public class ProfileSecureService {
         return new ProfileResponse(profile);
     }
 
-    //자신의 프로필 업데이트
+    // 자신의 프로필 업데이트
     public ProfileResponse updateMyProfile(HttpServletRequest request, ProfileRequest profileRequest) {
         Member member = authenticationService.getAuthenticatedMember(request);
         Profile profile = getProfileById(member.getId());
 
-        //닉네임 변경 로직 검증 및 실행
-        if (!profile.getNickname().equals(profileRequest.getNickname())) {
-            checkNicknameChangeAllowed(profile);
-            checkDuplicateNicknameExceptSelf(profileRequest.getNickname(), member.getId());
-            profile.setNickname(profileRequest.getNickname());
-            profile.setNicknameChangeDate(LocalDateTime.now());
+        // 닉네임 변경 로직 검증 및 실행
+        if (profileRequest.getNickname() != null && !profileRequest.getNickname().isEmpty()) {
+            if (!profile.getNickname().equals(profileRequest.getNickname())) {
+                checkNicknameChangeAllowed(profile);
+                checkDuplicateNicknameExceptSelf(profileRequest.getNickname(), member.getId());
+                profile.setNickname(profileRequest.getNickname());
+                profile.setNicknameChangeDate(LocalDateTime.now());
+            }
         }
 
-        //MBTI와 소개 변경
-        profile.setMbti(profileRequest.getMbti());
-        profile.setIntro(profileRequest.getIntro());
-        profileRepository.save(profile);
+        // MBTI와 소개 변경
+        if (profileRequest.getMbti() != null && !profileRequest.getMbti().isEmpty()) {
+            profile.setMbti(profileRequest.getMbti());
+        }
 
+        if (profileRequest.getIntro() != null && !profileRequest.getIntro().isEmpty()) {
+            profile.setIntro(profileRequest.getIntro());
+        }
+
+        profileRepository.save(profile);
         return new ProfileResponse(profile);
     }
 
