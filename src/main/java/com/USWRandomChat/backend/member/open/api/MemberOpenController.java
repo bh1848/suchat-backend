@@ -12,8 +12,6 @@ import com.USWRandomChat.backend.member.dto.*;
 import com.USWRandomChat.backend.member.open.service.FindAccountService;
 import com.USWRandomChat.backend.member.open.service.MemberOpenService;
 import com.USWRandomChat.backend.member.open.service.PasswordUpdateService;
-import com.USWRandomChat.backend.profile.domain.Profile;
-import com.USWRandomChat.backend.profile.dto.ProfileRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -70,10 +68,11 @@ public class MemberOpenController {
 
     //이메일 인증 확인
     @GetMapping("/confirm-email")
-    public ResponseEntity<Boolean> viewConfirmEmail(@Valid @RequestParam String uuid) {
+    public ResponseEntity<ApiResponse> viewConfirmEmail(@Valid @RequestParam String uuid) {
         MemberTemp memberTemp = emailService.findByUuid(uuid);
         memberOpenService.signUpMember(memberTemp);
-        return new ResponseEntity<>(true, HttpStatus.OK);
+
+        return ResponseEntity.ok(new ApiResponse("인증이 성공되었습니다. 어플 내에서 회원가입 완료를 눌러주세요"));
     }
 
     //회원가입 완료
