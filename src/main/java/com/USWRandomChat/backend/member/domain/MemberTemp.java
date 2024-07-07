@@ -44,7 +44,6 @@ public class MemberTemp {
     @Column(name="NICKNAMECHANGEDATE")
     private LocalDateTime nicknameChangeDate;
 
-    @Setter
     @Column(name="ISEMAILVERIFIED")
     private boolean isEmailVerified;
 

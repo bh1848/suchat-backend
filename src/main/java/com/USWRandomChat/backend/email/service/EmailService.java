@@ -56,8 +56,6 @@ public class EmailService {
         // 이메일 전송
         sendEmail(mimeMessage);
 
-        //return emailToken.getUuid();
-
         Map<String, Object> response = new HashMap<>();
         response.put("uuid", emailToken.getUuid());
         response.put("account", memberTemp.getAccount());
