@@ -16,22 +16,14 @@ public class RoomSecureController {
     private final RoomSecureService roomSecureService;
 
     // 매칭 요청 처리
-    @MessageMapping("/queue/match/in")
-    public void handleMatchRequest(Principal principal) {
-        //principal 객체에 설정된 acoount 가져옴
-        String authenticatedAccount = principal.getName();
-        if (authenticatedAccount != null) {
-            //인증된 사용자를 큐에 추가
-            roomSecureService.addToMatchingQueue(authenticatedAccount);
-        }
+    @MessageMapping("/queue/match/in/{account}")
+    public void handleMatchRequest(@DestinationVariable("account") String account) {
+        roomSecureService.addToMatchingQueue(account);
     }
 
     // 매칭 취소 처리
-    @MessageMapping("/queue/match/cancel")
-    public void handleCancelRequest(Principal principal) {
-        String authenticatedAccount = principal.getName();
-        if (authenticatedAccount != null) {
-            roomSecureService.removeCancelParticipants(authenticatedAccount);
-        }
+    @MessageMapping("/queue/match/cancel/{account}")
+    public void handleCancelRequest(@DestinationVariable("account") String account) {
+        roomSecureService.removeCancelParticipants(account);
     }
 }
