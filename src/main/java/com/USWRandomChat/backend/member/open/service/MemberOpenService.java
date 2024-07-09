@@ -98,14 +98,14 @@ public class MemberOpenService {
     }
 
     // 이메일 인증 확인 후 회원가입 완료
-    public boolean signUpFinish(String account) {
+    public String signUpFinish(String account) {
 
         memberRepository.findByAccount(account)
                 .orElseThrow(() -> new AccountException(ExceptionType.EMAIL_NOT_VERIFIED));
 
         log.info("이메일 인증된 회원: {}", account);
 
-        return true;
+        return "true";
     }
 
     //로그인

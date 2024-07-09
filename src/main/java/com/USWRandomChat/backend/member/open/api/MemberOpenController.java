@@ -77,8 +77,8 @@ public class MemberOpenController {
 
     //회원가입 완료
     @PostMapping("/sign-up-finish")
-    public ResponseEntity<Boolean> signUpFinish(@RequestBody MemberDto memberDTO) {
-        return new ResponseEntity<>(memberOpenService.signUpFinish(memberDTO.getAccount()), HttpStatus.OK);
+    public ResponseEntity<ApiResponse> signUpFinish(@RequestBody MemberDto memberDTO) {
+        return ResponseEntity.ok(new ApiResponse(memberOpenService.signUpFinish(memberDTO.getAccount()), HttpStatus.OK));
     }
 
     //이메일 재인증
