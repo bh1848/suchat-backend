@@ -123,9 +123,10 @@ public class MemberOpenController {
     }
 
     //Account 찾기 로직: 이메일 인증된 회원만
-    @PostMapping(value = "/find-Account")
-    public ResponseEntity<Boolean> findAccount(@RequestParam String email) throws MessagingException {
-        return new ResponseEntity<>(findAccountService.findByAccount(email), HttpStatus.OK);
+    @PostMapping(value = "/find-account")
+    public ResponseEntity<ApiResponse> findAccount(@RequestParam String email) throws MessagingException {
+//        return new ResponseEntity<>(findAccountService.findByAccount(email), HttpStatus.OK);
+        return ResponseEntity.ok(new ApiResponse(findAccountService.findByAccount(email), HttpStatus.OK));
     }
 
     //인증번호 생성 및 전송 요청 처리

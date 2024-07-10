@@ -24,7 +24,7 @@ public class FindAccountService {
     private final MemberRepository memberRepository;
     private final JavaMailSender javaMailSender;
 
-    public boolean findByAccount(String email) throws MessagingException {
+    public String findByAccount(String email) throws MessagingException {
         Member findMember = memberRepository.findByEmail(email);
 
         // 이메일에 해당하는 회원이 없을 때 예외 발생
@@ -42,7 +42,7 @@ public class FindAccountService {
             helper.setFrom("nkdy50315031@gmail.com");
 
             javaMailSender.send(mimeMessage);
-            return true;
+            return "true";
         } catch (MessagingException e){
             e.printStackTrace();
             throw new MailException(SEND_MAIL_FAILED);
