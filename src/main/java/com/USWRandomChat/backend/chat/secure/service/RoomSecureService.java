@@ -88,7 +88,7 @@ public class RoomSecureService {
 
     //매칭 완료
     private void sendMatchingNotification(String account, String chatRoomId) {
-        messagingTemplate.convertAndSend("/queue/match/in/" + account, "매칭이 완료되었습니다. 채팅방 ID: " + chatRoomId);
+        messagingTemplate.convertAndSend("/queue/match/in/" + account, "매칭완료 " + chatRoomId);
         log.info("{} 사용자에게 매칭 메시지 전달 성공", account);
     }
 
