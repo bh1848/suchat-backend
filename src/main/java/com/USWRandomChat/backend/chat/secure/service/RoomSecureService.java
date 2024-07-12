@@ -69,8 +69,8 @@ public class RoomSecureService {
             updateMemberRoomId(participant1, chatRoomId);
             updateMemberRoomId(participant2, chatRoomId);
 
-            sendMatchingNotification(participant1, chatRoomId);
-            sendMatchingNotification(participant2, chatRoomId);
+            sendMatchingNotification(participant1, chatRoomId, participant2);
+            sendMatchingNotification(participant2, chatRoomId, participant1);
 
             log.info("[매칭 결과] 참가자1: {}\t참가자2: {}", participant1, participant2);
 
@@ -87,8 +87,8 @@ public class RoomSecureService {
     }
 
     //매칭 완료
-    private void sendMatchingNotification(String account, String chatRoomId) {
-        messagingTemplate.convertAndSend("/queue/match/in/" + account, "매칭완료 " + chatRoomId);
+    private void sendMatchingNotification(String account, String chatRoomId, String targetAccount) {
+        messagingTemplate.convertAndSend("/queue/match/in/" + account, "매칭완료 " + chatRoomId + " " + targetAccount);
         log.info("{} 사용자에게 매칭 메시지 전달 성공", account);
     }
 
