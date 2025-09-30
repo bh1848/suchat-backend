@@ -55,6 +55,3 @@
   - 만료 토큰 자동 삭제 스케줄러 작성  
 - **공통 응답 구조**
   - Response Wrapper 설계 (Single, List, FormResponse)  
-
-# 실행
-java -jar build/libs/suchat-0.0.1-SNAPSHOT.jar
