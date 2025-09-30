@@ -1,4 +1,4 @@
-# Suchat Backend (랜덤 채팅 서비스)
+# Suchat Backend (수원대학교 랜덤 채팅 서비스)
 
 ## 📌 프로젝트 개요
 **Suchat**은 실시간 랜덤 채팅 서비스를 제공하는 플랫폼으로,  
@@ -12,7 +12,7 @@
 ## 🛠 Tech Stack
 - **Language**: Java 17
 - **Framework**: Spring Boot
-- **Database**: MySQL
+- **Database**: MySQL, Redis
 - **Security**: Spring Security, JWT
 - **Auth**: Email 인증 (토큰 기반)
 - **Build Tool**: Gradle
