@@ -68,7 +68,7 @@ Spring Boot와 JWT 기반 인증 구조를 적용해 안전한 채팅 환경을 
 ## 6. 트러블 슈팅
 
 ### 1. Redis ZSet 및 비동기 기반 논블로킹 매칭 엔진 설계
-[👉 포스트 보러가기](https://bh1848.github.io/hzeror/suchat-redis-zset-async/)
+[👉 포스트 보러가기](https://hzeror.netlify.app/suchat-redis-zset-async/)
 
 - **Situation:**
   - 다중 서버 환경에서 유저 간 매칭 상태 공유가 필요했으며, 일반적인 자료구조 사용 시 매칭 취소 요청 처리에 따른 성능 병목이 우려됨.
@@ -83,7 +83,7 @@ Spring Boot와 JWT 기반 인증 구조를 적용해 안전한 채팅 환경을 
 
 
 ### 2. 하이브리드 토큰 보안 아키텍처: Redis RTR 도입
-[👉 포스트 보러가기](https://bh1848.github.io/hzeror/suchat-jwt-redis-rtr/)
+[👉 포스트 보러가기](https://hzeror.netlify.app/suchat-jwt-redis-rtr/)
 
 - **Situation:** Stateless 기반 JWT 도입 시, 토큰이 탈취되더라도 서버 측에서 이를 강제로 무효화할 수 없는 구조적 보안 취약점이 존재함.
 - **Task:**
@@ -97,7 +97,7 @@ Spring Boot와 JWT 기반 인증 구조를 적용해 안전한 채팅 환경을 
   - 전통적인 세션 방식 대비 성능 저하를 최소화($\mathcal{O}(1)$ 연산)하면서 강력한 보안 인증망을 구축함.
  
 ### 3. @Scheduled 기반 자동 클리닝으로 Ghost Data 제거
-[👉 포스트 보러가기](https://bh1848.github.io/hzeror/shchat-ghost-data-scheduled/)
+[👉 포스트 보러가기](https://hzeror.netlify.app/shchat-ghost-data-scheduled/)
 
 - **Situation:**
   - 수챗(Suchat) 프로젝트의 회원가입은 이메일 인증을 완료해야 정식 회원으로 인정되는 2단계 구조를 가짐.
