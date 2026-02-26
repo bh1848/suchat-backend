@@ -60,26 +60,20 @@ Spring Boot와 JWT 기반 인증 구조를 적용해 안전한 채팅 환경을 
 
 ## 6. 트러블 슈팅
 
-### 1. Redis ZSet 및 비동기 기반 논블로킹 매칭 엔진 설계
-
+### [1. Redis ZSet 및 비동기 기반 논블로킹 매칭 엔진 설계](https://hzeror.netlify.app/suchat-redis-zset-async/)
 - **문제**: 분산 환경의 매칭 상태 공유가 필요했으나, 일반 Queue 사용 시 매칭 취소 요청 처리를 위한 탐색 및 삭제 복잡도가 높아 성능 병목이 예상됨. 또한 매칭 로직을 동기 방식으로 처리할 경우 사용자 유입 증가 시 서블릿 스레드 점유 시간이 길어져 시스템 전체 응답 지연 발생.
 - **해결**: **Redis ZSet으로 매칭 대기열을 관리하여 취소 연산을 $\mathcal{O}(\log N)$으로 최적화하고, `@Async`를 활용해 매칭 로직을 별도 스레드 풀로 격리하여 클라이언트 응답 블로킹을 차단함.**
 - **결과**: 큐 진입 직후 즉시 응답을 반환하여 사용자 체감 속도를 개선했으며, 분산 환경에서도 안정적인 실시간 매칭 시스템 구축. 동기 처리 대비 워커 스레드 효율을 높여 피크 타임 처리량(Throughput) 극대화.
-- [👉 상세 리포트 보러가기](https://hzeror.netlify.app/suchat-redis-zset-async/)
 
-### 2. Redis RTR 기반 하이브리드 토큰 보안 체계 구축
-
+### [2. Redis RTR 기반 하이브리드 토큰 보안 체계 구축](https://hzeror.netlify.app/suchat-jwt-redis-rtr/)
 - **문제**: Stateless한 JWT 특성상 토큰 탈취 시 서버 측에서 해당 세션을 즉시 무효화할 수 없어 보안 리스크가 존재함.
 - **해결**: **Access Token의 수명을 단축하고 Redis에 Refresh Token을 저장하여 재발급 시마다 토큰을 갱신하는 RTR(Rotation) 및 화이트리스트 검증을 도입함으로써 서버의 세션 통제권을 확보함.**
 - **결과**: JWT의 확장성을 유지하면서도 탈취 토큰 실시간 차단 등 세션 방식 수준의 보안 인증망 구축. Redis 기반의 $\mathcal{O}(1)$ 검증 연산으로 인증 과정의 성능 저하 최소화.
-- [👉 상세 리포트 보러가기](https://hzeror.netlify.app/suchat-jwt-redis-rtr/)
 
-### 3. @Scheduled 기반 유령 데이터(Ghost Data) 자동 정리
-
+### [3. @Scheduled 기반 유령 데이터(Ghost Data) 자동 정리](https://hzeror.netlify.app/shchat-ghost-data-scheduled/)
 - **문제**: 가입 중단 및 인증 실패 유저의 임시 데이터가 DB에 무한 적재되어 스토리지 낭비와 식별자 충돌로 인한 재가입 불가 문제 발생.
 - **해결**: **Spring `@Scheduled`를 활용해 1분 주기로 만료 데이터를 추적·삭제하는 자동 클리닝 파이프라인을 구축하고, `@Transactional`을 적용해 삭제 과정의 데이터 무결성을 보장함.**
 - **결과**: 불필요한 유령 데이터를 상시 제거하여 DB 공간 효율성을 최적화함. 가입 이탈자의 재가입 불가 문제를 선제적으로 해결하여 시스템 안정성 및 사용자 경험(UX) 개선.
-- [👉 상세 리포트 보러가기](https://hzeror.netlify.app/shchat-ghost-data-scheduled/)
 
 <br/>
 
