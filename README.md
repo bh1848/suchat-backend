@@ -1,4 +1,4 @@
-# Suchat
+# 💬 수챗
 ![suchat overview](./docs/images/suchat_overview.png)
 
 ## 1. 프로젝트 소개
