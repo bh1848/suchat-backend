@@ -1,5 +1,9 @@
 # 💬 수챗
-![suchat overview](./docs/images/suchat_overview.png)
+
+<p align="left">
+  <img src="./docs/images/suchat_overview.png" width="50%" alt="suchat overview" />
+</p>
+
 
 ## 1. 프로젝트 소개
 Suchat은 수원대학교 학생들을 위한 랜덤 채팅 서비스입니다.  
