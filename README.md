@@ -1,4 +1,4 @@
-# 💬 수챗
+# 수챗
 
 <p align="left">
   <img src="./docs/images/suchat_overview.png" width="50%" alt="suchat overview" />
